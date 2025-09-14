@@ -6,34 +6,34 @@ export function LyricsStyleEditor() {
   const [activeTab, setActiveTab] = useState('lyrics');
 
   return (
-    <div className="lyrics-style-editor h-full flex flex-col bg-slate-800/50 border-r border-slate-700">
+    <div className="lyrics-style-editor h-full flex flex-col">
       {/* Tab Navigation */}
-      <div className="tab-navigation flex border-b border-slate-700">
+      <div className="tab-navigation flex border-b border-slate-700/50">
         <button
-          className={`px-4 py-3 text-sm font-medium transition-colors ${
+          className={`px-6 py-4 text-sm font-medium transition-all duration-200 ${
             activeTab === 'lyrics'
-              ? 'text-white border-b-2 border-purple-500 bg-slate-700/50'
-              : 'text-slate-400 hover:text-white'
+              ? 'text-white border-b-2 border-purple-500 bg-slate-700/30'
+              : 'text-slate-400 hover:text-white hover:bg-slate-700/20'
           }`}
           onClick={() => setActiveTab('lyrics')}
         >
           📝 Lyrics
         </button>
         <button
-          className={`px-4 py-3 text-sm font-medium transition-colors ${
+          className={`px-6 py-4 text-sm font-medium transition-all duration-200 ${
             activeTab === 'style'
-              ? 'text-white border-b-2 border-purple-500 bg-slate-700/50'
-              : 'text-slate-400 hover:text-white'
+              ? 'text-white border-b-2 border-purple-500 bg-slate-700/30'
+              : 'text-slate-400 hover:text-white hover:bg-slate-700/20'
           }`}
           onClick={() => setActiveTab('style')}
         >
           🎨 Style
         </button>
         <button
-          className={`px-4 py-3 text-sm font-medium transition-colors ${
+          className={`px-6 py-4 text-sm font-medium transition-all duration-200 ${
             activeTab === 'generate'
-              ? 'text-white border-b-2 border-purple-500 bg-slate-700/50'
-              : 'text-slate-400 hover:text-white'
+              ? 'text-white border-b-2 border-purple-500 bg-slate-700/30'
+              : 'text-slate-400 hover:text-white hover:bg-slate-700/20'
           }`}
           onClick={() => setActiveTab('generate')}
         >

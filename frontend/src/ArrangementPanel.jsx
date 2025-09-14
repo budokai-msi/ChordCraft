@@ -61,13 +61,16 @@ export function ArrangementPanel() {
   };
 
   return (
-    <div className="arrangement-panel bg-slate-800/50 border-b border-slate-700 p-4">
+    <div className="arrangement-panel bg-slate-800/30 border-b border-slate-700/50 px-6 py-4">
       <div className="flex items-center justify-between">
         {/* Left side - Song info */}
-        <div className="flex items-center gap-4">
-          <h3 className="text-lg font-semibold text-white">Arrangement</h3>
-          <div className="flex items-center gap-2 text-sm text-slate-400">
-            <span>{state.blocks.length} sections</span>
+        <div className="flex items-center gap-6">
+          <h3 className="text-xl font-semibold text-white">Arrangement</h3>
+          <div className="flex items-center gap-4 text-sm text-slate-400">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              <span>{state.blocks.length} sections</span>
+            </div>
             <span>•</span>
             <span>{state.timeline.totalDuration.toFixed(1)}s</span>
             <span>•</span>

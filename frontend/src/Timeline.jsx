@@ -98,21 +98,21 @@ export function Timeline() {
   return (
     <div className="timeline-container h-full flex flex-col">
       {/* Timeline Header */}
-      <div className="timeline-header bg-slate-800/50 border-b border-slate-700 p-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h3 className="text-lg font-semibold text-white">Timeline</h3>
-          <div className="flex items-center gap-2">
+      <div className="timeline-header bg-slate-800/30 border-b border-slate-700/50 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          <h3 className="text-xl font-semibold text-white">Timeline</h3>
+          <div className="flex items-center gap-3">
             <span className="text-sm text-slate-400">BPM:</span>
             <input
               type="number"
               value={state.timeline.bpm}
               onChange={(e) => actions.setBpm(parseInt(e.target.value))}
-              className="w-16 px-2 py-1 bg-slate-700 border border-slate-600 rounded text-white text-sm"
+              className="w-20 px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500"
               min="60"
               max="200"
             />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <span className="text-sm text-slate-400">Zoom:</span>
             <input
               type="range"
@@ -121,28 +121,31 @@ export function Timeline() {
               step="0.1"
               value={state.timeline.zoom}
               onChange={(e) => actions.setZoom(parseFloat(e.target.value))}
-              className="w-20"
+              className="w-24 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+              style={{
+                background: `linear-gradient(to right, #7c3aed 0%, #7c3aed ${(state.timeline.zoom - 0.1) / 4.9 * 100}%, #374151 ${(state.timeline.zoom - 0.1) / 4.9 * 100}%, #374151 100%)`
+              }}
             />
-            <span className="text-xs text-slate-400">{state.timeline.zoom.toFixed(1)}x</span>
+            <span className="text-sm text-slate-400 font-medium">{state.timeline.zoom.toFixed(1)}x</span>
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button
             onClick={actions.play}
-            className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm font-medium transition-colors"
+            className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white rounded-xl text-sm font-medium transition-all transform hover:scale-105"
           >
             ▶️ Play
           </button>
           <button
             onClick={actions.pause}
-            className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 text-white rounded-lg text-sm font-medium transition-colors"
+            className="px-4 py-2 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 text-white rounded-xl text-sm font-medium transition-all transform hover:scale-105"
           >
             ⏸️ Pause
           </button>
           <button
             onClick={actions.stop}
-            className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm font-medium transition-colors"
+            className="px-4 py-2 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 text-white rounded-xl text-sm font-medium transition-all transform hover:scale-105"
           >
             ⏹️ Stop
           </button>
@@ -152,7 +155,7 @@ export function Timeline() {
       {/* Timeline Canvas */}
       <div
         ref={timelineRef}
-        className="timeline-canvas flex-1 relative overflow-x-auto overflow-y-hidden bg-slate-900/30"
+        className="timeline-canvas flex-1 relative overflow-x-auto overflow-y-hidden bg-slate-900/20"
         onWheel={handleWheel}
         style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
       >
@@ -194,37 +197,40 @@ function TimelineBlock({ block, pixelsPerSecond, trackIndex, isSelected, onBlock
 
   return (
     <div
-      className={`timeline-block absolute rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+      className={`timeline-block absolute rounded-2xl border-2 cursor-pointer transition-all duration-300 group ${
         isSelected 
-          ? 'border-white shadow-lg shadow-purple-500/50' 
-          : 'border-slate-600 hover:border-slate-400'
+          ? 'border-white shadow-2xl shadow-purple-500/50 scale-105' 
+          : 'border-slate-600/50 hover:border-slate-400 hover:scale-102'
       }`}
       style={{
         left: blockLeft,
         top: trackTop,
         width: blockWidth,
-        height: 40,
-        backgroundColor: block.color + '40',
-        borderColor: isSelected ? 'white' : block.color
+        height: 48,
+        background: `linear-gradient(135deg, ${block.color}40, ${block.color}20)`,
+        borderColor: isSelected ? 'white' : block.color + '80',
+        boxShadow: isSelected 
+          ? `0 0 20px ${block.color}60, 0 0 40px ${block.color}40` 
+          : `0 4px 12px ${block.color}20`
       }}
       onClick={() => onBlockClick(block.id)}
       onMouseDown={(e) => onMouseDown(e, block.id)}
     >
       {/* Block content */}
-      <div className="h-full flex items-center justify-between px-3">
+      <div className="h-full flex items-center justify-between px-4">
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium text-white truncate">
+          <div className="text-sm font-semibold text-white truncate">
             {block.title}
           </div>
-          <div className="text-xs text-slate-300 truncate">
+          <div className="text-xs text-slate-200/80 truncate">
             {block.type} • {block.duration.toFixed(1)}s
           </div>
         </div>
         
         {/* Block controls */}
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
           <button
-            className="w-6 h-6 bg-slate-700 hover:bg-slate-600 rounded text-white text-xs"
+            className="w-7 h-7 bg-slate-700/80 hover:bg-slate-600 rounded-lg text-white text-xs flex items-center justify-center backdrop-blur-sm"
             onClick={(e) => {
               e.stopPropagation();
               // Handle play block
@@ -233,7 +239,7 @@ function TimelineBlock({ block, pixelsPerSecond, trackIndex, isSelected, onBlock
             ▶️
           </button>
           <button
-            className="w-6 h-6 bg-slate-700 hover:bg-slate-600 rounded text-white text-xs"
+            className="w-7 h-7 bg-slate-700/80 hover:bg-slate-600 rounded-lg text-white text-xs flex items-center justify-center backdrop-blur-sm"
             onClick={(e) => {
               e.stopPropagation();
               // Handle duplicate block
@@ -246,12 +252,17 @@ function TimelineBlock({ block, pixelsPerSecond, trackIndex, isSelected, onBlock
       
       {/* Resize handles */}
       <div
-        className="absolute right-0 top-0 w-2 h-full cursor-ew-resize bg-slate-600 hover:bg-slate-500 rounded-r"
+        className="absolute right-0 top-0 w-3 h-full cursor-ew-resize bg-slate-600/50 hover:bg-slate-500/50 rounded-r-2xl opacity-0 group-hover:opacity-100 transition-opacity"
         onMouseDown={(e) => {
           e.stopPropagation();
           // Handle resize
         }}
       />
+      
+      {/* Selection indicator */}
+      {isSelected && (
+        <div className="absolute -top-1 -left-1 w-3 h-3 bg-white rounded-full shadow-lg"></div>
+      )}
     </div>
   );
 }
