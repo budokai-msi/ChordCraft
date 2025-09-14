@@ -101,7 +101,6 @@ export function Studio() {
             const material = new window.THREE.MeshPhysicalMaterial({
                 roughness: 0.1,
                 transmission: 1.0,
-                thickness: 0.8,
                 ior: 1.5,
             });
             prism = new window.THREE.Mesh(geometry, material);
@@ -247,7 +246,9 @@ export function Studio() {
         
         try {
             // Use your deployed Vercel backend API
-            const apiUrl = 'https://chord-craft-git-main-budokai-msis-projects.vercel.app/api/analyze';
+            const apiUrl = process.env.NODE_ENV === 'production' 
+                ? 'https://chord-craft-l32h.vercel.app/api/analyze'
+                : 'http://localhost:5000/analyze';
 
             console.log('Sending request to:', apiUrl);
 
@@ -335,8 +336,7 @@ export function Studio() {
             id: projectId, 
             user_id: user.id, 
             title: projectTitle.trim(), 
-            code_content: chordCraftCode,
-            created_at: projectId ? undefined : new Date().toISOString()
+            code_content: chordCraftCode
         };
         
         try {
@@ -416,7 +416,9 @@ export function Studio() {
         setError('');
         
         try {
-            const apiUrl = 'https://chord-craft-git-main-budokai-msis-projects.vercel.app/api/generate-music';
+            const apiUrl = process.env.NODE_ENV === 'production' 
+                ? 'https://chord-craft-l32h.vercel.app/api/generate-music'
+                : 'http://localhost:5000/generate-music';
             
             const response = await axios.post(apiUrl, { code }, {
                 headers: { 'Content-Type': 'application/json' },
