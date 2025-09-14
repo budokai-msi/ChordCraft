@@ -66,7 +66,7 @@ export function Login() {
                 </button>
                 {error && <p className="mt-4 text-center text-red-400">{error}</p>}
             </form>
-            <p className="text-center text-gray-404 mt-6 text-sm">
+            <p className="text-center text-gray-400 mt-6 text-sm">
                 {isSigningUp ? 'Already have an account?' : "Don't have an account?"}
                 <button onClick={() => setIsSigningUp(!isSigningUp)} className="text-cyan-400 hover:underline ml-2">
                     {isSigningUp ? 'Sign In' : 'Sign Up'}

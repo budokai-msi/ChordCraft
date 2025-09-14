@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from werkzeug.utils import secure_filename
 import os
 import logging
 import random
@@ -83,13 +84,16 @@ def handle_audio_upload():
     
     if file:
         # Save the file (optional, for demo we just use the filename)
-        temp_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        filename = secure_filename(file.filename)
+        if not filename:
+            return jsonify({"error": "Invalid filename", "success": False}), 400
+        temp_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(temp_path)
-        logger.info(f"Processing file: {file.filename}")
+        logger.info(f"Processing file: {filename}")
         
         try:
             # Generate simple code based on file characteristics
-            generated_code = generate_simple_code(file.filename)
+            generated_code = generate_simple_code(filename)
             
             # Clean up the uploaded file
             if os.path.exists(temp_path):

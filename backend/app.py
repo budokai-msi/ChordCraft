@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from werkzeug.utils import secure_filename
 import librosa
 import numpy as np
 import os
@@ -71,7 +72,7 @@ def analyze_audio(audio_path):
             pitch_hz = f0[frame_index]
             note_name = "N/A"
 
-            if voiced_flag[frame_index]:
+            if voiced_flag[frame_index] and not (pitch_hz is None or np.isnan(pitch_hz)):
                 note_name = librosa.hz_to_note(pitch_hz)
 
             # --- DURATION CALCULATION LOGIC ---
@@ -116,9 +117,12 @@ def handle_audio_upload():
         return jsonify({"error": "No selected file", "success": False}), 400
     
     if file:
-        temp_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        filename = secure_filename(file.filename)
+        if not filename:
+            return jsonify({"error": "Invalid filename", "success": False}), 400
+        temp_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(temp_path)
-        logger.info(f"Analyzing file: {file.filename}")
+        logger.info(f"Analyzing file: {filename}")
         
         try:
             generated_code = analyze_audio(temp_path)
