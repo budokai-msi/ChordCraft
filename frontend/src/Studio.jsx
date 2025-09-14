@@ -6,6 +6,8 @@ import 'prismjs/themes/prism-okaidia.css';
 import { chordCraftGrammar } from './chordcraft.grammar.js';
 import { useAuth } from './Auth';
 import { supabase } from './supabaseClient';
+import { TimelineProvider } from './TimelineContext';
+import { TimelineStudio } from './TimelineStudio';
 
 if (languages.chordcraft === undefined) { 
     languages.chordcraft = chordCraftGrammar; 
@@ -24,6 +26,7 @@ const noteToFreq = (note) => {
 
 export function Studio() {
     const { user, signOut } = useAuth();
+    const [viewMode, setViewMode] = useState('timeline'); // 'timeline' or 'classic'
     const [selectedFile, setSelectedFile] = useState(null);
     const [chordCraftCode, setChordCraftCode] = useState('// Upload an audio file to generate ChordCraft code...\n// Or start coding your own musical creation!');
     const [isLoading, setIsLoading] = useState(false);
@@ -246,7 +249,7 @@ export function Studio() {
         
         try {
             // Use your deployed Vercel backend API
-            const apiUrl = process.env.NODE_ENV === 'production' 
+            const apiUrl = import.meta.env.PROD 
                 ? 'https://chord-craft-l32h.vercel.app/api/analyze'
                 : 'http://localhost:5000/analyze';
 
@@ -416,7 +419,7 @@ export function Studio() {
         setError('');
         
         try {
-            const apiUrl = process.env.NODE_ENV === 'production' 
+            const apiUrl = import.meta.env.PROD 
                 ? 'https://chord-craft-l32h.vercel.app/api/generate-music'
                 : 'http://localhost:5000/generate-music';
             
@@ -445,6 +448,44 @@ export function Studio() {
             setIsGeneratingMusic(false);
         }
     };
+
+    // If timeline view is selected, render the Timeline Studio
+    if (viewMode === 'timeline') {
+        return (
+            <TimelineProvider>
+                <div className="h-screen w-full relative">
+                    {/* View Toggle */}
+                    <div className="absolute top-4 right-4 z-50">
+                        <div className="glass-pane p-2 rounded-lg">
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setViewMode('timeline')}
+                                    className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
+                                        viewMode === 'timeline'
+                                            ? 'bg-purple-600 text-white'
+                                            : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
+                                    }`}
+                                >
+                                    🎼 Timeline
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('classic')}
+                                    className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
+                                        viewMode === 'classic'
+                                            ? 'bg-purple-600 text-white'
+                                            : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
+                                    }`}
+                                >
+                                    🎵 Classic
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <TimelineStudio />
+                </div>
+            </TimelineProvider>
+        );
+    }
 
     return (
         <>
@@ -516,7 +557,35 @@ export function Studio() {
             <div className="min-h-screen w-full flex flex-col items-center p-4 relative z-10" style={{fontFamily: 'Sora, sans-serif', backgroundColor: '#000000', color: '#f1f5f9', paddingBottom: '120px'}}>
                 
                 {/* AuraOS Header */}
-                <header className="text-center my-16 flex-shrink-0">
+                <header className="text-center my-16 flex-shrink-0 relative">
+                    {/* View Toggle */}
+                    <div className="absolute top-0 right-0">
+                        <div className="glass-pane p-2 rounded-lg">
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setViewMode('timeline')}
+                                    className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
+                                        viewMode === 'timeline'
+                                            ? 'bg-purple-600 text-white'
+                                            : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
+                                    }`}
+                                >
+                                    🎼 Timeline
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('classic')}
+                                    className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
+                                        viewMode === 'classic'
+                                            ? 'bg-purple-600 text-white'
+                                            : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
+                                    }`}
+                                >
+                                    🎵 Classic
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <h1 className="text-7xl font-bold tracking-tighter text-white">
                         <span className="text-glow">ChordCraft</span>
                     </h1>
