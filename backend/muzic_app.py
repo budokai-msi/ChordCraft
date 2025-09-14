@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from werkzeug.utils import secure_filename
 import os
 import logging
 import re
@@ -336,13 +337,16 @@ def handle_audio_upload():
         return jsonify({"error": "No selected file", "success": False}), 400
     
     if file:
-        temp_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        filename = secure_filename(file.filename)
+        if not filename:
+            return jsonify({"error": "Invalid filename", "success": False}), 400
+        temp_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(temp_path)
-        logger.info(f"Analyzing audio file: {file.filename}")
+        logger.info(f"Analyzing audio file: {filename}")
         
         try:
             # Generate ChordCraft code using Muzic-inspired analysis
-            generated_code = muzic_analyzer.analyze_audio_to_code(file.filename)
+            generated_code = muzic_analyzer.analyze_audio_to_code(filename)
             
             # Clean up
             if os.path.exists(temp_path):

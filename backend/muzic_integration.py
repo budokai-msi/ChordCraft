@@ -307,7 +307,9 @@ class MuzicEnhancedAnalyzer:
                     
                     # Add harmonic context
                     chord_context = self._get_chord_context(
-                        onset_time, analysis['harmonic_analysis']['chord_progressions']
+                        onset_time,
+                        analysis['harmonic_analysis']['chord_progressions'],
+                        beats=np.array(beats)
                     )
                     
                     if duration > 0.05:  # Filter very short notes
@@ -336,16 +338,24 @@ class MuzicEnhancedAnalyzer:
         # Reasonable limits
         return max(0.1, min(duration, 4.0))
     
-    def _get_chord_context(self, time, chord_progression):
-        """Get chord context for a given time"""
+    def _get_chord_context(self, time, chord_progression, beats=None):
+        """Get chord context for a given time using beat grid if available"""
         if not chord_progression:
             return "Unknown"
-        
-        # Simple mapping - in real implementation, this would be more sophisticated
-        chord_idx = int(time * len(chord_progression) / 10)  # Assume 10s total
+
+        # If beat positions are available, map chords to beat segments
+        if beats is not None and len(beats) > 1:
+            total_beats = len(beats)
+            beat_idx = np.searchsorted(beats, time, side='right') - 1
+            beat_idx = max(0, min(beat_idx, total_beats - 1))
+            chord_idx = int(beat_idx / max(1, total_beats) * len(chord_progression))
+            chord_idx = min(chord_idx, len(chord_progression) - 1)
+            return chord_progression[chord_idx]
+
+        # Fallback: even segmentation across total duration estimate
+        chord_idx = int(time * len(chord_progression) / 10)
         chord_idx = min(chord_idx, len(chord_progression) - 1)
-        
-        return chord_progression[chord_idx] if chord_progression else "Unknown"
+        return chord_progression[chord_idx]
 
 
 # Utility functions for Muzic integration
