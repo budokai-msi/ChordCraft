@@ -44,9 +44,10 @@ export function Studio() {
             if (user) {
                 try {
                     const { data, error } = await supabase
-                        .from('projects')
-                        .select('id, title, created_at')
-                        .order('created_at', { ascending: false });
+                        .from('chordcraft_projects')
+                        .select('id, title, description, created_at, updated_at')
+                        .eq('user_id', user.id)
+                        .order('updated_at', { ascending: false });
                     if (error) {
                         console.error('Error fetching projects:', error);
                     } else {
@@ -59,6 +60,28 @@ export function Studio() {
         };
         fetchProjects();
     }, [user]);
+
+    // Test connection to new violet book database
+    useEffect(() => {
+        const testConnection = async () => {
+            try {
+                console.log('🔍 Testing Supabase violet book connection...');
+                const { data, error } = await supabase
+                    .from('chordcraft_projects')
+                    .select('count', { count: 'exact' });
+                    
+                if (error) {
+                    console.error('❌ Supabase connection failed:', error);
+                } else {
+                    console.log('✅ Connected to violet book project! Total projects:', data);
+                }
+            } catch (err) {
+                console.error('❌ Connection error:', err);
+            }
+        };
+        
+        testConnection();
+    }, []);
 
     const handleFileChange = (event) => {
         const file = event.target.files[0];
@@ -215,7 +238,7 @@ export function Studio() {
         };
         
         try {
-            const { data, error } = await supabase.from('projects').upsert(projectData).select();
+            const { data, error } = await supabase.from('chordcraft_projects').upsert(projectData).select();
             if (error) {
                 setSaveStatus('Error saving project.');
                 console.error('Error saving to Supabase:', error);
@@ -225,9 +248,10 @@ export function Studio() {
                     setProjectId(data[0].id);
                     // Refresh project list
                     const { data: updatedProjects } = await supabase
-                        .from('projects')
-                        .select('id, title, created_at')
-                        .order('created_at', { ascending: false });
+                        .from('chordcraft_projects')
+                        .select('id, title, description, created_at, updated_at')
+                        .eq('user_id', user.id)
+                        .order('updated_at', { ascending: false });
                     setProjects(updatedProjects || []);
                 }
             }
@@ -250,9 +274,10 @@ export function Studio() {
         
         try {
             const { data, error } = await supabase
-                .from('projects')
+                .from('chordcraft_projects')
                 .select('*')
                 .eq('id', selectedProjectId)
+                .eq('user_id', user.id)
                 .single();
                 
             if (error) {

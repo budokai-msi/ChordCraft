@@ -1,10 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Your project's unique Supabase URL
-const supabaseUrl = 'https://bczzlvhjaorneddwhisd.supabase.co'
+// Your NEW violet book project's unique Supabase URL
+const supabaseUrl = 'https://wgofqkisiqkygpnliuwl.supabase.co'
 
-// Your project's public anon key. This is safe to expose in a browser client.
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjenpsdmhqYW9ybmVkZHdoaXNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3ODQyNzYsImV4cCI6MjA3MzM2MDI3Nn0.ytP7-p-NZXiynHAY_ZSHiVcmvgltSMCt8P_rLpfVikg'
+// Your NEW project's public anon key
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indnb2Zxa2lzaXFreWdwbmxpdXdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4ODE4MzEsImV4cCI6MjA3MzQ1NzgzMX0.DcqJ7XNAkMiOT-3Vnlmvua84wNqahgfd3JQ9wpTW-yg'
 
 // Create and export the Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
