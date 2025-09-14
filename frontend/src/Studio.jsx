@@ -554,212 +554,220 @@ export function Studio() {
             {/* Hue Border */}
             <div className="hue-border" />
 
-            <div className="min-h-screen w-full flex flex-col items-center p-4 relative z-10" style={{fontFamily: 'Sora, sans-serif', backgroundColor: '#000000', color: '#f1f5f9', paddingBottom: '120px'}}>
+            <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 relative z-10" style={{fontFamily: 'Sora, sans-serif', backgroundColor: '#000000', color: '#f1f5f9'}}>
                 
-                {/* AuraOS Header */}
-                <header className="text-center my-16 flex-shrink-0 relative">
-                    {/* View Toggle */}
-                    <div className="absolute top-0 right-0">
-                        <div className="glass-pane p-2 rounded-lg">
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => setViewMode('timeline')}
-                                    className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
-                                        viewMode === 'timeline'
-                                            ? 'bg-purple-600 text-white'
-                                            : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
-                                    }`}
-                                >
-                                    🎼 Timeline
-                                </button>
-                                <button
-                                    onClick={() => setViewMode('classic')}
-                                    className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
-                                        viewMode === 'classic'
-                                            ? 'bg-purple-600 text-white'
-                                            : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
-                                    }`}
-                                >
-                                    🎵 Classic
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <h1 className="text-7xl font-bold tracking-tighter text-white">
-                        <span className="text-glow">ChordCraft</span>
-                    </h1>
-                    <p className="text-slate-400 mt-4 text-lg">AI-Powered Music Studio</p>
-                    <p className="text-slate-500 text-sm mt-2">Welcome, {user?.email}</p>
-                </header>
-
-            <main className="w-full max-w-6xl space-y-8">
-                {/* Project Management */}
-                <section className="section w-full">
-                    <label className="block text-sm font-semibold text-slate-300 mb-4 text-center">Project Management</label>
-                    <div className="glass-pane p-8">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <select 
-                                onChange={(e) => handleLoadProject(e.target.value)} 
-                                value={projectId || ""} 
-                                className="p-4 bg-slate-900/50 border border-slate-700 text-white rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                {/* View Toggle */}
+                <div className="absolute top-6 right-6 z-20">
+                    <div className="glass-pane p-1 rounded-2xl">
+                        <div className="flex gap-1">
+                            <button
+                                onClick={() => setViewMode('timeline')}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-200 ${
+                                    viewMode === 'timeline'
+                                        ? 'bg-purple-600 text-white shadow-lg'
+                                        : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50'
+                                }`}
                             >
-                                <option value="">-- Create New Project --</option>
-                                {projects.map((project) => (
-                                    <option key={project.id} value={project.id}>
-                                        {project.title}
-                                    </option>
-                                ))}
-                            </select>
-                            <input 
-                                type="text" 
-                                value={projectTitle} 
-                                onChange={(e) => setProjectTitle(e.target.value)} 
-                                placeholder="Project Title" 
-                                className="p-4 bg-slate-900/50 border border-slate-700 text-white rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all placeholder-slate-400" 
-                            />
-                            <button 
-                                onClick={handleSaveProject} 
-                                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-4 px-6 rounded-2xl transition-all transform hover:scale-105"
+                                🎼 Timeline
+                            </button>
+                            <button
+                                onClick={() => setViewMode('classic')}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-200 ${
+                                    viewMode === 'classic'
+                                        ? 'bg-purple-600 text-white shadow-lg'
+                                        : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50'
+                                }`}
                             >
-                                ✨ Save Project
+                                🎵 Classic
                             </button>
                         </div>
-                        {saveStatus && <p className="text-sm text-center text-green-400 mt-4 bg-green-900/20 p-3 rounded-2xl">{saveStatus}</p>}
                     </div>
-                </section>
+                </div>
 
-                {/* Audio Input */}
-                <section className="section w-full">
-                    <label className="block text-sm font-semibold text-slate-300 mb-4 text-center">Audio to Code</label>
-                    <div className="glass-pane p-8">
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-4">
-                                    <label className="block text-sm font-semibold text-slate-300 mb-2">Upload Audio File</label>
-                                    <div className="relative">
-                                        <input 
-                                            id="audio-upload" 
-                                            type="file" 
-                                            accept="audio/*" 
-                                            onChange={handleFileChange} 
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
-                                        />
-                                        <div className="border-2 border-dashed border-slate-700 hover:border-purple-500 bg-slate-900/30 rounded-2xl p-8 text-center transition-all">
-                                            <div className="text-4xl mb-2">🎵</div>
-                                            <p className="text-slate-300 font-semibold">Drop your audio here</p>
-                                            <p className="text-slate-500 text-sm mt-1">or click to browse</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div className="space-y-4">
-                                    <label className="block text-sm font-semibold text-slate-300 mb-2">Record Live Audio</label>
-                                    <button 
-                                        type="button"
-                                        onClick={isRecording ? stopRecording : startRecording}
-                                        className={`w-full py-4 px-6 rounded-2xl font-bold transition-all transform hover:scale-105 ${
-                                            isRecording 
-                                                ? 'bg-red-600 hover:bg-red-500 animate-pulse' 
-                                                : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500'
-                                        }`}
-                                    >
-                                        {isRecording ? '🔴 Stop Recording' : '🎤 Start Recording'}
-                                    </button>
-                                </div>
-                            </div>
+                {/* Main Container */}
+                <div className="w-full max-w-4xl mx-auto">
+                    {/* Header */}
+                    <div className="text-center mb-8">
+                        <h1 className="text-4xl font-bold text-white mb-2">
+                            <span className="text-glow">ChordCraft</span>
+                        </h1>
+                        <p className="text-slate-400 text-sm">AI-Powered Music Studio</p>
+                        <p className="text-slate-500 text-xs mt-1">Welcome, {user?.email}</p>
+                    </div>
+
+                    {/* Main Content Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         
-                            {selectedFile && (
-                                <div className="bg-slate-900/50 border border-slate-700 rounded-2xl p-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="text-2xl">🎵</div>
-                                        <div>
-                                            <p className="text-sm font-semibold text-slate-300">Selected File</p>
-                                            <p className="text-xs text-purple-400">{selectedFile.name}</p>
-                                        </div>
-                                    </div>
+                        {/* Project Management Bubble */}
+                        <div className="glass-pane p-4 rounded-2xl hover:scale-105 transition-all duration-200">
+                            <div className="flex items-center gap-2 mb-3">
+                                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                                <h3 className="text-sm font-semibold text-white">Project</h3>
+                            </div>
+                            <div className="space-y-3">
+                                <select 
+                                    onChange={(e) => handleLoadProject(e.target.value)} 
+                                    value={projectId || ""} 
+                                    className="w-full px-3 py-2 bg-slate-800/30 border border-slate-600/50 text-white text-sm rounded-xl outline-none focus:border-purple-500"
+                                >
+                                    <option value="">-- New Project --</option>
+                                    {projects.map((project) => (
+                                        <option key={project.id} value={project.id}>
+                                            {project.title}
+                                        </option>
+                                    ))}
+                                </select>
+                                <input 
+                                    type="text" 
+                                    value={projectTitle} 
+                                    onChange={(e) => setProjectTitle(e.target.value)} 
+                                    placeholder="Project name..." 
+                                    className="w-full px-3 py-2 bg-slate-800/30 border border-slate-600/50 text-white text-sm rounded-xl outline-none focus:border-purple-500 placeholder-slate-400" 
+                                />
+                                <button 
+                                    onClick={handleSaveProject} 
+                                    className="w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-sm font-medium rounded-xl transition-all"
+                                >
+                                    💾 Save
+                                </button>
+                                {saveStatus && <p className="text-xs text-green-400 text-center bg-green-900/20 p-2 rounded-lg">{saveStatus}</p>}
+                            </div>
+                        </div>
+
+                        {/* Audio Upload Bubble */}
+                        <div className="glass-pane p-4 rounded-2xl hover:scale-105 transition-all duration-200">
+                            <div className="flex items-center gap-2 mb-3">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <h3 className="text-sm font-semibold text-white">Audio Input</h3>
+                            </div>
+                            <div className="space-y-3">
+                                <div className="border-2 border-dashed border-slate-600/50 rounded-xl p-4 text-center hover:border-purple-500/50 transition-colors">
+                                    <div className="text-2xl mb-2">🎵</div>
+                                    <p className="text-xs text-slate-400 mb-2">Drop audio here</p>
+                                    <input
+                                        type="file"
+                                        accept="audio/*"
+                                        onChange={handleFileChange}
+                                        className="hidden"
+                                        id="audio-upload"
+                                    />
+                                    <label
+                                        htmlFor="audio-upload"
+                                        className="px-3 py-1.5 bg-slate-700/50 hover:bg-slate-600/50 text-white text-xs rounded-lg cursor-pointer transition-colors"
+                                    >
+                                        Choose File
+                                    </label>
                                 </div>
-                            )}
+                                {selectedFile && (
+                                    <div className="text-xs text-slate-300 bg-slate-800/30 rounded-lg p-2">
+                                        📁 {selectedFile.name}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Recording & Generate Bubble */}
+                    <div className="glass-pane p-4 rounded-2xl hover:scale-105 transition-all duration-200 mt-4">
+                        <div className="flex items-center gap-2 mb-3">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            <h3 className="text-sm font-semibold text-white">Generate Code</h3>
+                        </div>
+                        <div className="space-y-3">
+                            <button 
+                                type="button"
+                                onClick={isRecording ? stopRecording : startRecording}
+                                className={`w-full py-2 px-4 rounded-xl text-sm font-medium transition-all ${
+                                    isRecording 
+                                        ? 'bg-red-600 hover:bg-red-500 animate-pulse' 
+                                        : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500'
+                                }`}
+                            >
+                                {isRecording ? '🔴 Stop Recording' : '🎤 Record Live'}
+                            </button>
                             
                             <button 
                                 type="submit" 
+                                onClick={handleSubmit}
                                 disabled={isLoading || !selectedFile} 
-                                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-4 px-8 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105"
+                                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-sm font-medium py-2 px-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                             >
                                 {isLoading ? (
-                                    <span className="flex items-center justify-center gap-3">
-                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                                        Analyzing with Muzic AI...
+                                    <span className="flex items-center justify-center gap-2">
+                                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                                        Analyzing...
                                     </span>
                                 ) : (
-                                    '✨ Generate ChordCraft Code'
+                                    '✨ Generate Code'
                                 )}
                             </button>
-                        </form>
-
-                        {error && <p className="text-red-400 mt-6 text-center bg-red-900/20 p-4 rounded-2xl border border-red-800">{error}</p>}
-                        {success && <p className="text-green-400 mt-6 text-center bg-green-900/20 p-4 rounded-2xl border border-green-800">{success}</p>}
+                            
+                            {error && <p className="text-red-400 text-xs text-center bg-red-900/20 p-2 rounded-lg">{error}</p>}
+                            {success && <p className="text-green-400 text-xs text-center bg-green-900/20 p-2 rounded-lg">{success}</p>}
+                        </div>
                     </div>
-                </section>
                 
-                {/* Live Code Studio */}
-                <section className="section w-full">
-                    <label className="block text-sm font-semibold text-slate-300 mb-4 text-center">Live Code Studio</label>
-                    <div className="glass-pane p-8">
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="font-bold text-xl text-slate-200">Your Musical Code</h3>
-                            <div className="flex gap-3">
+                    {/* Code Studio Bubble */}
+                    <div className="glass-pane p-4 rounded-2xl hover:scale-105 transition-all duration-200 mt-4">
+                        <div className="flex items-center gap-2 mb-3">
+                            <div className="w-2 h-2 bg-cyan-500 rounded-full"></div>
+                            <h3 className="text-sm font-semibold text-white">Code Studio</h3>
+                        </div>
+                        <div className="space-y-3">
+                            <div className="flex gap-2">
                                 <button 
                                     onClick={() => navigator.clipboard.writeText(chordCraftCode)}
-                                    className="bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 text-white px-4 py-2 rounded-xl text-sm transition-all hover:scale-105"
+                                    className="px-3 py-1.5 bg-slate-700/50 hover:bg-slate-600/50 text-white text-xs rounded-lg transition-all"
                                 >
                                     📋 Copy
                                 </button>
                                 <button 
                                     onClick={handlePlay} 
-                                    className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold px-6 py-2 rounded-xl transition-all transform hover:scale-105"
+                                    className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-medium rounded-lg transition-all"
                                 >
-                                    ▶️ Play Code
+                                    ▶️ Play
                                 </button>
                                 <button 
                                     onClick={() => handleCodeToMusic()}
                                     disabled={isGeneratingMusic || !chordCraftCode || chordCraftCode.includes('Upload an audio file')}
-                                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold px-6 py-2 rounded-xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-xs font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {isGeneratingMusic ? (
-                                        <span className="flex items-center gap-2">
-                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                            Analyzing...
-                                        </span>
-                                    ) : (
-                                        '🎼 Analyze Code'
-                                    )}
+                                    {isGeneratingMusic ? '⏳' : '🎼 Analyze'}
                                 </button>
                             </div>
-                        </div>
                     
-                        <div className="bg-slate-900/80 rounded-2xl border border-slate-700 overflow-hidden backdrop-blur-sm">
-                            <Editor 
-                                value={chordCraftCode} 
-                                onValueChange={code => setChordCraftCode(code)} 
-                                highlight={code => highlight(code, languages.chordcraft, 'chordcraft')} 
-                                padding={24} 
-                                className="w-full h-80 font-mono text-sm" 
-                                style={{ 
-                                    fontFamily: '"Fira Code", "Fira Mono", monospace', 
-                                    fontSize: 14,
-                                    lineHeight: 1.6,
-                                    backgroundColor: 'transparent'
-                                }} 
-                            />
-                        </div>
-                        
-                        <div className="mt-6 text-sm text-slate-400 bg-slate-900/30 p-4 rounded-2xl border border-slate-700">
-                            <p className="flex items-center gap-2">💡 <span>Edit the generated code above and click "Play Code" to hear your changes!</span></p>
-                            <p className="flex items-center gap-2 mt-2">🎼 <span>Click "Analyze Code" to see musical features and visualization!</span></p>
+                            <div className="bg-slate-900/50 rounded-xl border border-slate-700/50 overflow-hidden">
+                                <Editor 
+                                    value={chordCraftCode} 
+                                    onValueChange={code => setChordCraftCode(code)} 
+                                    highlight={code => highlight(code, languages.chordcraft, 'chordcraft')} 
+                                    padding={16} 
+                                    className="w-full h-48 font-mono text-xs" 
+                                    style={{ 
+                                        fontFamily: '"Fira Code", "Fira Mono", monospace', 
+                                        fontSize: 12,
+                                        lineHeight: 1.5,
+                                        backgroundColor: 'transparent'
+                                    }} 
+                                />
+                            </div>
+                            
+                            <div className="text-xs text-slate-400 bg-slate-800/30 p-3 rounded-lg">
+                                <p className="flex items-center gap-2">💡 Edit code and click "Play" to hear changes</p>
+                            </div>
                         </div>
                     </div>
-                </section>
+
+                    {/* Sign Out Button */}
+                    <div className="flex justify-center mt-6">
+                        <button 
+                            onClick={signOut}
+                            className="px-4 py-2 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 text-white text-sm rounded-xl transition-all"
+                        >
+                            🚪 Sign Out
+                        </button>
+                    </div>
+                </div>
 
                 {/* Musical Analysis Section */}
                 {musicAnalysis && (
@@ -861,32 +869,6 @@ export function Studio() {
                     </section>
                 )}
             </main>
-
-            {/* AuraOS Command Bar */}
-            <footer className="fixed bottom-0 left-0 right-0 p-4 z-50 flex flex-col items-center">
-                <div className="glass-pane px-6 py-3 rounded-full flex items-center gap-6">
-                    <button 
-                        onClick={signOut}
-                        className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
-                        title="Sign Out"
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                        </svg>
-                        <span className="text-sm font-semibold">Sign Out</span>
-                    </button>
-                    <button 
-                        className="text-slate-400 hover:text-white transition-colors" 
-                        title="Settings"
-                    >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 001.066 1.066c.756.426 1.756.426 2.182 0a1.724 1.724 0 001.066-1.066c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 001.066 1.066c.756.426 1.756.426 2.182 0a1.724 1.724 0 001.066-1.066c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 001.066 1.066c.756.426 1.756.426 2.182 0a1.724 1.724 0 001.066-1.066c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 001.066 1.066c.756.426 1.756.426 2.182 0a1.724 1.724 0 001.066-1.066c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 001.066 1.066c.756.426 1.756.426 2.182 0a1.724 1.724 0 001.066-1.066z"></path>
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        </svg>
-                    </button>
-                </div>
-                <p className="text-xs text-slate-600 mt-3">&copy; 2025 ChordCraft Studio. Powered by Muzic AI.</p>
-            </footer>
         </div>
         </>
     );
