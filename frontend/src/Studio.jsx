@@ -83,6 +83,108 @@ export function Studio() {
         testConnection();
     }, []);
 
+    // AuraOS Three.js Background Effect
+    useEffect(() => {
+        let scene, camera, renderer, prism, clock, mouse;
+
+        const initThree = () => {
+            const container = document.getElementById('web3-canvas');
+            if (!container) return;
+
+            scene = new window.THREE.Scene();
+            camera = new window.THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new window.THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            container.appendChild(renderer.domElement);
+
+            const geometry = new window.THREE.IcosahedronGeometry(2.5, 1);
+            const material = new window.THREE.MeshPhysicalMaterial({
+                roughness: 0.1,
+                transmission: 1.0,
+                thickness: 0.8,
+                ior: 1.5,
+            });
+            prism = new window.THREE.Mesh(geometry, material);
+            scene.add(prism);
+
+            const light1 = new window.THREE.DirectionalLight(0xffffff, 1.5);
+            light1.position.set(10, 10, 10);
+            scene.add(light1);
+            const light2 = new window.THREE.DirectionalLight(0xff00ff, 1);
+            light2.position.set(-10, -5, -5);
+            scene.add(light2);
+            scene.add(new window.THREE.AmbientLight(0x404040, 2));
+
+            camera.position.z = 7;
+            clock = new window.THREE.Clock();
+            mouse = new window.THREE.Vector2();
+        };
+
+        const animateThree = () => {
+            requestAnimationFrame(animateThree);
+            if (!clock || !prism || !renderer || !scene || !camera || !mouse) return;
+            
+            const positionAttribute = prism.geometry.attributes.position;
+            const time = Date.now() * 0.0005;
+            for (let i = 0; i < positionAttribute.count; i++) {
+                const vertex = new window.THREE.Vector3().fromBufferAttribute(positionAttribute, i);
+                const offset = 2.5 + 0.3 * Math.sin(vertex.y * 3 + time * 1.5);
+                vertex.normalize().multiplyScalar(offset);
+                positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
+            }
+            positionAttribute.needsUpdate = true;
+            prism.geometry.computeVertexNormals();
+
+            prism.rotation.y += (mouse.x * Math.PI * 0.05 - prism.rotation.y) * 0.05;
+            prism.rotation.x += (-mouse.y * Math.PI * 0.05 - prism.rotation.x) * 0.05;
+            
+            renderer.render(scene, camera);
+        };
+
+        const onMouseMove = (event) => {
+            if (mouse) {
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            }
+        };
+
+        const onWindowResize = () => {
+            if (camera && renderer) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        };
+
+        // Initialize Three.js
+        if (window.THREE) {
+            initThree();
+            animateThree();
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('mousemove', onMouseMove);
+        }
+
+        // Cleanup
+        return () => {
+            window.removeEventListener('resize', onWindowResize);
+            window.removeEventListener('mousemove', onMouseMove);
+            if (renderer && renderer.domElement) {
+                renderer.domElement.remove();
+            }
+        };
+    }, []);
+
+    // AuraOS Hue Animation
+    useEffect(() => {
+        let hue = 0;
+        const hueInterval = setInterval(() => {
+            hue = (hue + 1) % 360;
+            document.body.style.setProperty('--hue', hue);
+        }, 50);
+
+        return () => clearInterval(hueInterval);
+    }, []);
+
     const handleFileChange = (event) => {
         const file = event.target.files[0];
         if (file) {
@@ -343,270 +445,378 @@ export function Studio() {
     };
 
     return (
-        <div className="bg-gray-900 min-h-screen text-white flex flex-col items-center p-8 font-mono">
-            <header className="w-full max-w-6xl flex justify-between items-center mb-10">
-                <div className="text-left">
-                    <h1 className="text-5xl font-bold text-cyan-400">ChordCraft Studio</h1>
-                    <p className="text-gray-400 text-sm mt-2">Welcome, {user?.email}</p>
-                </div>
-                <button 
-                    onClick={signOut} 
-                    className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition-colors"
-                >
-                    Sign Out
-                </button>
-            </header>
+        <>
+            {/* AuraOS Styles */}
+            <style jsx>{`
+                @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap');
+                
+                @keyframes hue-rotate { 
+                    0% { filter: hue-rotate(0deg); } 
+                    100% { filter: hue-rotate(360deg); } 
+                }
+                @keyframes spring-in {
+                    0% { opacity: 0; transform: translateY(30px) scale(0.95); }
+                    80% { opacity: 1; transform: translateY(-5px) scale(1.05); }
+                    100% { opacity: 1; transform: translateY(0) scale(1); }
+                }
+                @keyframes haptic-shake {
+                    0%, 100% { transform: scale(1); }
+                    25% { transform: scale(0.95); }
+                    75% { transform: scale(1.05); }
+                }
+                @keyframes pulse-glow {
+                    0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.4); }
+                    50% { box-shadow: 0 0 40px rgba(168, 85, 247, 0.8), 0 0 60px rgba(168, 85, 247, 0.4); }
+                }
 
-            <main className="w-full max-w-6xl">
+                .hue-border { 
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; 
+                    pointer-events: none; border: 2px solid transparent; 
+                    background-image: linear-gradient(to right, #7e22ce, #be185d, #d97706, #7e22ce); 
+                    background-size: 200%; 
+                    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); 
+                    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); 
+                    -webkit-mask-composite: xor; mask-composite: exclude;
+                    animation: hue-rotate 10s linear infinite;
+                }
+                .text-glow { 
+                    text-shadow: 0 0 16px hsla(260, 100%, 70%, 0.9), 0 0 4px hsla(260, 100%, 70%, 0.7);
+                    animation: hue-rotate 10s linear infinite;
+                }
+                .glass-pane { 
+                    background: rgba(10, 10, 12, 0.8); 
+                    backdrop-filter: blur(40px); 
+                    -webkit-backdrop-filter: blur(40px); 
+                    border: 1px solid rgba(255, 255, 255, 0.1); 
+                    border-radius: 32px; 
+                }
+                .section { 
+                    animation: spring-in 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
+                }
+                .haptic { animation: haptic-shake 0.3s ease; }
+                #web3-canvas { 
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; 
+                }
+                body { 
+                    font-family: 'Sora', sans-serif !important; 
+                    background-color: #000000; 
+                    color: #f1f5f9; 
+                    overflow-x: hidden; 
+                }
+            `}</style>
+
+            {/* Three.js Canvas */}
+            <canvas id="web3-canvas" />
+            
+            {/* Hue Border */}
+            <div className="hue-border" />
+
+            <div className="min-h-screen w-full flex flex-col items-center p-4 relative z-10" style={{fontFamily: 'Sora, sans-serif', backgroundColor: '#000000', color: '#f1f5f9', paddingBottom: '120px'}}>
+                
+                {/* AuraOS Header */}
+                <header className="text-center my-16 flex-shrink-0">
+                    <h1 className="text-7xl font-bold tracking-tighter text-white">
+                        <span className="text-glow">ChordCraft</span>
+                    </h1>
+                    <p className="text-slate-400 mt-4 text-lg">AI-Powered Music Studio</p>
+                    <p className="text-slate-500 text-sm mt-2">Welcome, {user?.email}</p>
+                </header>
+
+            <main className="w-full max-w-6xl space-y-8">
                 {/* Project Management */}
-                <div className="bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
-                    <h2 className="text-xl font-semibold mb-4 text-gray-300">Project Management</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <select 
-                            onChange={(e) => handleLoadProject(e.target.value)} 
-                            value={projectId || ""} 
-                            className="p-3 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-cyan-400"
-                        >
-                            <option value="">-- Create New Project --</option>
-                            {projects.map((project) => (
-                                <option key={project.id} value={project.id}>
-                                    {project.title}
-                                </option>
-                            ))}
-                        </select>
-                        <input 
-                            type="text" 
-                            value={projectTitle} 
-                            onChange={(e) => setProjectTitle(e.target.value)} 
-                            placeholder="Project Title" 
-                            className="p-3 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-cyan-400" 
-                        />
-                        <button 
-                            onClick={handleSaveProject} 
-                            className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded transition-colors"
-                        >
-                            💾 Save Project
-                        </button>
+                <section className="section w-full">
+                    <label className="block text-sm font-semibold text-slate-300 mb-4 text-center">Project Management</label>
+                    <div className="glass-pane p-8">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <select 
+                                onChange={(e) => handleLoadProject(e.target.value)} 
+                                value={projectId || ""} 
+                                className="p-4 bg-slate-900/50 border border-slate-700 text-white rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                            >
+                                <option value="">-- Create New Project --</option>
+                                {projects.map((project) => (
+                                    <option key={project.id} value={project.id}>
+                                        {project.title}
+                                    </option>
+                                ))}
+                            </select>
+                            <input 
+                                type="text" 
+                                value={projectTitle} 
+                                onChange={(e) => setProjectTitle(e.target.value)} 
+                                placeholder="Project Title" 
+                                className="p-4 bg-slate-900/50 border border-slate-700 text-white rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all placeholder-slate-400" 
+                            />
+                            <button 
+                                onClick={handleSaveProject} 
+                                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-4 px-6 rounded-2xl transition-all transform hover:scale-105"
+                            >
+                                ✨ Save Project
+                            </button>
+                        </div>
+                        {saveStatus && <p className="text-sm text-center text-green-400 mt-4 bg-green-900/20 p-3 rounded-2xl">{saveStatus}</p>}
                     </div>
-                    {saveStatus && <p className="text-sm text-center text-green-400 mt-2">{saveStatus}</p>}
-                </div>
+                </section>
 
                 {/* Audio Input */}
-                <div className="bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
-                    <h2 className="text-xl font-semibold mb-4 text-gray-300">Audio to Code</h2>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label htmlFor="audio-upload" className="block text-gray-300 text-sm font-bold mb-2">
-                                    Upload Audio File
-                                </label>
-                                <input 
-                                    id="audio-upload" 
-                                    type="file" 
-                                    accept="audio/*" 
-                                    onChange={handleFileChange} 
-                                    className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-cyan-500 file:text-white hover:file:bg-cyan-600" 
-                                />
+                <section className="section w-full">
+                    <label className="block text-sm font-semibold text-slate-300 mb-4 text-center">Audio to Code</label>
+                    <div className="glass-pane p-8">
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-4">
+                                    <label className="block text-sm font-semibold text-slate-300 mb-2">Upload Audio File</label>
+                                    <div className="relative">
+                                        <input 
+                                            id="audio-upload" 
+                                            type="file" 
+                                            accept="audio/*" 
+                                            onChange={handleFileChange} 
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                                        />
+                                        <div className="border-2 border-dashed border-slate-700 hover:border-purple-500 bg-slate-900/30 rounded-2xl p-8 text-center transition-all">
+                                            <div className="text-4xl mb-2">🎵</div>
+                                            <p className="text-slate-300 font-semibold">Drop your audio here</p>
+                                            <p className="text-slate-500 text-sm mt-1">or click to browse</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="space-y-4">
+                                    <label className="block text-sm font-semibold text-slate-300 mb-2">Record Live Audio</label>
+                                    <button 
+                                        type="button"
+                                        onClick={isRecording ? stopRecording : startRecording}
+                                        className={`w-full py-4 px-6 rounded-2xl font-bold transition-all transform hover:scale-105 ${
+                                            isRecording 
+                                                ? 'bg-red-600 hover:bg-red-500 animate-pulse' 
+                                                : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500'
+                                        }`}
+                                    >
+                                        {isRecording ? '🔴 Stop Recording' : '🎤 Start Recording'}
+                                    </button>
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-gray-300 text-sm font-bold mb-2">
-                                    Record Live Audio
-                                </label>
+                        
+                            {selectedFile && (
+                                <div className="bg-slate-900/50 border border-slate-700 rounded-2xl p-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="text-2xl">🎵</div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-slate-300">Selected File</p>
+                                            <p className="text-xs text-purple-400">{selectedFile.name}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            <button 
+                                type="submit" 
+                                disabled={isLoading || !selectedFile} 
+                                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-4 px-8 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105"
+                            >
+                                {isLoading ? (
+                                    <span className="flex items-center justify-center gap-3">
+                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                                        Analyzing with Muzic AI...
+                                    </span>
+                                ) : (
+                                    '✨ Generate ChordCraft Code'
+                                )}
+                            </button>
+                        </form>
+
+                        {error && <p className="text-red-400 mt-6 text-center bg-red-900/20 p-4 rounded-2xl border border-red-800">{error}</p>}
+                        {success && <p className="text-green-400 mt-6 text-center bg-green-900/20 p-4 rounded-2xl border border-green-800">{success}</p>}
+                    </div>
+                </section>
+                
+                {/* Live Code Studio */}
+                <section className="section w-full">
+                    <label className="block text-sm font-semibold text-slate-300 mb-4 text-center">Live Code Studio</label>
+                    <div className="glass-pane p-8">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="font-bold text-xl text-slate-200">Your Musical Code</h3>
+                            <div className="flex gap-3">
                                 <button 
-                                    type="button"
-                                    onClick={isRecording ? stopRecording : startRecording}
-                                    className={`w-full py-2 px-4 rounded-md font-semibold transition-colors ${
-                                        isRecording 
-                                            ? 'bg-red-600 hover:bg-red-500 animate-pulse' 
-                                            : 'bg-green-600 hover:bg-green-500'
-                                    }`}
+                                    onClick={() => navigator.clipboard.writeText(chordCraftCode)}
+                                    className="bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 text-white px-4 py-2 rounded-xl text-sm transition-all hover:scale-105"
                                 >
-                                    {isRecording ? '🔴 Stop Recording' : '🎤 Start Recording'}
+                                    📋 Copy
+                                </button>
+                                <button 
+                                    onClick={handlePlay} 
+                                    className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold px-6 py-2 rounded-xl transition-all transform hover:scale-105"
+                                >
+                                    ▶️ Play Code
+                                </button>
+                                <button 
+                                    onClick={() => handleCodeToMusic()}
+                                    disabled={isGeneratingMusic || !chordCraftCode || chordCraftCode.includes('Upload an audio file')}
+                                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold px-6 py-2 rounded-xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isGeneratingMusic ? (
+                                        <span className="flex items-center gap-2">
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                            Analyzing...
+                                        </span>
+                                    ) : (
+                                        '🎼 Analyze Code'
+                                    )}
                                 </button>
                             </div>
                         </div>
+                    
+                        <div className="bg-slate-900/80 rounded-2xl border border-slate-700 overflow-hidden backdrop-blur-sm">
+                            <Editor 
+                                value={chordCraftCode} 
+                                onValueChange={code => setChordCraftCode(code)} 
+                                highlight={code => highlight(code, languages.chordcraft, 'chordcraft')} 
+                                padding={24} 
+                                className="w-full h-80 font-mono text-sm" 
+                                style={{ 
+                                    fontFamily: '"Fira Code", "Fira Mono", monospace', 
+                                    fontSize: 14,
+                                    lineHeight: 1.6,
+                                    backgroundColor: 'transparent'
+                                }} 
+                            />
+                        </div>
                         
-                        {selectedFile && (
-                            <div className="bg-gray-700 rounded p-3">
-                                <p className="text-sm text-gray-300">
-                                    Selected: <span className="text-cyan-400">{selectedFile.name}</span>
-                                </p>
-                            </div>
-                        )}
-                        
-                        <button 
-                            type="submit" 
-                            disabled={isLoading || !selectedFile} 
-                            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-3 px-6 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                        >
-                            {isLoading ? (
-                                <span className="flex items-center justify-center">
-                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                                    Analyzing Audio...
-                                </span>
-                            ) : (
-                                '✨ Generate ChordCraft Code'
-                            )}
-                        </button>
-                    </form>
-
-                    {error && <p className="text-red-400 mt-4 text-center bg-red-900/20 p-3 rounded">{error}</p>}
-                    {success && <p className="text-green-400 mt-4 text-center bg-green-900/20 p-3 rounded">{success}</p>}
-                </div>
-                
-                {/* Code Studio */}
-                <div className="bg-gray-800 rounded-lg shadow-lg p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xl font-semibold text-gray-300">Live Code Studio</h2>
-                        <div className="flex gap-2">
-                            <button 
-                                onClick={() => navigator.clipboard.writeText(chordCraftCode)}
-                                className="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded text-sm transition-colors"
-                            >
-                                📋 Copy
-                            </button>
-                            <button 
-                                onClick={handlePlay} 
-                                className="bg-blue-500 hover:bg-blue-600 text-white font-bold px-6 py-2 rounded transition-colors"
-                            >
-                                ▶️ Play Code
-                            </button>
-                            <button 
-                                onClick={() => handleCodeToMusic()}
-                                disabled={isGeneratingMusic || !chordCraftCode || chordCraftCode.includes('Upload an audio file')}
-                                className="bg-purple-600 hover:bg-purple-500 text-white font-bold px-6 py-2 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {isGeneratingMusic ? (
-                                    <span className="flex items-center gap-2">
-                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                        Analyzing...
-                                    </span>
-                                ) : (
-                                    '🎼 Analyze Code'
-                                )}
-                            </button>
+                        <div className="mt-6 text-sm text-slate-400 bg-slate-900/30 p-4 rounded-2xl border border-slate-700">
+                            <p className="flex items-center gap-2">💡 <span>Edit the generated code above and click "Play Code" to hear your changes!</span></p>
+                            <p className="flex items-center gap-2 mt-2">🎼 <span>Click "Analyze Code" to see musical features and visualization!</span></p>
                         </div>
                     </div>
-                    
-                    <div className="bg-gray-900 rounded-md border border-gray-700 overflow-hidden">
-                        <Editor 
-                            value={chordCraftCode} 
-                            onValueChange={code => setChordCraftCode(code)} 
-                            highlight={code => highlight(code, languages.chordcraft, 'chordcraft')} 
-                            padding={16} 
-                            className="w-full h-80 font-mono text-sm" 
-                            style={{ 
-                                fontFamily: '"Fira Code", "Fira Mono", monospace', 
-                                fontSize: 14,
-                                lineHeight: 1.5
-                            }} 
-                        />
-                    </div>
-                    
-                    <div className="mt-4 text-xs text-gray-500">
-                        <p>💡 Tip: Edit the generated code above and click "Play Code" to hear your changes!</p>
-                        <p>🎼 Click "Analyze Code" to see musical features and visualization!</p>
-                    </div>
-                </div>
+                </section>
 
                 {/* Musical Analysis Section */}
                 {musicAnalysis && (
-                    <div className="bg-gray-800 rounded-lg shadow-lg p-6 mt-8">
-                        <h2 className="text-xl font-semibold text-gray-300 mb-4">🎼 Musical Analysis (Code-to-Music)</h2>
+                    <section className="section w-full">
+                        <label className="block text-sm font-semibold text-slate-300 mb-4 text-center">🎼 Musical Analysis (Code-to-Music)</label>
+                        <div className="glass-pane p-8">
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Musical Features */}
-                            <div className="bg-gray-900 rounded-lg p-4">
-                                <h3 className="font-semibold text-cyan-400 mb-3">Musical Features</h3>
-                                <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-400">Total Notes:</span>
-                                        <span className="text-white">{musicAnalysis.musical_features?.total_notes || 0}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-400">Duration:</span>
-                                        <span className="text-white">{musicAnalysis.musical_features?.duration?.toFixed(2) || 0}s</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-400">Estimated Tempo:</span>
-                                        <span className="text-white">{musicAnalysis.musical_features?.tempo_estimate || 120} BPM</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-400">Key:</span>
-                                        <span className="text-white">{musicAnalysis.analysis?.estimated_key || 'Unknown'}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-400">Frequency Range:</span>
-                                        <span className="text-white">
-                                            {musicAnalysis.musical_features?.frequency_range?.min?.toFixed(0) || 0}Hz - 
-                                            {musicAnalysis.musical_features?.frequency_range?.max?.toFixed(0) || 0}Hz
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Note Timeline */}
-                            <div className="bg-gray-900 rounded-lg p-4">
-                                <h3 className="font-semibold text-cyan-400 mb-3">Note Timeline</h3>
-                                <div className="max-h-40 overflow-y-auto space-y-1">
-                                    {musicAnalysis.notes && musicAnalysis.notes.map((note, index) => (
-                                        <div key={index} className="flex items-center justify-between text-xs bg-gray-800 p-2 rounded">
-                                            <span className="font-mono text-green-400">{note.note}</span>
-                                            <span className="text-gray-400">{note.start_time.toFixed(2)}s</span>
-                                            <span className="text-gray-400">{note.duration.toFixed(2)}s</span>
-                                            <span className="text-blue-400">{note.frequency.toFixed(0)}Hz</span>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {/* Musical Features */}
+                                <div className="bg-slate-900/50 border border-slate-700 rounded-2xl p-6">
+                                    <h3 className="font-bold text-xl text-purple-400 mb-4">🎵 Musical Features</h3>
+                                    <div className="space-y-3 text-sm">
+                                        <div className="flex justify-between p-3 bg-slate-800/50 rounded-xl">
+                                            <span className="text-slate-400">Total Notes:</span>
+                                            <span className="text-white font-semibold">{musicAnalysis.musical_features?.total_notes || 0}</span>
                                         </div>
-                                    ))}
+                                        <div className="flex justify-between p-3 bg-slate-800/50 rounded-xl">
+                                            <span className="text-slate-400">Duration:</span>
+                                            <span className="text-white font-semibold">{musicAnalysis.musical_features?.duration?.toFixed(2) || 0}s</span>
+                                        </div>
+                                        <div className="flex justify-between p-3 bg-slate-800/50 rounded-xl">
+                                            <span className="text-slate-400">Estimated Tempo:</span>
+                                            <span className="text-purple-400 font-semibold">{musicAnalysis.musical_features?.tempo_estimate || 120} BPM</span>
+                                        </div>
+                                        <div className="flex justify-between p-3 bg-slate-800/50 rounded-xl">
+                                            <span className="text-slate-400">Key:</span>
+                                            <span className="text-purple-400 font-semibold">{musicAnalysis.analysis?.estimated_key || 'Unknown'}</span>
+                                        </div>
+                                        <div className="flex justify-between p-3 bg-slate-800/50 rounded-xl">
+                                            <span className="text-slate-400">Frequency Range:</span>
+                                            <span className="text-white font-semibold text-xs">
+                                                {musicAnalysis.musical_features?.frequency_range?.min?.toFixed(0) || 0}Hz - 
+                                                {musicAnalysis.musical_features?.frequency_range?.max?.toFixed(0) || 0}Hz
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        {/* Audio Visualization */}
-                        {musicAnalysis.audio_data && musicAnalysis.audio_data.length > 0 && (
-                            <div className="mt-6 bg-gray-900 rounded-lg p-4">
-                                <h3 className="font-semibold text-cyan-400 mb-3">Audio Waveform Visualization</h3>
-                                <div className="flex items-center justify-center h-32 bg-black rounded">
-                                    <svg width="100%" height="100%" viewBox="0 0 400 100" className="w-full h-full">
-                                        {musicAnalysis.audio_data.map((point, index) => (
-                                            <rect
-                                                key={index}
-                                                x={index * (400 / musicAnalysis.audio_data.length)}
-                                                y={50 - (point.amplitude * 40)}
-                                                width={400 / musicAnalysis.audio_data.length - 1}
-                                                height={Math.abs(point.amplitude * 80)}
-                                                fill={`hsl(${(index / musicAnalysis.audio_data.length) * 360}, 70%, 60%)`}
-                                                opacity="0.8"
-                                            />
+                                {/* Note Timeline */}
+                                <div className="bg-slate-900/50 border border-slate-700 rounded-2xl p-6">
+                                    <h3 className="font-bold text-xl text-cyan-400 mb-4">🎹 Note Timeline</h3>
+                                    <div className="max-h-48 overflow-y-auto space-y-2">
+                                        {musicAnalysis.notes && musicAnalysis.notes.map((note, index) => (
+                                            <div key={index} className="flex items-center justify-between text-sm bg-slate-800/50 p-3 rounded-xl border border-slate-600">
+                                                <span className="font-mono text-green-400 font-bold">{note.note}</span>
+                                                <span className="text-slate-400">{note.start_time.toFixed(2)}s</span>
+                                                <span className="text-slate-400">{note.duration.toFixed(2)}s</span>
+                                                <span className="text-cyan-400 font-semibold">{note.frequency.toFixed(0)}Hz</span>
+                                            </div>
                                         ))}
-                                    </svg>
-                                </div>
-                                <div className="flex justify-between text-xs text-gray-400 mt-2">
-                                    <span>0s</span>
-                                    <span>Time</span>
-                                    <span>{musicAnalysis.musical_features?.duration?.toFixed(1) || 0}s</span>
+                                    </div>
                                 </div>
                             </div>
-                        )}
 
-                        {/* Harmony Analysis */}
-                        {musicAnalysis.analysis?.harmony && (
-                            <div className="mt-6 bg-gray-900 rounded-lg p-4">
-                                <h3 className="font-semibold text-cyan-400 mb-3">Harmony Analysis</h3>
-                                <div className="text-sm">
-                                    <div className="flex justify-between mb-2">
-                                        <span className="text-gray-400">Primary Chord:</span>
-                                        <span className="text-white">{musicAnalysis.analysis.harmony.primary_chord}</span>
+                            {/* Audio Visualization */}
+                            {musicAnalysis.audio_data && musicAnalysis.audio_data.length > 0 && (
+                                <div className="mt-8 bg-slate-900/50 border border-slate-700 rounded-2xl p-6">
+                                    <h3 className="font-bold text-xl text-cyan-400 mb-4">🌊 Audio Waveform</h3>
+                                    <div className="flex items-center justify-center h-40 bg-black/50 rounded-2xl border border-slate-800">
+                                        <svg width="100%" height="100%" viewBox="0 0 400 100" className="w-full h-full">
+                                            {musicAnalysis.audio_data.map((point, index) => (
+                                                <rect
+                                                    key={index}
+                                                    x={index * (400 / musicAnalysis.audio_data.length)}
+                                                    y={50 - (point.amplitude * 40)}
+                                                    width={400 / musicAnalysis.audio_data.length - 1}
+                                                    height={Math.abs(point.amplitude * 80)}
+                                                    fill={`hsl(${(index / musicAnalysis.audio_data.length) * 360}, 70%, 60%)`}
+                                                    opacity="0.9"
+                                                />
+                                            ))}
+                                        </svg>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-400">Type:</span>
-                                        <span className="text-white capitalize">{musicAnalysis.analysis.harmony.type}</span>
+                                    <div className="flex justify-between text-sm text-slate-400 mt-3 px-2">
+                                        <span className="font-semibold">0s</span>
+                                        <span className="text-slate-500">Timeline</span>
+                                        <span className="font-semibold">{musicAnalysis.musical_features?.duration?.toFixed(1) || 0}s</span>
                                     </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
+                            )}
+
+                            {/* Harmony Analysis */}
+                            {musicAnalysis.analysis?.harmony && (
+                                <div className="mt-8 bg-slate-900/50 border border-slate-700 rounded-2xl p-6">
+                                    <h3 className="font-bold text-xl text-pink-400 mb-4">🎭 Harmony Analysis</h3>
+                                    <div className="space-y-3 text-sm">
+                                        <div className="flex justify-between p-3 bg-slate-800/50 rounded-xl">
+                                            <span className="text-slate-400">Primary Chord:</span>
+                                            <span className="text-white font-semibold">{musicAnalysis.analysis.harmony.primary_chord}</span>
+                                        </div>
+                                        <div className="flex justify-between p-3 bg-slate-800/50 rounded-xl">
+                                            <span className="text-slate-400">Type:</span>
+                                            <span className="text-pink-400 font-semibold capitalize">{musicAnalysis.analysis.harmony.type}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </section>
                 )}
             </main>
+
+            {/* AuraOS Command Bar */}
+            <footer className="fixed bottom-0 left-0 right-0 p-4 z-50 flex flex-col items-center">
+                <div className="glass-pane px-6 py-3 rounded-full flex items-center gap-6">
+                    <button 
+                        onClick={signOut}
+                        className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+                        title="Sign Out"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+                        <span className="text-sm font-semibold">Sign Out</span>
+                    </button>
+                    <button 
+                        className="text-slate-400 hover:text-white transition-colors" 
+                        title="Settings"
+                    >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 001.066 1.066c.756.426 1.756.426 2.182 0a1.724 1.724 0 001.066-1.066c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 001.066 1.066c.756.426 1.756.426 2.182 0a1.724 1.724 0 001.066-1.066c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 001.066 1.066c.756.426 1.756.426 2.182 0a1.724 1.724 0 001.066-1.066c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 001.066 1.066c.756.426 1.756.426 2.182 0a1.724 1.724 0 001.066-1.066c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 001.066 1.066c.756.426 1.756.426 2.182 0a1.724 1.724 0 001.066-1.066z"></path>
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </button>
+                </div>
+                <p className="text-xs text-slate-600 mt-3">&copy; 2025 ChordCraft Studio. Powered by Muzic AI.</p>
+            </footer>
         </div>
+        </>
     );
 }
