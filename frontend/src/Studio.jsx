@@ -264,7 +264,8 @@ export function Studio() {
             
             if (response.data.success) {
                 setChordCraftCode(response.data.chordCraftCode);
-                setSuccess('Audio analysis completed successfully!');
+                setSuccess(`Audio analysis completed successfully! (${response.data.analysis_type || 'Muzic AI'})`);
+                console.log('Muzic Analysis:', response.data.analysis);
             } else {
                 setError(response.data.error || 'Analysis failed');
             }

@@ -382,3 +382,163 @@ def validate_muzic_integration():
     except Exception as e:
         logger.error(f"Muzic integration validation failed: {e}")
         return False
+
+    def analyze_code_enhanced(self, chordcraft_code):
+        """
+        Enhanced analysis of ChordCraft code using Muzic-inspired techniques
+        """
+        try:
+            # Parse ChordCraft code
+            lines = chordcraft_code.strip().split('\n')
+            play_commands = [line for line in lines if line.strip().startswith('PLAY')]
+            
+            # Extract musical features
+            total_notes = len(play_commands)
+            notes = []
+            durations = []
+            timestamps = []
+            
+            for cmd in play_commands:
+                # Parse PLAY command: PLAY C4 FOR 1.0s AT 0.0s
+                parts = cmd.split()
+                if len(parts) >= 6:
+                    note = parts[1]  # C4
+                    duration = float(parts[3].replace('s', ''))  # 1.0
+                    timestamp = float(parts[5].replace('s', ''))  # 0.0
+                    
+                    notes.append(note)
+                    durations.append(duration)
+                    timestamps.append(timestamp)
+            
+            # Calculate total duration
+            total_duration = max(timestamps) + max(durations) if timestamps else 0
+            
+            # Estimate tempo based on note density
+            tempo_estimate = 120
+            if total_duration > 0:
+                note_density = total_notes / total_duration
+                tempo_estimate = int(note_density * 60 * 2)  # Rough estimate
+                tempo_estimate = max(60, min(200, tempo_estimate))  # Clamp between 60-200 BPM
+            
+            # Analyze key signature from notes
+            note_names = [note[:-1] if note[-1].isdigit() else note for note in notes]
+            key_signature = self._analyze_key_from_notes(note_names)
+            
+            # Analyze chord progression
+            chord_progression = self._analyze_chord_progression(notes)
+            
+            # Analyze rhythm patterns
+            rhythm_analysis = self._analyze_rhythm_from_durations(durations)
+            
+            # Analyze harmony
+            harmony_analysis = self._analyze_harmony_from_notes(notes)
+            
+            return {
+                "musical_features": {
+                    "total_notes": total_notes,
+                    "duration": total_duration,
+                    "note_density": note_density if total_duration > 0 else 0,
+                    "unique_notes": len(set(notes)),
+                    "average_duration": sum(durations) / len(durations) if durations else 0
+                },
+                "tempo_estimate": tempo_estimate,
+                "key_signature": key_signature,
+                "time_signature": "4/4",  # Default assumption
+                "chord_progression": chord_progression,
+                "rhythm_analysis": rhythm_analysis,
+                "harmony_analysis": harmony_analysis,
+                "analysis_type": "muzic_code_enhanced"
+            }
+            
+        except Exception as e:
+            logger.error(f"Code analysis error: {e}")
+            return {
+                "musical_features": {"total_notes": 0, "duration": 0},
+                "tempo_estimate": 120,
+                "key_signature": "C major",
+                "time_signature": "4/4",
+                "chord_progression": [],
+                "analysis_type": "muzic_code_fallback",
+                "error": str(e)
+            }
+    
+    def _analyze_key_from_notes(self, note_names):
+        """Analyze key signature from note names"""
+        # Simple key detection based on note frequency
+        note_counts = {}
+        for note in note_names:
+            note_counts[note] = note_counts.get(note, 0) + 1
+        
+        # Find most common notes
+        if not note_counts:
+            return "C major"
+        
+        most_common = max(note_counts, key=note_counts.get)
+        
+        # Simple key mapping
+        key_mapping = {
+            'C': 'C major', 'G': 'G major', 'D': 'D major', 'A': 'A major',
+            'F': 'F major', 'Bb': 'Bb major', 'Eb': 'Eb major',
+            'Am': 'A minor', 'Em': 'E minor', 'Bm': 'B minor', 'F#m': 'F# minor',
+            'Dm': 'D minor', 'Gm': 'G minor', 'Cm': 'C minor'
+        }
+        
+        return key_mapping.get(most_common, "C major")
+    
+    def _analyze_chord_progression(self, notes):
+        """Analyze chord progression from notes"""
+        if not notes:
+            return []
+        
+        # Group notes by time (simplified)
+        chords = []
+        for i in range(0, len(notes), 3):  # Assume 3-note chords
+            chord_notes = notes[i:i+3]
+            if len(chord_notes) >= 2:
+                # Simple chord naming
+                root = chord_notes[0][:-1] if chord_notes[0][-1].isdigit() else chord_notes[0]
+                chords.append(root)
+        
+        return chords[:8]  # Limit to 8 chords
+    
+    def _analyze_rhythm_from_durations(self, durations):
+        """Analyze rhythm patterns from note durations"""
+        if not durations:
+            return {"pattern": "unknown", "complexity": 0}
+        
+        # Analyze duration patterns
+        unique_durations = set(durations)
+        complexity = len(unique_durations)
+        
+        # Determine rhythm pattern
+        if complexity == 1:
+            pattern = "uniform"
+        elif complexity <= 3:
+            pattern = "simple"
+        else:
+            pattern = "complex"
+        
+        return {
+            "pattern": pattern,
+            "complexity": complexity,
+            "unique_durations": list(unique_durations)
+        }
+    
+    def _analyze_harmony_from_notes(self, notes):
+        """Analyze harmony from note relationships"""
+        if len(notes) < 2:
+            return {"type": "monophonic", "intervals": []}
+        
+        # Analyze intervals between consecutive notes
+        intervals = []
+        for i in range(len(notes) - 1):
+            note1 = notes[i]
+            note2 = notes[i + 1]
+            # Simple interval calculation (would need proper music theory)
+            intervals.append(f"{note1}-{note2}")
+        
+        return {
+            "type": "polyphonic" if len(notes) > 1 else "monophonic",
+            "intervals": intervals[:10],  # Limit to 10 intervals
+            "note_range": f"{min(notes)} to {max(notes)}" if notes else "none"
+        }
