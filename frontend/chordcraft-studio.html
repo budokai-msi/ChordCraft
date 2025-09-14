@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChordCraft Studio - AI Music to Code</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        @keyframes hue-rotate { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+        @keyframes spring-in {
+            0% { opacity: 0; transform: translateY(30px) scale(0.95); }
+            80% { opacity: 1; transform: translateY(-5px) scale(1.05); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes haptic-shake {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(0.95); }
+            75% { transform: scale(1.05); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.4); }
+            50% { box-shadow: 0 0 40px rgba(168, 85, 247, 0.8), 0 0 60px rgba(168, 85, 247, 0.4); }
+        }
+        @keyframes waveform {
+            0%, 100% { transform: scaleY(0.5); }
+            50% { transform: scaleY(1.5); }
+        }
+
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Sora', sans-serif; background-color: #000000; color: #f1f5f9; overflow-y: auto; overflow-x: hidden; }
+
+        .hue-border, .text-glow { animation: hue-rotate 10s linear infinite; }
+        .text-glow { text-shadow: 0 0 16px hsla(var(--hue, 260), 100%, 70%, 0.9), 0 0 4px hsla(var(--hue, 260), 100%, 70%, 0.7); }
+        .hue-border { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; pointer-events: none; border: 2px solid transparent; background-image: linear-gradient(to right, #7e22ce, #be185d, #d97706, #7e22ce); background-size: 200%; -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+
+        #web3-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        #audio-visualizer { position: fixed; bottom: 0; left: 0; width: 100%; height: 200px; z-index: 1; pointer-events: none; opacity: 0.6; }
+        
+        #main-container { padding-bottom: 120px; }
+
+        .section { display: none; opacity: 0; transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); animation: spring-in 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        .section.visible { display: block; opacity: 1; }
+
+        .glass-pane { background: rgba(10, 10, 12, 0.8); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 32px; }
+
+        .recording-pulse { animation: pulse-glow 2s ease-in-out infinite; }
+        .waveform-bar { animation: waveform 0.5s ease-in-out infinite; }
+        
+        .haptic { animation: haptic-shake 0.3s ease; }
+
+        .code-output { 
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9));
+        }
+
+        .upload-zone {
+            transition: all 0.3s ease;
+            border: 2px dashed rgba(148, 163, 184, 0.3);
+        }
+        .upload-zone:hover { border-color: rgba(168, 85, 247, 0.6); background: rgba(168, 85, 247, 0.05); }
+        .upload-zone.dragover { border-color: rgba(168, 85, 247, 1); background: rgba(168, 85, 247, 0.1); }
+
+        .project-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(168, 85, 247, 0.2); }
+    </style>
+</head>
+<body>
+    <div class="hue-border"></div>
+    <div id="web3-canvas"></div>
+    <canvas id="audio-visualizer"></canvas>
+
+    <div id="main-container" class="min-h-screen w-full flex flex-col items-center p-4 relative z-10">
+        <header class="text-center my-16 flex-shrink-0">
+            <h1 class="text-7xl font-bold tracking-tighter text-white">
+                <span class="text-glow">ChordCraft</span>
+            </h1>
+            <p class="text-slate-400 mt-4 text-lg">AI-Powered Music to Code Studio</p>
+        </header>
+        
+        <!-- Audio Input Section -->
+        <section id="audio-section" class="section w-full max-w-4xl mb-12 flex-shrink-0">
+            <label class="block text-sm font-semibold text-slate-300 mb-4 text-center">Audio Input</label>
+            <div class="glass-pane p-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Upload Zone -->
+                    <div class="space-y-6">
+                        <div id="upload-zone" class="upload-zone p-8 rounded-3xl text-center cursor-pointer">
+                            <input id="audio-input" type="file" accept="audio/*" class="hidden">
+                            <div class="text-6xl mb-4">🎵</div>
+                            <p class="text-xl font-semibold text-white mb-2">Drop your audio here</p>
+                            <p class="text-slate-400">or click to browse</p>
+                            <p class="text-xs text-slate-500 mt-2">WAV, MP3, M4A, FLAC supported</p>
+                        </div>
+                        
+                        <!-- Recording Controls -->
+                        <div class="flex gap-4">
+                            <button id="record-btn" class="flex-1 py-4 px-6 bg-red-600 hover:bg-red-500 rounded-full font-semibold transition-all">
+                                🎤 Record Live
+                            </button>
+                            <button id="stop-record-btn" class="px-6 py-4 bg-slate-700 hover:bg-slate-600 rounded-full font-semibold transition-all hidden">
+                                ⏹️ Stop
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Audio Preview -->
+                    <div class="space-y-6">
+                        <div id="audio-preview" class="hidden">
+                            <div class="glass-pane p-6 rounded-2xl">
+                                <h3 class="font-semibold mb-4">Audio Preview</h3>
+                                <audio id="audio-player" controls class="w-full mb-4"></audio>
+                                <div class="flex items-center gap-4 text-sm text-slate-400">
+                                    <span id="audio-name">No file selected</span>
+                                    <span id="audio-duration">--:--</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Analysis Button -->
+                        <button id="analyze-btn" class="w-full py-4 px-8 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-full font-semibold text-white transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            <span id="analyze-text">✨ Generate ChordCraft Code</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Generated Code Section -->
+        <section id="code-section" class="section w-full max-w-6xl mb-12">
+            <label class="block text-sm font-semibold text-slate-300 mb-4 text-center">Generated ChordCraft Code</label>
+            <div class="glass-pane p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-4">
+                        <h3 class="font-bold text-xl text-slate-200">Your Musical Code</h3>
+                        <span id="analysis-badge" class="hidden px-3 py-1 bg-green-600/20 text-green-400 rounded-full text-sm font-semibold">
+                            🧠 AI Enhanced
+                        </span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="copy-btn" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-full text-sm transition-colors hidden">
+                            📋 Copy
+                        </button>
+                        <button id="download-btn" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-full text-sm transition-colors hidden">
+                            💾 Download
+                        </button>
+                        <button id="save-project-btn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-full text-sm font-semibold transition-colors hidden">
+                            💾 Save Project
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="code-output" class="code-output rounded-2xl p-6 min-h-[400px] font-mono text-sm overflow-auto">
+                    <div id="code-placeholder" class="flex items-center justify-center h-full text-slate-500">
+                        <div class="text-center">
+                            <div class="text-6xl mb-4">🎼</div>
+                            <p class="text-lg">Upload audio and generate your ChordCraft code</p>
+                            <p class="text-sm mt-2">Your musical masterpiece will appear here</p>
+                        </div>
+                    </div>
+                    <pre id="generated-code" class="text-green-400 whitespace-pre-wrap leading-relaxed hidden"></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Saved Projects Section -->
+        <section id="projects-section" class="section w-full max-w-4xl mb-12">
+            <label class="block text-sm font-semibold text-slate-300 mb-4 text-center">Saved Projects</label>
+            <div id="projects-container" class="glass-pane p-6">
+                <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="text-center text-slate-500 col-span-full py-8">
+                        <div class="text-4xl mb-2">📁</div>
+                        <p>No saved projects yet</p>
+                        <p class="text-sm mt-1">Generate and save your first ChordCraft project</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer id="command-bar-container" class="fixed bottom-0 left-0 right-0 p-4 z-50 flex flex-col items-center">
+        <div id="command-bar" class="glass-pane px-6 py-3 rounded-full flex items-center gap-6">
+            <button class="command-button" data-action="settings" title="Settings">
+                <svg class="w-6 h-6 text-slate-400 hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 001.066 1.066c.756.426 1.756.426 2.182 0a1.724 1.724 0 001.066-1.066c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 001.066 1.066c.756.426 1.756.426 2.182 0a1.724 1.724 0 001.066-1.066c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 001.066 1.066c.756.426 1.756.426 2.182 0a1.724 1.724 0 001.066-1.066c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 001.066 1.066c.756.426 1.756.426 2.182 0a1.724 1.724 0 001.066-1.066c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 001.066 1.066c.756.426 1.756.426 2.182 0a1.724 1.724 0 001.066-1.066c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 001.066 1.066c.756.426 1.756.426 2.182 0a1.724 1.724 0 001.066-1.066z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+            </button>
+            <button class="command-button" data-action="history" title="History">
+                <svg class="w-6 h-6 text-slate-400 hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </button>
+            <button class="command-button" data-action="export" title="Export">
+                <svg class="w-6 h-6 text-slate-400 hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                </svg>
+            </button>
+        </div>
+        <p class="text-xs text-slate-600 mt-3">&copy; 2025 ChordCraft Studio. Powered by Muzic AI.</p>
+    </footer>
+
+    <div id="modal-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 hidden items-center justify-center p-4">
+        <div id="modal-content" class="glass-pane p-6 rounded-3xl w-full max-w-md animate-[spring-in_0.5s]"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let state = {
+                currentAudio: null,
+                generatedCode: '',
+                analysisType: '',
+                isRecording: false,
+                savedProjects: [],
+                audioContext: null,
+                analyser: null,
+                mediaRecorder: null
+            };
+
+            // Load saved projects
+            const loadProjects = () => {
+                const saved = localStorage.getItem('chordcraft_projects');
+                if (saved) {
+                    state.savedProjects = JSON.parse(saved);
+                    renderProjects();
+                }
+            };
+
+            // Save project to localStorage
+            const saveProject = () => {
+                if (!state.generatedCode || !state.currentAudio) return;
+                
+                const project = {
+                    id: Date.now(),
+                    name: `Project ${new Date().toLocaleString()}`,
+                    code: state.generatedCode,
+                    analysisType: state.analysisType,
+                    audioName: state.currentAudio.name || 'Recording',
+                    timestamp: new Date().toISOString()
+                };
+                
+                state.savedProjects.push(project);
+                localStorage.setItem('chordcraft_projects', JSON.stringify(state.savedProjects));
+                renderProjects();
+                showModal(`<h3 class="font-bold text-xl text-center text-glow mb-4">Project Saved! 🎉</h3><p class="text-center text-slate-400">Your ChordCraft project has been saved successfully.</p>`);
+            };
+
+            // Render saved projects
+            const renderProjects = () => {
+                const container = document.getElementById('projects-grid');
+                
+                if (state.savedProjects.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center text-slate-500 col-span-full py-8">
+                            <div class="text-4xl mb-2">📁</div>
+                            <p>No saved projects yet</p>
+                            <p class="text-sm mt-1">Generate and save your first ChordCraft project</p>
+                        </div>`;
+                    return;
+                }
+
+                container.innerHTML = state.savedProjects.map(project => `
+                    <div class="project-card bg-slate-900/50 rounded-2xl p-4 border border-slate-700 cursor-pointer transition-all hover:border-purple-500" data-project-id="${project.id}">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-2xl">🎵</span>
+                            <h4 class="font-semibold text-sm text-slate-200 truncate">${project.name}</h4>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-2">${project.audioName}</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs px-2 py-1 bg-${project.analysisType === 'muzic_enhanced' ? 'green' : 'blue'}-600/20 text-${project.analysisType === 'muzic_enhanced' ? 'green' : 'blue'}-400 rounded-full">
+                                ${project.analysisType === 'muzic_enhanced' ? '🧠 AI' : '🎵 Basic'}
+                            </span>
+                            <span class="text-xs text-slate-500">${new Date(project.timestamp).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Add click handlers for project cards
+                document.querySelectorAll('.project-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const projectId = parseInt(card.dataset.projectId);
+                        const project = state.savedProjects.find(p => p.id === projectId);
+                        if (project) {
+                            loadProject(project);
+                        }
+                    });
+                });
+            };
+
+            // Load project
+            const loadProject = (project) => {
+                state.generatedCode = project.code;
+                state.analysisType = project.analysisType;
+                
+                // Update UI
+                document.getElementById('generated-code').textContent = project.code;
+                document.getElementById('code-placeholder').classList.add('hidden');
+                document.getElementById('generated-code').classList.remove('hidden');
+                
+                // Update analysis badge
+                const badge = document.getElementById('analysis-badge');
+                badge.textContent = project.analysisType === 'muzic_enhanced' ? '🧠 AI Enhanced' : '🎵 Basic Analysis';
+                badge.classList.remove('hidden');
+                
+                // Show action buttons
+                document.querySelectorAll('#copy-btn, #download-btn, #save-project-btn').forEach(btn => {
+                    btn.classList.remove('hidden');
+                });
+
+                showSection(document.getElementById('code-section'));
+                showModal(`<h3 class="font-bold text-xl text-center text-glow mb-4">Project Loaded! 📂</h3><p class="text-center text-slate-400">Loaded "${project.name}" successfully.</p>`);
+            };
+
+            // Audio visualization
+            const setupAudioVisualization = () => {
+                const canvas = document.getElementById('audio-visualizer');
+                const ctx = canvas.getContext('2d');
+                
+                const resizeCanvas = () => {
+                    canvas.width = window.innerWidth;
+                    canvas.height = 200;
+                };
+                
+                const drawVisualization = () => {
+                    if (!state.analyser) {
+                        requestAnimationFrame(drawVisualization);
+                        return;
+                    }
+                    
+                    const bufferLength = state.analyser.frequencyBinCount;
+                    const dataArray = new Uint8Array(bufferLength);
+                    state.analyser.getByteFrequencyData(dataArray);
+                    
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    const barWidth = (canvas.width / bufferLength) * 2.5;
+                    let barHeight;
+                    let x = 0;
+                    
+                    for (let i = 0; i < bufferLength; i++) {
+                        barHeight = (dataArray[i] / 255) * canvas.height * 0.8;
+                        
+                        const hue = (i / bufferLength) * 360;
+                        ctx.fillStyle = `hsla(${hue}, 70%, 60%, 0.8)`;
+                        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                        
+                        x += barWidth + 1;
+                    }
+                    
+                    requestAnimationFrame(drawVisualization);
+                };
+                
+                resizeCanvas();
+                window.addEventListener('resize', resizeCanvas);
+                drawVisualization();
+            };
+
+            // Audio handling
+            const handleAudioFile = (file) => {
+                state.currentAudio = file;
+                const audioPlayer = document.getElementById('audio-player');
+                const audioUrl = URL.createObjectURL(file);
+                
+                audioPlayer.src = audioUrl;
+                document.getElementById('audio-name').textContent = file.name;
+                document.getElementById('audio-preview').classList.remove('hidden');
+                document.getElementById('analyze-btn').disabled = false;
+                
+                // Setup audio context for visualization
+                if (!state.audioContext) {
+                    state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    state.analyser = state.audioContext.createAnalyser();
+                    state.analyser.fftSize = 256;
+                }
+                
+                const source = state.audioContext.createMediaElementSource(audioPlayer);
+                source.connect(state.analyser);
+                state.analyser.connect(state.audioContext.destination);
+                
+                showSection(document.getElementById('audio-section'));
+            };
+
+            // Analyze audio
+            const analyzeAudio = async () => {
+                if (!state.currentAudio) return;
+                
+                const analyzeBtn = document.getElementById('analyze-btn');
+                const analyzeText = document.getElementById('analyze-text');
+                
+                analyzeBtn.disabled = true;
+                analyzeText.innerHTML = '<div class="inline-flex items-center gap-2"><div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>Analyzing with AI...</div>';
+                
+                const formData = new FormData();
+                formData.append('audio', state.currentAudio);
+                
+                try {
+                    const response = await fetch('http://127.0.0.1:5000/analyze', {
+                        method: 'POST',
+                        body: formData,
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        state.generatedCode = result.chordCraftCode;
+                        state.analysisType = result.analysisType;
+                        
+                        // Update UI
+                        document.getElementById('generated-code').textContent = result.chordCraftCode;
+                        document.getElementById('code-placeholder').classList.add('hidden');
+                        document.getElementById('generated-code').classList.remove('hidden');
+                        
+                        // Update analysis badge
+                        const badge = document.getElementById('analysis-badge');
+                        badge.textContent = result.analysisType === 'muzic_enhanced' ? '🧠 AI Enhanced' : '🎵 Basic Analysis';
+                        badge.classList.remove('hidden');
+                        
+                        // Show action buttons
+                        document.querySelectorAll('#copy-btn, #download-btn, #save-project-btn').forEach(btn => {
+                            btn.classList.remove('hidden');
+                        });
+                        
+                        showSection(document.getElementById('code-section'));
+                        triggerHaptic();
+                        
+                    } else {
+                        showModal(`<h3 class="font-bold text-xl text-center text-red-400 mb-4">Analysis Failed</h3><p class="text-center text-slate-400">${result.error || 'Unknown error occurred'}</p>`);
+                    }
+                } catch (error) {
+                    console.error('Error analyzing audio:', error);
+                    showModal(`<h3 class="font-bold text-xl text-center text-red-400 mb-4">Connection Error</h3><p class="text-center text-slate-400">Could not connect to the analysis server. Make sure the backend is running.</p>`);
+                } finally {
+                    analyzeBtn.disabled = false;
+                    analyzeText.textContent = '✨ Generate ChordCraft Code';
+                }
+            };
+
+            // Recording functionality
+            const startRecording = async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    state.mediaRecorder = new MediaRecorder(stream);
+                    const chunks = [];
+                    
+                    state.mediaRecorder.ondataavailable = (event) => {
+                        chunks.push(event.data);
+                    };
+                    
+                    state.mediaRecorder.onstop = () => {
+                        const blob = new Blob(chunks, { type: 'audio/wav' });
+                        const file = new File([blob], `recording_${Date.now()}.wav`, { type: 'audio/wav' });
+                        handleAudioFile(file);
+                        
+                        // Stop recording UI
+                        document.getElementById('record-btn').classList.remove('recording-pulse', 'hidden');
+                        document.getElementById('stop-record-btn').classList.add('hidden');
+                        document.getElementById('record-btn').textContent = '🎤 Record Live';
+                        state.isRecording = false;
+                    };
+                    
+                    state.mediaRecorder.start();
+                    state.isRecording = true;
+                    
+                    // Update UI
+                    document.getElementById('record-btn').classList.add('recording-pulse');
+                    document.getElementById('record-btn').textContent = '🔴 Recording...';
+                    document.getElementById('stop-record-btn').classList.remove('hidden');
+                    
+                } catch (error) {
+                    console.error('Error starting recording:', error);
+                    showModal(`<h3 class="font-bold text-xl text-center text-red-400 mb-4">Recording Error</h3><p class="text-center text-slate-400">Could not access microphone. Please check permissions.</p>`);
+                }
+            };
+
+            const stopRecording = () => {
+                if (state.mediaRecorder && state.isRecording) {
+                    state.mediaRecorder.stop();
+                }
+            };
+
+            // Utility functions
+            const showSection = (section) => {
+                if (section) {
+                    section.classList.add('visible');
+                    requestAnimationFrame(() => {
+                        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    });
+                }
+            };
+
+            const showModal = (content) => {
+                document.getElementById('modal-content').innerHTML = content;
+                document.getElementById('modal-backdrop').classList.remove('hidden');
+                document.getElementById('modal-backdrop').classList.add('flex');
+            };
+
+            const triggerHaptic = () => {
+                if (navigator.vibrate) navigator.vibrate(50);
+            };
+
+            // Event listeners
+            document.getElementById('upload-zone').addEventListener('click', () => {
+                document.getElementById('audio-input').click();
+            });
+
+            document.getElementById('audio-input').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) handleAudioFile(file);
+            });
+
+            document.getElementById('analyze-btn').addEventListener('click', analyzeAudio);
+            document.getElementById('record-btn').addEventListener('click', startRecording);
+            document.getElementById('stop-record-btn').addEventListener('click', stopRecording);
+            document.getElementById('save-project-btn').addEventListener('click', saveProject);
+
+            // Copy and download functionality
+            document.getElementById('copy-btn').addEventListener('click', () => {
+                navigator.clipboard.writeText(state.generatedCode);
+                showModal(`<h3 class="font-bold text-xl text-center text-glow mb-4">Copied! 📋</h3><p class="text-center text-slate-400">ChordCraft code copied to clipboard.</p>`);
+            });
+
+            document.getElementById('download-btn').addEventListener('click', () => {
+                const blob = new Blob([state.generatedCode], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `chordcraft_${Date.now()}.txt`;
+                a.click();
+            });
+
+            // Drag and drop
+            const uploadZone = document.getElementById('upload-zone');
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('dragover');
+            });
+
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('dragover');
+            });
+
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('audio/')) {
+                    handleAudioFile(file);
+                }
+            });
+
+            // Command bar
+            document.body.addEventListener('click', (e) => {
+                const commandButton = e.target.closest('.command-button');
+                const modalBackdrop = e.target.closest('#modal-backdrop');
+
+                if (commandButton) {
+                    const action = commandButton.dataset.action;
+                    triggerHaptic();
+                    showModal(`<h3 class="font-bold text-xl text-center text-glow">${action.charAt(0).toUpperCase() + action.slice(1)}</h3><p class="text-center mt-4 text-slate-400">This feature is coming soon.</p>`);
+                }
+                
+                if (modalBackdrop && e.target.id === 'modal-backdrop') {
+                    modalBackdrop.classList.add('hidden');
+                }
+            });
+
+            // Three.js background (same as Aura OS)
+            let scene, camera, renderer, prism, clock, mouse;
+
+            const initThree = () => {
+                const container = document.getElementById('web3-canvas');
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                container.appendChild(renderer.domElement);
+
+                const geometry = new THREE.IcosahedronGeometry(2.5, 1);
+                const material = new THREE.MeshPhysicalMaterial({
+                    roughness: 0.1,
+                    transmission: 1.0,
+                    thickness: 0.8,
+                    ior: 1.5,
+                });
+                prism = new THREE.Mesh(geometry, material);
+                scene.add(prism);
+
+                const light1 = new THREE.DirectionalLight(0xffffff, 1.5);
+                light1.position.set(10, 10, 10);
+                scene.add(light1);
+                const light2 = new THREE.DirectionalLight(0xff00ff, 1);
+                light2.position.set(-10, -5, -5);
+                scene.add(light2);
+                scene.add(new THREE.AmbientLight(0x404040, 2));
+
+                camera.position.z = 7;
+                clock = new THREE.Clock();
+                mouse = new THREE.Vector2();
+            };
+
+            const animateThree = () => {
+                requestAnimationFrame(animateThree);
+                if (!clock || !prism || !renderer || !scene || !camera || !mouse) return;
+                
+                const elapsedTime = clock.getElapsedTime();
+                
+                const positionAttribute = prism.geometry.attributes.position;
+                const time = Date.now() * 0.0005;
+                for (let i = 0; i < positionAttribute.count; i++) {
+                    const vertex = new THREE.Vector3().fromBufferAttribute(positionAttribute, i);
+                    const offset = 2.5 + 0.3 * Math.sin(vertex.y * 3 + time * 1.5);
+                    vertex.normalize().multiplyScalar(offset);
+                    positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
+                }
+                positionAttribute.needsUpdate = true;
+                prism.geometry.computeVertexNormals();
+
+                prism.rotation.y += (mouse.x * Math.PI * 0.05 - prism.rotation.y) * 0.05;
+                prism.rotation.x += (-mouse.y * Math.PI * 0.05 - prism.rotation.x) * 0.05;
+                
+                renderer.render(scene, camera);
+            };
+
+            const onMouseMove = (event) => {
+                if (mouse) {
+                    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+                }
+            };
+
+            const onWindowResize = () => {
+                if (camera && renderer) {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                }
+            };
+
+            // Initialize everything
+            loadProjects();
+            setupAudioVisualization();
+            showSection(document.getElementById('audio-section'));
+            
+            initThree();
+            animateThree();
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('mousemove', onMouseMove);
+            
+            // Animated hue rotation
+            let hue = 0;
+            setInterval(() => {
+                hue = (hue + 1) % 360;
+                document.body.style.setProperty('--hue', hue);
+            }, 50);
+        });
+    </script>
+</body>
+</html>
