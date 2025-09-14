@@ -3,6 +3,7 @@ import { useAuth } from './Auth';
 import { Login } from './Login';
 import { Studio } from './Studio';
 import { LandingPage } from './LandingPage';
+import './design-system.css';
 
 function App() {
   const { user } = useAuth();

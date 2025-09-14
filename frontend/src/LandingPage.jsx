@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import './design-system.css';
 
 export function LandingPage({ onGetStarted }) {
   const [activeDemo, setActiveDemo] = useState(0);
   const [audioPlaying, setAudioPlaying] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const heroRef = useRef(null);
 
   // Demo code examples
   const demoExamples = [
@@ -50,368 +54,300 @@ PLAY A4 FOR 0.5s AT 0.75s`,
     return () => clearInterval(interval);
   }, []);
 
-  // Three.js Background Effect (same as AuraOS)
+  // Intersection Observer for animations
   useEffect(() => {
-    let scene, camera, renderer, prism, clock, mouse;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
 
-    const initThree = () => {
-      const container = document.getElementById('web3-canvas');
-      if (!container || !window.THREE) return;
-
-      scene = new window.THREE.Scene();
-      camera = new window.THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-      renderer = new window.THREE.WebGLRenderer({ antialias: true, alpha: true });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      container.appendChild(renderer.domElement);
-
-      const geometry = new window.THREE.IcosahedronGeometry(2.5, 1);
-      const material = new window.THREE.MeshPhysicalMaterial({
-        roughness: 0.1,
-        transmission: 1.0,
-        thickness: 0.8,
-        ior: 1.5,
-      });
-      prism = new window.THREE.Mesh(geometry, material);
-      scene.add(prism);
-
-      const light1 = new window.THREE.DirectionalLight(0xffffff, 1.5);
-      light1.position.set(10, 10, 10);
-      scene.add(light1);
-      const light2 = new window.THREE.DirectionalLight(0xff00ff, 1);
-      light2.position.set(-10, -5, -5);
-      scene.add(light2);
-      scene.add(new window.THREE.AmbientLight(0x404040, 2));
-
-      camera.position.z = 7;
-      clock = new window.THREE.Clock();
-      mouse = new window.THREE.Vector2();
-    };
-
-    const animateThree = () => {
-      requestAnimationFrame(animateThree);
-      if (!clock || !prism || !renderer || !scene || !camera || !mouse) return;
-      
-      const positionAttribute = prism.geometry.attributes.position;
-      const time = Date.now() * 0.0005;
-      for (let i = 0; i < positionAttribute.count; i++) {
-        const vertex = new window.THREE.Vector3().fromBufferAttribute(positionAttribute, i);
-        const offset = 2.5 + 0.3 * Math.sin(vertex.y * 3 + time * 1.5);
-        vertex.normalize().multiplyScalar(offset);
-        positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
-      }
-      positionAttribute.needsUpdate = true;
-      prism.geometry.computeVertexNormals();
-
-      prism.rotation.y += (mouse.x * Math.PI * 0.05 - prism.rotation.y) * 0.05;
-      prism.rotation.x += (-mouse.y * Math.PI * 0.05 - prism.rotation.x) * 0.05;
-      
-      renderer.render(scene, camera);
-    };
-
-    const onMouseMove = (event) => {
-      if (mouse) {
-        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-      }
-    };
-
-    const onWindowResize = () => {
-      if (camera && renderer) {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-      }
-    };
-
-    // Initialize Three.js
-    if (window.THREE) {
-      initThree();
-      animateThree();
-      window.addEventListener('resize', onWindowResize);
-      window.addEventListener('mousemove', onMouseMove);
+    if (heroRef.current) {
+      observer.observe(heroRef.current);
     }
 
-    return () => {
-      window.removeEventListener('resize', onWindowResize);
-      window.removeEventListener('mousemove', onMouseMove);
-      if (renderer && renderer.domElement) {
-        renderer.domElement.remove();
-      }
-    };
+    return () => observer.disconnect();
   }, []);
 
-  // Hue animation
+  // Mouse tracking for parallax effects
   useEffect(() => {
-    let hue = 0;
-    const hueInterval = setInterval(() => {
-      hue = (hue + 1) % 360;
-      document.body.style.setProperty('--hue', hue);
-    }, 50);
+    const handleMouseMove = (e) => {
+      setMousePosition({
+        x: (e.clientX / window.innerWidth) * 100,
+        y: (e.clientY / window.innerHeight) * 100
+      });
+    };
 
-    return () => clearInterval(hueInterval);
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
   return (
-    <>
-      {/* AuraOS Styles */}
-      <style jsx>{`
-        @keyframes hue-rotate { 
-          0% { filter: hue-rotate(0deg); } 
-          100% { filter: hue-rotate(360deg); } 
-        }
-        @keyframes spring-in {
-          0% { opacity: 0; transform: translateY(30px) scale(0.95); }
-          80% { opacity: 1; transform: translateY(-5px) scale(1.05); }
-          100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-        @keyframes pulse-glow {
-          0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.4); }
-          50% { box-shadow: 0 0 40px rgba(168, 85, 247, 0.8), 0 0 60px rgba(168, 85, 247, 0.4); }
-        }
-
-        .hue-border { 
-          position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; 
-          pointer-events: none; border: 2px solid transparent; 
-          background-image: linear-gradient(to right, #7e22ce, #be185d, #d97706, #7e22ce); 
-          background-size: 200%; 
-          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); 
-          mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); 
-          -webkit-mask-composite: xor; mask-composite: exclude;
-          animation: hue-rotate 10s linear infinite;
-        }
-        .text-glow { 
-          text-shadow: 0 0 16px hsla(var(--hue, 260), 100%, 70%, 0.9), 0 0 4px hsla(var(--hue, 260), 100%, 70%, 0.7);
-          animation: hue-rotate 10s linear infinite;
-        }
-        .glass-pane { 
-          background: rgba(10, 10, 12, 0.8); 
-          backdrop-filter: blur(40px); 
-          -webkit-backdrop-filter: blur(40px); 
-          border: 1px solid rgba(255, 255, 255, 0.1); 
-          border-radius: 32px; 
-        }
-        .section { 
-          animation: spring-in 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
-        }
-        .float { animation: float 6s ease-in-out infinite; }
-        #web3-canvas { 
-          position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; 
-        }
-        body { 
-          font-family: 'Sora', sans-serif !important; 
-          background-color: #000000; 
-          color: #f1f5f9; 
-          overflow-x: hidden; 
-        }
-      `}</style>
-
-      {/* Three.js Canvas */}
-      <canvas id="web3-canvas" />
-      
-      {/* Hue Border */}
-      <div className="hue-border" />
-
-      <div className="min-h-screen w-full flex flex-col items-center relative z-10" style={{fontFamily: 'Sora, sans-serif', backgroundColor: '#000000', color: '#f1f5f9'}}>
+    <div className="min-h-screen w-full relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Floating Orbs */}
+        <div 
+          className="absolute w-96 h-96 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-3xl animate-float"
+          style={{
+            left: `${mousePosition.x * 0.5}%`,
+            top: `${mousePosition.y * 0.3}%`,
+            transform: 'translate(-50%, -50%)'
+          }}
+        />
+        <div 
+          className="absolute w-64 h-64 bg-gradient-to-r from-pink-500/20 to-yellow-500/20 rounded-full blur-2xl animate-float"
+          style={{
+            left: `${100 - mousePosition.x * 0.3}%`,
+            top: `${100 - mousePosition.y * 0.4}%`,
+            transform: 'translate(-50%, -50%)',
+            animationDelay: '1s'
+          }}
+        />
         
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="h-full w-full" style={{
+            backgroundImage: `
+              linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: '50px 50px'
+          }} />
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="relative z-10 min-h-screen flex flex-col">
         {/* Hero Section */}
-        <header className="text-center my-20 px-4 max-w-5xl">
-          <div className="float">
-            <h1 className="text-8xl md:text-9xl font-bold tracking-tighter text-white mb-6">
-              <span className="text-glow">ChordCraft</span>
-            </h1>
-          </div>
-          <p className="text-3xl md:text-4xl text-slate-300 mb-8 font-semibold">
-            The future of music creation is <span className="text-purple-400">code</span>
-          </p>
-          <p className="text-xl text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Transform any audio into executable musical code. Edit with precision, collaborate in real-time, 
-            and push the boundaries of what's possible in music production.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-            <button 
-              onClick={onGetStarted}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-4 px-8 rounded-2xl transition-all transform hover:scale-105 text-lg shadow-lg"
-              style={{boxShadow: '0 10px 30px rgba(168, 85, 247, 0.3)'}}
-            >
-              ✨ Start Creating Music
-            </button>
-            <button 
-              onClick={() => setActiveDemo(0)}
-              className="bg-slate-800/50 border border-slate-600 hover:border-purple-500 text-white font-semibold py-4 px-8 rounded-2xl transition-all hover:bg-slate-700/50 text-lg"
-            >
-              🎵 Watch Demo
-            </button>
-          </div>
-        </header>
-
-        {/* Features Section */}
-        <section className="w-full max-w-6xl px-4 mb-20">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">Powered by <span className="text-purple-400">Muzic AI</span></h2>
-            <p className="text-xl text-slate-400">Microsoft's advanced music understanding technology</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="glass-pane p-8 text-center hover:scale-105 transition-transform">
-              <div className="text-6xl mb-4">🎵</div>
-              <h3 className="font-bold text-xl text-white mb-4">Audio → Code</h3>
-              <p className="text-slate-400">Upload any audio file and get clean, editable ChordCraft code with AI-powered analysis</p>
+        <section ref={heroRef} className="flex-1 flex items-center justify-center px-6 py-20">
+          <div className="text-center max-w-6xl">
+            {/* Main Headline */}
+            <div className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+              <h1 className="text-display-2xl font-bold text-white mb-6">
+                <span className="text-gradient">ChordCraft</span>
+              </h1>
+              <p className="text-display-sm text-slate-300 mb-4">
+                Where Music Meets Code
+              </p>
+              <p className="text-xl text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed">
+                Transform your musical ideas into beautiful, playable code. 
+                Upload audio, get instant ChordCraft code, and create music 
+                with the power of Microsoft Muzic AI.
+              </p>
             </div>
-            
-            <div className="glass-pane p-8 text-center hover:scale-105 transition-transform">
-              <div className="text-6xl mb-4">🎼</div>
-              <h3 className="font-bold text-xl text-white mb-4">Code → Music</h3>
-              <p className="text-slate-400">Write or edit musical code and hear it played back instantly with our live studio</p>
+
+            {/* CTA Buttons */}
+            <div className={`flex flex-col sm:flex-row gap-4 justify-center items-center mb-16 transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+              <button
+                onClick={onGetStarted}
+                className="btn btn-primary btn-lg group"
+              >
+                <span>Start Creating</span>
+                <svg className="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </button>
+              
+              <button className="btn btn-ghost btn-lg text-white border-white/20 hover:bg-white/10">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Watch Demo</span>
+              </button>
             </div>
-            
-            <div className="glass-pane p-8 text-center hover:scale-105 transition-transform">
-              <div className="text-6xl mb-4">🧠</div>
-              <h3 className="font-bold text-xl text-white mb-4">AI Enhanced</h3>
-              <p className="text-slate-400">Advanced harmonic analysis, key detection, and tempo recognition powered by Muzic</p>
+
+            {/* Live Demo Preview */}
+            <div className={`glass-strong rounded-3xl p-8 max-w-4xl mx-auto transition-all duration-1000 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-white">
+                  {demoExamples[activeDemo].title}
+                </h3>
+                <div className="flex gap-2">
+                  {demoExamples.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setActiveDemo(index)}
+                      className={`w-3 h-3 rounded-full transition-all ${
+                        index === activeDemo ? 'bg-blue-500 scale-125' : 'bg-white/30 hover:bg-white/50'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+              
+              <p className="text-slate-300 mb-6 text-center">
+                {demoExamples[activeDemo].description}
+              </p>
+              
+              <div className="bg-slate-900/50 rounded-2xl p-6 font-mono text-sm text-green-400 overflow-x-auto border border-slate-700/50">
+                <pre className="whitespace-pre-wrap">{demoExamples[activeDemo].code}</pre>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Interactive Demo Section */}
-        <section className="w-full max-w-6xl px-4 mb-20">
-          <div className="glass-pane p-8">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-white mb-4">Live Code Demo</h2>
-              <p className="text-slate-400">See ChordCraft in action - click the examples below</p>
+        {/* Features Section */}
+        <section className="py-20 px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-display-lg font-bold text-white mb-4">
+                Powerful Features
+              </h2>
+              <p className="text-xl text-slate-400 max-w-2xl mx-auto">
+                Everything you need to create, analyze, and share your musical code
+              </p>
             </div>
 
-            {/* Demo Selector */}
-            <div className="flex justify-center gap-4 mb-8 flex-wrap">
-              {demoExamples.map((demo, index) => (
-                <button
-                  key={index}
-                  onClick={() => setActiveDemo(index)}
-                  className={`px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 ${
-                    activeDemo === index 
-                      ? `bg-gradient-to-r ${demo.color} text-white shadow-lg` 
-                      : 'bg-slate-800/50 border border-slate-600 text-slate-300 hover:border-purple-500'
-                  }`}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[
+                { 
+                  icon: "🧠", 
+                  title: "Microsoft Muzic AI", 
+                  desc: "Advanced AI analysis powered by Microsoft's music research",
+                  color: "from-blue-500 to-cyan-500"
+                },
+                { 
+                  icon: "⚡", 
+                  title: "Real-time Generation", 
+                  desc: "Instant ChordCraft code from your audio files",
+                  color: "from-yellow-500 to-orange-500"
+                },
+                { 
+                  icon: "🎹", 
+                  title: "Live Playback", 
+                  desc: "Hear your code as beautiful, playable music",
+                  color: "from-green-500 to-emerald-500"
+                },
+                { 
+                  icon: "📱", 
+                  title: "Dual Interface", 
+                  desc: "Timeline and Classic views for every workflow",
+                  color: "from-purple-500 to-pink-500"
+                },
+                { 
+                  icon: "☁️", 
+                  title: "Cloud Sync", 
+                  desc: "Save and access your projects from anywhere",
+                  color: "from-indigo-500 to-purple-500"
+                },
+                { 
+                  icon: "🔧", 
+                  title: "Advanced Editing", 
+                  desc: "Fine-tune every note, rhythm, and harmony",
+                  color: "from-red-500 to-pink-500"
+                }
+              ].map((feature, index) => (
+                <div 
+                  key={index} 
+                  className="card-glass p-6 group hover:scale-105 transition-all duration-300"
                 >
-                  {demo.title}
-                </button>
-              ))}
-            </div>
-
-            {/* Demo Display */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Code Display */}
-              <div className="bg-slate-900/80 border border-slate-700 rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-lg text-white">{demoExamples[activeDemo].title}</h3>
-                  <button 
-                    onClick={() => setAudioPlaying(!audioPlaying)}
-                    className={`px-4 py-2 rounded-xl font-semibold transition-all ${
-                      audioPlaying 
-                        ? 'bg-red-600 hover:bg-red-500 text-white' 
-                        : 'bg-green-600 hover:bg-green-500 text-white'
-                    }`}
-                  >
-                    {audioPlaying ? '⏸️ Stop' : '▶️ Play'}
-                  </button>
-                </div>
-                <pre className="text-green-400 font-mono text-sm leading-relaxed bg-black/50 p-4 rounded-xl overflow-auto">
-                  {demoExamples[activeDemo].code}
-                </pre>
-              </div>
-
-              {/* Visualization */}
-              <div className="bg-slate-900/80 border border-slate-700 rounded-2xl p-6">
-                <h3 className="font-bold text-lg text-white mb-4">Real-time Visualization</h3>
-                <div className="h-48 bg-black/50 rounded-xl border border-slate-800 flex items-center justify-center">
-                  <div className="flex items-end space-x-1 h-32">
-                    {Array.from({ length: 40 }, (_, i) => (
-                      <div
-                        key={i}
-                        className={`bg-gradient-to-t ${demoExamples[activeDemo].color} rounded-sm opacity-80`}
-                        style={{
-                          width: '4px',
-                          height: `${Math.random() * 80 + 20}%`,
-                          animationDelay: `${i * 0.1}s`
-                        }}
-                      />
-                    ))}
+                  <div className={`w-12 h-12 bg-gradient-to-r ${feature.color} rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform`}>
+                    {feature.icon}
                   </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed">{feature.desc}</p>
                 </div>
-                <p className="text-slate-400 mt-4 text-sm text-center">
-                  {demoExamples[activeDemo].description}
-                </p>
-              </div>
+              ))}
             </div>
           </div>
         </section>
 
         {/* How It Works */}
-        <section className="w-full max-w-6xl px-4 mb-20">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">How It Works</h2>
-            <p className="text-xl text-slate-400">Three simple steps to musical mastery</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="glass-pane w-20 h-20 mx-auto mb-6 flex items-center justify-center">
-                <span className="text-3xl">📤</span>
-              </div>
-              <h3 className="font-bold text-xl text-white mb-4">1. Upload Audio</h3>
-              <p className="text-slate-400">Drop in any audio file - piano, guitar, vocals, electronic music, or full songs</p>
+        <section className="py-20 px-6 bg-black/20">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-display-lg font-bold text-white mb-4">
+                How It Works
+              </h2>
+              <p className="text-xl text-slate-400">
+                Three simple steps to transform your music
+              </p>
             </div>
-
-            <div className="text-center">
-              <div className="glass-pane w-20 h-20 mx-auto mb-6 flex items-center justify-center">
-                <span className="text-3xl">🧠</span>
-              </div>
-              <h3 className="font-bold text-xl text-white mb-4">2. AI Analysis</h3>
-              <p className="text-slate-400">Our Muzic AI extracts tempo, key, harmony, and converts it to clean ChordCraft code</p>
-            </div>
-
-            <div className="text-center">
-              <div className="glass-pane w-20 h-20 mx-auto mb-6 flex items-center justify-center">
-                <span className="text-3xl">✨</span>
-              </div>
-              <h3 className="font-bold text-xl text-white mb-4">3. Create & Edit</h3>
-              <p className="text-slate-400">Edit your musical code, collaborate in real-time, and export to any format</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[
+                { 
+                  step: "01", 
+                  title: "Upload Audio", 
+                  desc: "Drop your audio file or record live with our built-in recorder",
+                  icon: "🎤",
+                  color: "from-blue-500 to-cyan-500"
+                },
+                { 
+                  step: "02", 
+                  title: "AI Analysis", 
+                  desc: "Microsoft Muzic AI analyzes tempo, key, harmony, and rhythm",
+                  icon: "🧠",
+                  color: "from-purple-500 to-pink-500"
+                },
+                { 
+                  step: "03", 
+                  title: "Get Code", 
+                  desc: "Receive clean, editable ChordCraft code ready to play",
+                  icon: "💻",
+                  color: "from-green-500 to-emerald-500"
+                }
+              ].map((step, index) => (
+                <div key={index} className="text-center group">
+                  <div className="relative mb-6">
+                    <div className={`w-20 h-20 bg-gradient-to-r ${step.color} rounded-2xl flex items-center justify-center text-3xl mx-auto group-hover:scale-110 transition-transform`}>
+                      {step.icon}
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-white text-slate-900 rounded-full flex items-center justify-center text-sm font-bold">
+                      {step.step}
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-semibold text-white mb-3">{step.title}</h3>
+                  <p className="text-slate-400 leading-relaxed">{step.desc}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="w-full max-w-4xl px-4 mb-20">
-          <div className="glass-pane p-12 text-center">
-            <h2 className="text-4xl font-bold text-white mb-6">Ready to revolutionize your music?</h2>
-            <p className="text-xl text-slate-400 mb-8">Join thousands of musicians, producers, and creators using ChordCraft</p>
+        {/* Final CTA */}
+        <section className="py-20 px-6">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-display-lg font-bold text-white mb-6">
+              Ready to Create?
+            </h2>
+            <p className="text-xl text-slate-400 mb-12 max-w-2xl mx-auto">
+              Join thousands of musicians, producers, and developers 
+              creating the future of music with code
+            </p>
             
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-              <button 
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <button
                 onClick={onGetStarted}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-4 px-12 rounded-2xl transition-all transform hover:scale-105 text-xl shadow-2xl"
-                style={{boxShadow: '0 20px 40px rgba(168, 85, 247, 0.4)'}}
+                className="btn btn-primary btn-lg group"
               >
-                🚀 Get Started Free
+                <span>Start Creating Free</span>
+                <svg className="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
               </button>
-              <div className="text-slate-500 text-sm">
-                <p>✅ No credit card required</p>
-                <p>✅ Full access to AI features</p>
-                <p>✅ Save unlimited projects</p>
+              
+              <div className="text-sm text-slate-500">
+                No credit card required • Free forever
               </div>
             </div>
           </div>
         </section>
 
         {/* Footer */}
-        <footer className="w-full text-center py-8 border-t border-slate-800">
-          <p className="text-slate-600">&copy; 2025 ChordCraft. Powered by Microsoft Muzic AI.</p>
+        <footer className="py-8 px-6 border-t border-white/10">
+          <div className="max-w-6xl mx-auto text-center">
+            <p className="text-slate-500 text-sm">
+              © 2025 ChordCraft. Powered by Microsoft Muzic AI. 
+              Built with ❤️ for musicians everywhere.
+            </p>
+          </div>
         </footer>
       </div>
-    </>
+    </div>
   );
 }
