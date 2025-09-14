@@ -554,63 +554,63 @@ export function Studio() {
             {/* Hue Border */}
             <div className="hue-border" />
 
-            <div className="min-h-screen w-full flex flex-col items-center p-4 relative z-10" style={{fontFamily: 'Sora, sans-serif', backgroundColor: '#000000', color: '#f1f5f9'}}>
+            <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 relative z-10" style={{fontFamily: 'Sora, sans-serif', backgroundColor: '#000000', color: '#f1f5f9'}}>
                 
                 {/* View Toggle */}
-                <div className="absolute top-4 right-4 z-20">
-                    <div className="glass-pane p-1 rounded-xl">
-                        <div className="flex gap-1">
+                <div className="absolute top-6 right-6 z-20">
+                    <div className="glass-pane p-2 rounded-2xl">
+                        <div className="flex gap-2">
                             <button
                                 onClick={() => setViewMode('timeline')}
-                                className={`px-2 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
+                                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                                     viewMode === 'timeline'
                                         ? 'bg-purple-600 text-white shadow-lg'
                                         : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50'
                                 }`}
                             >
-                                🎼
+                                🎼 Timeline
                             </button>
                             <button
                                 onClick={() => setViewMode('classic')}
-                                className={`px-2 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
+                                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                                     viewMode === 'classic'
                                         ? 'bg-purple-600 text-white shadow-lg'
                                         : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50'
                                 }`}
                             >
-                                🎵
+                                🎵 Classic
                             </button>
                         </div>
                     </div>
                 </div>
 
                 {/* Main Container */}
-                <div className="w-full max-w-2xl mx-auto mt-16">
+                <div className="w-full max-w-5xl mx-auto">
                     {/* Header */}
-                    <div className="text-center mb-6">
-                        <h1 className="text-3xl font-bold text-white mb-1">
+                    <div className="text-center mb-8">
+                        <h1 className="text-5xl font-bold text-white mb-2">
                             <span className="text-glow">ChordCraft</span>
                         </h1>
-                        <p className="text-slate-400 text-xs">AI-Powered Music Studio</p>
-                        <p className="text-slate-500 text-xs mt-1">Welcome, {user?.email}</p>
+                        <p className="text-slate-400 text-lg">AI-Powered Music Studio</p>
+                        <p className="text-slate-500 text-sm mt-1">Welcome, {user?.email}</p>
                     </div>
 
                     {/* Main Content Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         
                         {/* Project Management Bubble */}
-                        <div className="glass-pane p-3 rounded-xl hover:scale-105 transition-all duration-200">
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
-                                <h3 className="text-xs font-semibold text-white">Project</h3>
+                        <div className="glass-pane p-6 rounded-2xl hover:scale-105 transition-all duration-200">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                                <h3 className="text-lg font-semibold text-white">Project Management</h3>
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-4">
                                 <select 
                                     onChange={(e) => handleLoadProject(e.target.value)} 
                                     value={projectId || ""} 
-                                    className="w-full px-2 py-1.5 bg-slate-800/30 border border-slate-600/50 text-white text-xs rounded-lg outline-none focus:border-purple-500"
+                                    className="w-full px-4 py-3 bg-slate-800/30 border border-slate-600/50 text-white text-sm rounded-xl outline-none focus:border-purple-500"
                                 >
-                                    <option value="">-- New Project --</option>
+                                    <option value="">-- Create New Project --</option>
                                     {projects.map((project) => (
                                         <option key={project.id} value={project.id}>
                                             {project.title}
@@ -621,29 +621,29 @@ export function Studio() {
                                     type="text" 
                                     value={projectTitle} 
                                     onChange={(e) => setProjectTitle(e.target.value)} 
-                                    placeholder="Project name..." 
-                                    className="w-full px-2 py-1.5 bg-slate-800/30 border border-slate-600/50 text-white text-xs rounded-lg outline-none focus:border-purple-500 placeholder-slate-400" 
+                                    placeholder="Enter project title..." 
+                                    className="w-full px-4 py-3 bg-slate-800/30 border border-slate-600/50 text-white text-sm rounded-xl outline-none focus:border-purple-500 placeholder-slate-400" 
                                 />
                                 <button 
                                     onClick={handleSaveProject} 
-                                    className="w-full px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-xs font-medium rounded-lg transition-all"
+                                    className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-sm font-medium rounded-xl transition-all"
                                 >
-                                    💾 Save
+                                    💾 Save Project
                                 </button>
-                                {saveStatus && <p className="text-xs text-green-400 text-center bg-green-900/20 p-1.5 rounded">{saveStatus}</p>}
+                                {saveStatus && <p className="text-sm text-green-400 text-center bg-green-900/20 p-3 rounded-xl">{saveStatus}</p>}
                             </div>
                         </div>
 
                         {/* Audio Upload Bubble */}
-                        <div className="glass-pane p-3 rounded-xl hover:scale-105 transition-all duration-200">
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                                <h3 className="text-xs font-semibold text-white">Audio Input</h3>
+                        <div className="glass-pane p-6 rounded-2xl hover:scale-105 transition-all duration-200">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                                <h3 className="text-lg font-semibold text-white">Audio Input</h3>
                             </div>
-                            <div className="space-y-2">
-                                <div className="border-2 border-dashed border-slate-600/50 rounded-lg p-3 text-center hover:border-purple-500/50 transition-colors">
-                                    <div className="text-xl mb-1">🎵</div>
-                                    <p className="text-xs text-slate-400 mb-1">Drop audio here</p>
+                            <div className="space-y-4">
+                                <div className="border-2 border-dashed border-slate-600/50 rounded-xl p-6 text-center hover:border-purple-500/50 transition-colors">
+                                    <div className="text-4xl mb-3">🎵</div>
+                                    <p className="text-slate-400 mb-3">Drop your audio here or click to browse</p>
                                     <input
                                         type="file"
                                         accept="audio/*"
@@ -653,13 +653,13 @@ export function Studio() {
                                     />
                                     <label
                                         htmlFor="audio-upload"
-                                        className="px-2 py-1 bg-slate-700/50 hover:bg-slate-600/50 text-white text-xs rounded cursor-pointer transition-colors"
+                                        className="px-4 py-2 bg-slate-700/50 hover:bg-slate-600/50 text-white text-sm rounded-lg cursor-pointer transition-colors"
                                     >
                                         Choose File
                                     </label>
                                 </div>
                                 {selectedFile && (
-                                    <div className="text-xs text-slate-300 bg-slate-800/30 rounded p-1.5">
+                                    <div className="text-sm text-slate-300 bg-slate-800/30 rounded-lg p-3">
                                         📁 {selectedFile.name}
                                     </div>
                                 )}
@@ -668,101 +668,102 @@ export function Studio() {
                     </div>
 
                     {/* Recording & Generate Bubble */}
-                    <div className="glass-pane p-3 rounded-xl hover:scale-105 transition-all duration-200 mt-3">
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                            <h3 className="text-xs font-semibold text-white">Generate Code</h3>
+                    <div className="glass-pane p-6 rounded-2xl hover:scale-105 transition-all duration-200 mt-6">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                            <h3 className="text-lg font-semibold text-white">Generate Code</h3>
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-4">
                             <button 
                                 type="button"
                                 onClick={isRecording ? stopRecording : startRecording}
-                                className={`w-full py-1.5 px-3 rounded-lg text-xs font-medium transition-all ${
+                                className={`w-full py-3 px-6 rounded-xl text-sm font-medium transition-all ${
                                     isRecording 
                                         ? 'bg-red-600 hover:bg-red-500 animate-pulse' 
                                         : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500'
                                 }`}
                             >
-                                {isRecording ? '🔴 Stop' : '🎤 Record'}
+                                {isRecording ? '🔴 Stop Recording' : '🎤 Record Live Audio'}
                             </button>
                             
                             <button 
                                 type="submit" 
                                 onClick={handleSubmit}
                                 disabled={isLoading || !selectedFile} 
-                                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-xs font-medium py-1.5 px-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-sm font-medium py-3 px-6 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                             >
                                 {isLoading ? (
-                                    <span className="flex items-center justify-center gap-1">
-                                        <div className="animate-spin rounded-full h-2 w-2 border-b-2 border-white"></div>
-                                        Analyzing...
+                                    <span className="flex items-center justify-center gap-2">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                        Analyzing with Muzic AI...
                                     </span>
                                 ) : (
-                                    '✨ Generate'
+                                    '✨ Generate ChordCraft Code'
                                 )}
                             </button>
                             
-                            {error && <p className="text-red-400 text-xs text-center bg-red-900/20 p-1.5 rounded">{error}</p>}
-                            {success && <p className="text-green-400 text-xs text-center bg-green-900/20 p-1.5 rounded">{success}</p>}
+                            {error && <p className="text-red-400 text-sm text-center bg-red-900/20 p-3 rounded-xl">{error}</p>}
+                            {success && <p className="text-green-400 text-sm text-center bg-green-900/20 p-3 rounded-xl">{success}</p>}
                         </div>
                     </div>
                 
                     {/* Code Studio Bubble */}
-                    <div className="glass-pane p-3 rounded-xl hover:scale-105 transition-all duration-200 mt-3">
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full"></div>
-                            <h3 className="text-xs font-semibold text-white">Code Studio</h3>
+                    <div className="glass-pane p-6 rounded-2xl hover:scale-105 transition-all duration-200 mt-6">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-3 h-3 bg-cyan-500 rounded-full"></div>
+                            <h3 className="text-lg font-semibold text-white">Live Code Studio</h3>
                         </div>
-                        <div className="space-y-2">
-                            <div className="flex gap-1">
+                        <div className="space-y-4">
+                            <div className="flex gap-3">
                                 <button 
                                     onClick={() => navigator.clipboard.writeText(chordCraftCode)}
-                                    className="px-2 py-1 bg-slate-700/50 hover:bg-slate-600/50 text-white text-xs rounded transition-all"
+                                    className="px-4 py-2 bg-slate-700/50 hover:bg-slate-600/50 text-white text-sm rounded-lg transition-all"
                                 >
                                     📋 Copy
                                 </button>
                                 <button 
                                     onClick={handlePlay} 
-                                    className="px-2 py-1 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-medium rounded transition-all"
+                                    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-sm font-medium rounded-lg transition-all"
                                 >
-                                    ▶️ Play
+                                    ▶️ Play Code
                                 </button>
                                 <button 
                                     onClick={() => handleCodeToMusic()}
                                     disabled={isGeneratingMusic || !chordCraftCode || chordCraftCode.includes('Upload an audio file')}
-                                    className="px-2 py-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-xs font-medium rounded transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-sm font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {isGeneratingMusic ? '⏳' : '🎼 Analyze'}
+                                    {isGeneratingMusic ? '⏳ Analyzing...' : '🎼 Analyze Code'}
                                 </button>
                             </div>
                     
-                            <div className="bg-slate-900/50 rounded-lg border border-slate-700/50 overflow-hidden">
+                            <div className="bg-slate-900/50 rounded-xl border border-slate-700/50 overflow-hidden">
                                 <Editor 
                                     value={chordCraftCode} 
                                     onValueChange={code => setChordCraftCode(code)} 
                                     highlight={code => highlight(code, languages.chordcraft, 'chordcraft')} 
-                                    padding={12} 
-                                    className="w-full h-32 font-mono text-xs" 
+                                    padding={20} 
+                                    className="w-full h-64 font-mono text-sm" 
                                     style={{ 
                                         fontFamily: '"Fira Code", "Fira Mono", monospace', 
-                                        fontSize: 10,
-                                        lineHeight: 1.4,
+                                        fontSize: 14,
+                                        lineHeight: 1.6,
                                         backgroundColor: 'transparent'
                                     }} 
                                 />
                             </div>
                             
-                            <div className="text-xs text-slate-400 bg-slate-800/30 p-2 rounded">
-                                <p className="flex items-center gap-1">💡 Edit code and click "Play" to hear changes</p>
+                            <div className="text-sm text-slate-400 bg-slate-800/30 p-4 rounded-xl">
+                                <p className="flex items-center gap-2">💡 Edit the generated code above and click "Play Code" to hear your changes!</p>
+                                <p className="flex items-center gap-2 mt-2">🎼 Click "Analyze Code" to see musical features and visualization!</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Sign Out Button */}
-                    <div className="flex justify-center mt-4">
+                    <div className="flex justify-center mt-8">
                         <button 
                             onClick={signOut}
-                            className="px-3 py-1.5 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 text-white text-xs rounded-lg transition-all"
+                            className="px-6 py-3 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 text-white text-sm rounded-xl transition-all"
                         >
                             🚪 Sign Out
                         </button>
