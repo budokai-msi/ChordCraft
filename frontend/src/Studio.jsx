@@ -319,13 +319,19 @@ export function Studio() {
         }
     };
 
+    // FORCE TIMELINE STUDIO - DEBUG
+    console.log('🔍 Studio render - viewMode:', viewMode);
+    
     if (viewMode === 'timeline') {
+        console.log('✅ Rendering TimelineStudio');
         return (
             <TimelineProvider>
                 <TimelineStudio />
             </TimelineProvider>
         );
     }
+    
+    console.log('❌ Rendering Classic Studio instead of Timeline');
 
     return (
         <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">

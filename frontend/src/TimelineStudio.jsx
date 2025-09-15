@@ -14,6 +14,8 @@ if (languages.chordcraft === undefined) {
 }
 
 export function TimelineStudio() {
+    console.log('🎼 TimelineStudio component rendering...');
+    
     const { 
         blocks, 
         selectedBlockId, 
@@ -28,6 +30,8 @@ export function TimelineStudio() {
         currentTime,
         setCurrentTime
     } = useTimeline();
+    
+    console.log('🎼 TimelineStudio - blocks:', blocks.length, 'selectedBlockId:', selectedBlockId);
 
     const [sidebarWidth, setSidebarWidth] = useState(320);
     const [isResizing, setIsResizing] = useState(false);
