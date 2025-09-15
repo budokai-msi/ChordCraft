@@ -4,7 +4,7 @@ import { Login } from './Login';
 import { Studio } from './features/studio/Studio';
 import { LandingPage } from './LandingPage';
 import ErrorBoundary from './components/ErrorBoundary';
-import './design-system.css';
+import './vibrant-design-system.css';
 
 function App() {
   const { user } = useAuth();
