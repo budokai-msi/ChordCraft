@@ -9,52 +9,25 @@ import traceback
 backend_path = os.path.join(os.path.dirname(__file__), '..', 'backend')
 sys.path.insert(0, backend_path)
 
-# Import Muzic integration
-try:
-    from muzic_integration import MuzicEnhancedAnalyzer
-    print("✅ Successfully imported Muzic integration")
-    muzic_analyzer = MuzicEnhancedAnalyzer()
-    
-    def enhanced_analyze_audio(file_path):
-        """Enhanced audio analysis using Microsoft Muzic AI"""
-        try:
-            result = muzic_analyzer.analyze_audio_enhanced(file_path)
-            return {
-                "tempo": result.get("tempo", 120),
-                "key": result.get("key", "C major"),
-                "time_signature": result.get("time_signature", "4/4"),
-                "chord_progression": result.get("chord_progression", ["C", "Am", "F", "G"]),
-                "generated_code": result.get("generated_code", f"// Muzic AI analysis of {os.path.basename(file_path)}\nPLAY C4 FOR 1.0s AT 0.0s\nPLAY E4 FOR 1.0s AT 1.0s\nPLAY G4 FOR 1.0s AT 2.0s"),
-                "analysis_type": "muzic_enhanced",
-                "musical_features": result.get("musical_features", {}),
-                "harmony_analysis": result.get("harmony_analysis", {}),
-                "rhythm_analysis": result.get("rhythm_analysis", {})
-            }
-        except Exception as e:
-            print(f"Muzic analysis error: {e}")
-            # Fallback to basic analysis
-            return {
-                "tempo": 120,
-                "key": "C major", 
-                "time_signature": "4/4",
-                "chord_progression": ["C", "Am", "F", "G"],
-                "generated_code": f"// Muzic AI analysis of {os.path.basename(file_path)}\nPLAY C4 FOR 1.0s AT 0.0s\nPLAY E4 FOR 1.0s AT 1.0s\nPLAY G4 FOR 1.0s AT 2.0s",
-                "analysis_type": "muzic_fallback",
-                "error": str(e)
-            }
-            
-except ImportError as e:
-    print(f"❌ Muzic import error: {e}")
-    # Fallback to basic analysis
-    def enhanced_analyze_audio(file_path):
-        return {
-            "tempo": 120,
-            "key": "C major",
-            "time_signature": "4/4", 
-            "chord_progression": ["C", "Am", "F", "G"],
-            "generated_code": f"// Basic analysis of {os.path.basename(file_path)}\nPLAY C4 FOR 1.0s AT 0.0s\nPLAY E4 FOR 1.0s AT 1.0s\nPLAY G4 FOR 1.0s AT 2.0s",
-            "analysis_type": "basic_fallback"
-        }
+# Import Muzic integration - REQUIRED, NO FALLBACKS
+from muzic_integration import MuzicEnhancedAnalyzer
+print("✅ Successfully imported Muzic integration")
+muzic_analyzer = MuzicEnhancedAnalyzer()
+
+def analyze_audio_with_muzic(file_path):
+    """Audio analysis using Microsoft Muzic AI - THE ONLY OPTION"""
+    result = muzic_analyzer.analyze_audio_enhanced(file_path)
+    return {
+        "tempo": result.get("tempo", 120),
+        "key": result.get("key", "C major"),
+        "time_signature": result.get("time_signature", "4/4"),
+        "chord_progression": result.get("chord_progression", ["C", "Am", "F", "G"]),
+        "generated_code": result.get("generated_code", f"// Muzic AI analysis of {os.path.basename(file_path)}\nPLAY C4 FOR 1.0s AT 0.0s\nPLAY E4 FOR 1.0s AT 1.0s\nPLAY G4 FOR 1.0s AT 2.0s"),
+        "analysis_type": "muzic_ai",
+        "musical_features": result.get("musical_features", {}),
+        "harmony_analysis": result.get("harmony_analysis", {}),
+        "rhythm_analysis": result.get("rhythm_analysis", {})
+    }
 
 # Create Flask app for Vercel
 app = Flask(__name__)
@@ -76,15 +49,15 @@ def analyze_audio():
             temp_path = tmp_file.name
         
         try:
-            # Analyze the audio using Microsoft Muzic AI
-            analysis = enhanced_analyze_audio(temp_path)
+            # Analyze the audio using Microsoft Muzic AI - THE ONLY OPTION
+            analysis = analyze_audio_with_muzic(temp_path)
             
             return jsonify({
                 'success': True,
                 'chordCraftCode': analysis.get('generated_code', '// No code generated'),
                 'analysis': analysis,
                 'filename': file.filename,
-                'analysis_type': analysis.get('analysis_type', 'unknown'),
+                'analysis_type': 'muzic_ai',
                 'musical_features': analysis.get('musical_features', {}),
                 'harmony_analysis': analysis.get('harmony_analysis', {}),
                 'rhythm_analysis': analysis.get('rhythm_analysis', {}),
@@ -100,11 +73,12 @@ def analyze_audio():
                 os.unlink(temp_path)
     
     except Exception as e:
-        print(f"Error in analyze_audio: {str(e)}")
+        print(f"Microsoft Muzic AI analysis failed: {str(e)}")
         print(traceback.format_exc())
         return jsonify({
-            'error': f'Analysis failed: {str(e)}',
-            'generated_code': f'// Error analyzing {file.filename if file else "audio"}\n// Please try again or check the file format'
+            'error': f'Microsoft Muzic AI analysis failed: {str(e)}',
+            'success': False,
+            'message': 'Audio analysis requires Microsoft Muzic AI integration. Please ensure the backend is properly configured.'
         }), 500
 
 @app.route('/api/generate-music', methods=['POST'])
@@ -130,7 +104,13 @@ def generate_music():
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
-    return jsonify({'status': 'healthy', 'service': 'ChordCraft API'})
+    return jsonify({
+        'status': 'healthy', 
+        'service': 'ChordCraft API',
+        'audio_engine': 'Microsoft Muzic AI',
+        'fallback_enabled': False,
+        'message': 'Microsoft Muzic AI is the only audio analysis engine'
+    })
 
 # This is the handler for Vercel
 def handler(request):
