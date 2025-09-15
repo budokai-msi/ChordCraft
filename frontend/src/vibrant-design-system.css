@@ -270,14 +270,34 @@
 
   /* Card Styles */
   .vibrant-card {
-    @apply glass-pane rounded-xl p-6;
-    @apply hover:scale-105 transition-all duration-300;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+  }
+  
+  .vibrant-card:hover {
+    transform: scale(1.05);
+  }
   }
 
   .feature-card {
-    @apply vibrant-card;
-    @apply border border-white/10;
-    @apply hover:border-primary/50;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .feature-card:hover {
+    transform: scale(1.05);
+    border-color: rgba(59, 130, 246, 0.5);
   }
 
   /* Input Styles */
