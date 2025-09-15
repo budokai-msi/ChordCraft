@@ -1,20 +1,44 @@
-import { StrictMode } from 'react';
+import { StrictMode, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import './vibrant-design-system.css';
+import { AuthProvider, useAuth } from './Auth';
 import { LandingPage } from './LandingPage';
+import { Login } from './Login';
+import { Studio } from './features/studio/Studio';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function WorkingApp() {
+  const { user } = useAuth();
+  const [showLogin, setShowLogin] = useState(false);
+
+  if (user) {
+    return (
+      <ErrorBoundary>
+        <Studio />
+      </ErrorBoundary>
+    );
+  }
+
+  if (showLogin) {
+    return (
+      <ErrorBoundary>
+        <Login onBack={() => setShowLogin(false)} />
+      </ErrorBoundary>
+    );
+  }
+
   return (
     <ErrorBoundary>
-      <LandingPage onGetStarted={() => console.log('Get Started clicked')} />
+      <LandingPage onGetStarted={() => setShowLogin(true)} />
     </ErrorBoundary>
   );
 }
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <WorkingApp />
+    <AuthProvider>
+      <WorkingApp />
+    </AuthProvider>
   </StrictMode>,
 );
