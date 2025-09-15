@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { loggerService } from './loggerService';
 
 class APIService {
   constructor() {
@@ -32,7 +33,7 @@ class APIService {
     this.client.interceptors.response.use(
       (response) => response,
       (error) => {
-        console.error('API Error:', error);
+        loggerService.error('API Error:', error);
         return Promise.reject(error);
       }
     );
@@ -64,7 +65,7 @@ class APIService {
       
       return response.data;
     } catch (error) {
-      console.error('Audio analysis failed:', error);
+      loggerService.error('Audio analysis failed:', error);
       throw new Error(`Audio analysis failed: ${error.response?.data?.error || error.message}`);
     }
   }
@@ -79,7 +80,7 @@ class APIService {
       
       return response.data;
     } catch (error) {
-      console.error('Music generation failed:', error);
+      loggerService.error('Music generation failed:', error);
       throw new Error(`Music generation failed: ${error.response?.data?.error || error.message}`);
     }
   }
@@ -94,7 +95,7 @@ class APIService {
       
       return response.data;
     } catch (error) {
-      console.error('AI generation failed:', error);
+      loggerService.error('AI generation failed:', error);
       throw new Error(`AI generation failed: ${error.response?.data?.error || error.message}`);
     }
   }
@@ -105,7 +106,7 @@ class APIService {
       const response = await this.client.get('/health');
       return response.data;
     } catch (error) {
-      console.error('Health check failed:', error);
+      loggerService.error('Health check failed:', error);
       throw new Error('Backend service unavailable');
     }
   }
@@ -132,7 +133,7 @@ class APIService {
       
       return response.data;
     } catch (error) {
-      console.error('File upload failed:', error);
+      loggerService.error('File upload failed:', error);
       throw new Error(`File upload failed: ${error.response?.data?.error || error.message}`);
     }
   }
@@ -153,7 +154,7 @@ class APIService {
       
       return response.data;
     } catch (error) {
-      console.error('Audio processing failed:', error);
+      loggerService.error('Audio processing failed:', error);
       throw new Error(`Audio processing failed: ${error.response?.data?.error || error.message}`);
     }
   }
@@ -164,7 +165,7 @@ class APIService {
       const response = await this.client.post('/export/midi', projectData);
       return response.data;
     } catch (error) {
-      console.error('MIDI export failed:', error);
+      loggerService.error('MIDI export failed:', error);
       throw new Error(`MIDI export failed: ${error.response?.data?.error || error.message}`);
     }
   }
@@ -174,7 +175,7 @@ class APIService {
       const response = await this.client.post('/export/wav', projectData);
       return response.data;
     } catch (error) {
-      console.error('WAV export failed:', error);
+      loggerService.error('WAV export failed:', error);
       throw new Error(`WAV export failed: ${error.response?.data?.error || error.message}`);
     }
   }
@@ -184,7 +185,7 @@ class APIService {
       const response = await this.client.post('/export/mp3', projectData);
       return response.data;
     } catch (error) {
-      console.error('MP3 export failed:', error);
+      loggerService.error('MP3 export failed:', error);
       throw new Error(`MP3 export failed: ${error.response?.data?.error || error.message}`);
     }
   }
@@ -195,7 +196,7 @@ class APIService {
       const response = await this.client.post(`/collaborate/join/${projectId}`);
       return response.data;
     } catch (error) {
-      console.error('Failed to join project:', error);
+      loggerService.error('Failed to join project:', error);
       throw new Error(`Failed to join project: ${error.response?.data?.error || error.message}`);
     }
   }
@@ -205,7 +206,7 @@ class APIService {
       const response = await this.client.post(`/collaborate/leave/${projectId}`);
       return response.data;
     } catch (error) {
-      console.error('Failed to leave project:', error);
+      loggerService.error('Failed to leave project:', error);
       throw new Error(`Failed to leave project: ${error.response?.data?.error || error.message}`);
     }
   }
@@ -219,7 +220,7 @@ class APIService {
     const ws = new WebSocket(wsUrl);
     
     ws.onopen = () => {
-      console.log('WebSocket connected');
+      loggerService.info('WebSocket connected');
     };
     
     ws.onmessage = (event) => {
@@ -227,16 +228,16 @@ class APIService {
         const data = JSON.parse(event.data);
         onMessage(data);
       } catch (error) {
-        console.error('WebSocket message parse error:', error);
+        loggerService.error('WebSocket message parse error:', error);
       }
     };
     
     ws.onclose = () => {
-      console.log('WebSocket disconnected');
+      loggerService.info('WebSocket disconnected');
     };
     
     ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
+      loggerService.error('WebSocket error:', error);
     };
     
     return ws;
@@ -266,7 +267,7 @@ class APIService {
       const response = await this.client.get('/audio/devices');
       return response.data;
     } catch (error) {
-      console.error('Failed to get audio devices:', error);
+      loggerService.error('Failed to get audio devices:', error);
       throw new Error(`Failed to get audio devices: ${error.response?.data?.error || error.message}`);
     }
   }
@@ -277,7 +278,7 @@ class APIService {
       const response = await this.client.get('/formats');
       return response.data;
     } catch (error) {
-      console.error('Failed to get supported formats:', error);
+      loggerService.error('Failed to get supported formats:', error);
       throw new Error(`Failed to get supported formats: ${error.response?.data?.error || error.message}`);
     }
   }

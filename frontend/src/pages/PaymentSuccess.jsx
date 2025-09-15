@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { CheckCircle, ArrowRight, Home, Settings } from 'lucide-react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { loggerService } from '../services/loggerService';
 
 export function PaymentSuccess() {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ export function PaymentSuccess() {
       
       setLoading(false);
     } catch (error) {
-      console.error('Payment verification error:', error);
+      loggerService.error('Payment verification error:', error);
       setError('Failed to verify payment. Please contact support.');
       setLoading(false);
     }

@@ -31,12 +31,16 @@ import {
   Stars,
   Rocket,
   Target,
-  Sparkle
+  Sparkle,
+  Upload,
+  FileAudio,
+  Loader2
 } from 'lucide-react';
 import { useProjectStore } from '../../../stores/useProjectStore';
 import { useUIStore } from '../../../stores/useUIStore';
 import { apiService } from '../../../services/apiService';
 import { LoadingSpinner } from '../../../components/LoadingSpinner';
+import { loggerService } from '../../../services/loggerService';
 
 export function AICompanion() {
   const { chordCraftCode, updateCode, musicAnalysis } = useProjectStore();
@@ -63,9 +67,12 @@ export function AICompanion() {
   const [activeTab, setActiveTab] = useState('chat');
   const [generatedCode, setGeneratedCode] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
-  const [audioContext, setAudioContext] = useState(null);
   const [recognition, setRecognition] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [analysisResult, setAnalysisResult] = useState(null);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     // Initialize speech recognition
@@ -198,6 +205,85 @@ export function AICompanion() {
   const handleCopyCode = () => {
     navigator.clipboard.writeText(generatedCode);
     showSuccess('Code copied to clipboard!');
+  };
+
+  const handleFileUpload = async (file) => {
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['audio/wav', 'audio/mp3', 'audio/m4a', 'audio/flac', 'audio/ogg'];
+    if (!allowedTypes.includes(file.type)) {
+      showError('Please upload a valid audio file (WAV, MP3, M4A, FLAC, or OGG)');
+      return;
+    }
+
+    // Validate file size (max 100MB)
+    const maxSize = 100 * 1024 * 1024; // 100MB
+    if (file.size > maxSize) {
+      showError('File size must be less than 100MB');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 200);
+
+      // Call API for audio analysis
+      const result = await apiService.analyzeAudio(file);
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
+      if (result.success) {
+        setAnalysisResult(result);
+        showSuccess('Audio analyzed successfully!');
+      } else {
+        throw new Error(result.error || 'Analysis failed');
+      }
+    } catch (error) {
+      loggerService.error('Error analyzing audio:', error);
+      showError(`Failed to analyze audio: ${error.message}`);
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files);
+    const audioFile = files.find(file => file.type.startsWith('audio/'));
+    if (audioFile) {
+      handleFileUpload(audioFile);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const formatDuration = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -448,29 +534,217 @@ export function AICompanion() {
         </TabsContent>
 
         <TabsContent value="analyze" className="flex-1 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Audio Upload for Analysis */}
+            <Card className="glass-pane">
+              <CardHeader>
+                <CardTitle className="flex items-center text-xl">
+                  <Headphones className="w-6 h-6 mr-2 text-blue-400" />
+                  Audio Analysis
+                </CardTitle>
+                <CardDescription>
+                  Upload audio files for advanced AI analysis
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div
+                  className="border-2 border-dashed border-slate-600 rounded-lg p-6 text-center hover:border-blue-500 transition-colors cursor-pointer"
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {isUploading ? (
+                    <div className="space-y-3">
+                      <Loader2 className="w-8 h-8 text-blue-400 animate-spin mx-auto" />
+                      <p className="text-sm text-slate-300">Analyzing audio...</p>
+                      <Progress value={uploadProgress} className="w-full" />
+                      <p className="text-xs text-slate-400">{uploadProgress}% complete</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <FileAudio className="w-8 h-8 text-slate-400 mx-auto" />
+                      <p className="text-sm text-slate-300">Drop audio files here or click to browse</p>
+                      <p className="text-xs text-slate-500">Supports WAV, MP3, M4A, FLAC, OGG (max 100MB)</p>
+                    </div>
+                  )}
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="audio/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+
+                {/* Analysis Options */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-slate-300">Analysis Options</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button variant="outline" size="sm" className="justify-start hover:bg-primary/20">
+                      <Brain className="w-4 h-4 mr-2" />
+                      Stem Separation
+                    </Button>
+                    <Button variant="outline" size="sm" className="justify-start hover:bg-primary/20">
+                      <Music className="w-4 h-4 mr-2" />
+                      Harmonic Analysis
+                    </Button>
+                    <Button variant="outline" size="sm" className="justify-start hover:bg-primary/20">
+                      <Zap className="w-4 h-4 mr-2" />
+                      Tempo Detection
+                    </Button>
+                    <Button variant="outline" size="sm" className="justify-start hover:bg-primary/20">
+                      <Target className="w-4 h-4 mr-2" />
+                      Key Detection
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Analysis Results */}
+            <Card className="glass-pane">
+              <CardHeader>
+                <CardTitle className="flex items-center text-xl">
+                  <Sparkles className="w-6 h-6 mr-2 text-purple-400" />
+                  Analysis Results
+                </CardTitle>
+                <CardDescription>
+                  AI-powered insights and recommendations
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-64">
+                  {analysisResult ? (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-400">Tempo</span>
+                            <Badge variant="secondary">{analysisResult.analysis?.tempo || 'Unknown'} BPM</Badge>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-400">Key</span>
+                            <Badge variant="secondary">{analysisResult.analysis?.key || 'Unknown'}</Badge>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-400">Duration</span>
+                            <span className="text-slate-300">{formatDuration(analysisResult.analysis?.duration || 0)}</span>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-400">Energy</span>
+                            <Progress value={analysisResult.analysis?.energy || 0} className="w-16" />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-400">Valence</span>
+                            <Progress value={analysisResult.analysis?.valence || 0} className="w-16" />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-400">Danceability</span>
+                            <Progress value={analysisResult.analysis?.danceability || 0} className="w-16" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {analysisResult.analysis?.stems && (
+                        <div className="space-y-2">
+                          <h5 className="text-sm font-medium text-slate-300">Separated Stems</h5>
+                          <div className="space-y-1">
+                            {analysisResult.analysis.stems.map((stem, index) => (
+                              <div key={index} className="flex items-center justify-between text-xs">
+                                <span className="text-slate-400">{stem.name}</span>
+                                <Badge variant="outline" className="text-xs">
+                                  {stem.confidence}% confidence
+                                </Badge>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {analysisResult.analysis?.chords && (
+                        <div className="space-y-2">
+                          <h5 className="text-sm font-medium text-slate-300">Detected Chords</h5>
+                          <div className="flex flex-wrap gap-1">
+                            {analysisResult.analysis.chords.map((chord, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {chord}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {analysisResult.analysis?.suggestions && (
+                        <div className="space-y-2">
+                          <h5 className="text-sm font-medium text-slate-300">AI Suggestions</h5>
+                          <div className="space-y-1">
+                            {analysisResult.analysis.suggestions.map((suggestion, index) => (
+                              <div key={index} className="flex items-start gap-2 text-xs">
+                                <Lightbulb className="w-3 h-3 text-yellow-400 mt-0.5 flex-shrink-0" />
+                                <span className="text-slate-300">{suggestion}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-slate-400">
+                      <Brain className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No analysis yet</p>
+                      <p className="text-xs">Upload an audio file to get started</p>
+                    </div>
+                  )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Advanced Analysis Features */}
           <Card className="glass-pane">
             <CardHeader>
               <CardTitle className="flex items-center text-xl">
-                <Headphones className="w-6 h-6 mr-2 text-blue-400" />
-                AI Analysis
+                <Rocket className="w-6 h-6 mr-2 text-orange-400" />
+                Advanced Features
               </CardTitle>
               <CardDescription>
-                Upload audio or analyze your current project with advanced AI
+                Powered by Microsoft Muzic AI technology
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12">
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 neon-glow">
-                  <Brain className="w-12 h-12 text-white" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-slate-300">Stem Separation</h4>
+                  <p className="text-xs text-slate-400">
+                    Isolate individual instruments and vocals from mixed audio
+                  </p>
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Headphones className="w-4 h-4 mr-2" />
+                    Extract Stems
+                  </Button>
                 </div>
-                <h3 className="text-2xl font-bold mb-4 vibrant-gradient-text">Advanced Analysis Coming Soon</h3>
-                <p className="text-slate-300 mb-6 max-w-md mx-auto">
-                  Stem separation, harmonic analysis, and intelligent suggestions powered by Microsoft Muzic AI
-                </p>
-                <Button className="btn-primary">
-                  <Upload className="w-4 h-4 mr-2" />
-                  Upload Audio for Analysis
-                </Button>
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-slate-300">Harmonic Analysis</h4>
+                  <p className="text-xs text-slate-400">
+                    Analyze chord progressions, scales, and harmonic content
+                  </p>
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Music className="w-4 h-4 mr-2" />
+                    Analyze Harmony
+                  </Button>
+                </div>
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-slate-300">Style Transfer</h4>
+                  <p className="text-xs text-slate-400">
+                    Transform audio to match different musical styles
+                  </p>
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Wand2 className="w-4 h-4 mr-2" />
+                    Transform Style
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

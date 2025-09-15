@@ -77,7 +77,7 @@
 
 @layer base {
   * {
-    @apply border-slate-700;
+    border-color: #334155;
   }
   
   body {
@@ -250,9 +250,18 @@
   }
 
   .btn-secondary {
-    @apply bg-slate-800/50 text-foreground font-semibold px-6 py-3 rounded-lg;
-    @apply hover:bg-slate-700/50 transition-all duration-300;
-    @apply border border-slate-600 hover:border-slate-500;
+    background-color: rgba(30, 41, 59, 0.5);
+    color: hsl(var(--foreground));
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s;
+    border: 1px solid #475569;
+  }
+  
+  .btn-secondary:hover {
+    background-color: rgba(51, 65, 85, 0.5);
+    border-color: #64748b;
   }
 
   .btn-ghost {
@@ -273,10 +282,16 @@
 
   /* Input Styles */
   .vibrant-input {
-    @apply bg-slate-800/50 border border-slate-600 rounded-lg px-4 py-3;
-    @apply focus:border-primary focus:ring-2 focus:ring-primary/20;
-    @apply transition-all duration-200;
-    @apply backdrop-blur-sm;
+    background-color: rgba(30, 41, 59, 0.5);
+    border: 1px solid #475569;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s;
+  }
+  
+  .vibrant-input:focus {
+    border-color: hsl(var(--primary));
+    outline: 2px solid rgba(59, 130, 246, 0.2);
   }
 
   /* Badge Styles */

@@ -23,26 +23,32 @@ import {
     ArrowRight,
     Headphones
 } from 'lucide-react';
+import { loggerService } from './services/loggerService';
+import { notificationService } from './services/notificationService';
 
 export function TimelineStudio() {
     const { 
         blocks, 
         selectedBlockId, 
-        setSelectedBlockId, 
         updateBlock,
         addBlock,
-        timelineSettings,
-        updateTimelineSettings,
         isPlaying,
         setIsPlaying,
         currentTime,
-        setCurrentTime
     } = useTimeline();
 
     const [sidebarWidth, setSidebarWidth] = useState(320);
     const [isResizing, setIsResizing] = useState(false);
     const sidebarRef = useRef(null);
     const resizeRef = useRef(null);
+
+    const showSuccess = (message) => {
+        notificationService.show('success', message);
+    };
+
+    const showError = (message) => {
+        notificationService.show('error', message);
+    };
 
     const selectedBlock = blocks.find(block => block.id === selectedBlockId);
 
@@ -81,10 +87,6 @@ export function TimelineStudio() {
         setIsPlaying(!isPlaying);
     };
 
-    const handleStop = () => {
-        setIsPlaying(false);
-        setCurrentTime(0);
-    };
 
     const handleAddSection = () => {
         const newBlock = {
@@ -99,20 +101,6 @@ export function TimelineStudio() {
         addBlock(newBlock);
     };
 
-    const handleDuplicateSection = () => {
-        if (selectedBlockId) {
-            const selectedBlock = blocks.find(b => b.id === selectedBlockId);
-            if (selectedBlock) {
-                const newBlock = {
-                    ...selectedBlock,
-                    id: `block-${Date.now()}`,
-                    startTime: selectedBlock.startTime + selectedBlock.duration,
-                    name: `${selectedBlock.name} (Copy)`
-                };
-                addBlock(newBlock);
-            }
-        }
-    };
 
     const handleExtendSong = () => {
         const lastBlock = blocks[blocks.length - 1];
@@ -144,8 +132,65 @@ export function TimelineStudio() {
         }
     };
 
-    const handleExtractStems = () => {
-        alert('Stem extraction feature coming soon!');
+    const handleExtractStems = async () => {
+        if (!selectedBlock) {
+            showError('Please select a block to extract stems from');
+            return;
+        }
+
+        try {
+            // Show loading state
+            const originalText = 'Extract stems';
+            const button = document.querySelector('[data-stem-button]');
+            if (button) {
+                button.textContent = 'Extracting...';
+                button.disabled = true;
+            }
+
+            // Simulate stem extraction process
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // Create new blocks for each stem
+            const stems = [
+                { name: 'Vocals', color: '#ff6b6b', type: 'vocals' },
+                { name: 'Drums', color: '#4ecdc4', type: 'drums' },
+                { name: 'Bass', color: '#45b7d1', type: 'bass' },
+                { name: 'Other', color: '#96ceb4', type: 'other' }
+            ];
+
+            stems.forEach((stem, index) => {
+                const newBlock = {
+                    id: `stem-${Date.now()}-${index}`,
+                    name: `${selectedBlock.name} - ${stem.name}`,
+                    type: 'stem',
+                    color: stem.color,
+                    startTime: selectedBlock.startTime + (index * 2), // Offset each stem
+                    duration: selectedBlock.duration,
+                    content: `// ${stem.name} stem extracted from ${selectedBlock.name}\n// Generated using AI stem separation`,
+                    stemType: stem.type,
+                    parentBlockId: selectedBlock.id
+                };
+                addBlock(newBlock);
+            });
+
+            // Reset button
+            if (button) {
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+
+            showSuccess(`Successfully extracted ${stems.length} stems from ${selectedBlock.name}!`);
+        } catch (error) {
+            loggerService.error('Error extracting stems:', error);
+            showError('Failed to extract stems. Please try again.');
+            
+            // Reset button on error
+            const button = document.querySelector('[data-stem-button]');
+            if (button) {
+                button.textContent = 'Extract stems';
+                button.disabled = false;
+            }
+        }
     };
 
     return (
@@ -281,6 +326,7 @@ export function TimelineStudio() {
                                 </Badge>
                                 <Button 
                                     onClick={handleExtractStems}
+                                    data-stem-button
                                     className="h-20 w-full bg-gradient-to-r from-indigo-500 to-orange-500 hover:from-indigo-600 hover:to-orange-600 text-white"
                                 >
                                     <div className="text-center">

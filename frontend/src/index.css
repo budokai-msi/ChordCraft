@@ -80,7 +80,7 @@
 
 @layer base {
   * {
-    border-color: hsl(var(--border));
+    border-color: #334155;
   }
   
   body {

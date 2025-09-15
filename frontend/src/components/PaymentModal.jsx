@@ -20,6 +20,7 @@ import {
 import { SUBSCRIPTION_PLANS } from '../config/stripe';
 import { stripeService } from '../services/stripeService';
 import { useAuth } from '../Auth';
+import { loggerService } from '../services/loggerService';
 
 export function PaymentModal({ isOpen, onClose, selectedPlan = 'pro' }) {
   const { user } = useAuth();
@@ -61,7 +62,7 @@ export function PaymentModal({ isOpen, onClose, selectedPlan = 'pro' }) {
       // Redirect to Stripe Checkout
       window.location.href = session.url;
     } catch (error) {
-      console.error('Subscription error:', error);
+      loggerService.error('Subscription error:', error);
       setError(error.message || 'Failed to start subscription process');
     } finally {
       setIsLoading(false);

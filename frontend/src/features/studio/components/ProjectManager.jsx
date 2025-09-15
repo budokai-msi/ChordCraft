@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,10 +36,11 @@ import {
 import { useProjectStore } from '../../../stores/useProjectStore';
 import { useAuth } from '../../../Auth';
 import { databaseService } from '../../../services/databaseService';
+import { loggerService } from '../../../services/loggerService';
 
 export function ProjectManager() {
   const { user } = useAuth();
-  const { projectTitle, chordCraftCode, musicAnalysis, setProjectTitle, updateCode, setMusicAnalysis } = useProjectStore();
+  const { chordCraftCode, musicAnalysis, setProjectTitle, updateCode, setMusicAnalysis } = useProjectStore();
   
   const [projects, setProjects] = useState([]);
   const [filteredProjects, setFilteredProjects] = useState([]);
@@ -63,13 +64,13 @@ export function ProjectManager() {
 
   useEffect(() => {
     fetchProjects();
-  }, [user]);
+  }, [user, fetchProjects]);
 
   useEffect(() => {
     filterProjects();
-  }, [projects, searchQuery, filterTag, sortBy]);
+  }, [projects, searchQuery, filterTag, sortBy, filterProjects]);
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     if (!user) return;
     
     setIsLoading(true);
@@ -81,13 +82,13 @@ export function ProjectManager() {
       });
       setProjects(data || []);
     } catch (error) {
-      console.error('Error fetching projects:', error);
+      loggerService.error('Error fetching projects:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, filterTag, searchQuery]);
 
-  const filterProjects = () => {
+  const filterProjects = useCallback(() => {
     let filtered = [...projects];
 
     // Search filter
@@ -121,7 +122,7 @@ export function ProjectManager() {
     });
 
     setFilteredProjects(filtered);
-  };
+  }, [projects, searchQuery, filterTag, sortBy]);
 
   const createProject = async () => {
     if (!user || !newProjectName.trim()) return;
@@ -141,7 +142,7 @@ export function ProjectManager() {
       setNewProjectName('');
       setNewProjectDescription('');
     } catch (error) {
-      console.error('Error creating project:', error);
+      loggerService.error('Error creating project:', error);
     }
   };
 
@@ -155,7 +156,7 @@ export function ProjectManager() {
       setMusicAnalysis(fullProject.music_analysis);
       setSelectedProject(fullProject);
     } catch (error) {
-      console.error('Error loading project:', error);
+      loggerService.error('Error loading project:', error);
     }
   };
 
@@ -170,15 +171,13 @@ export function ProjectManager() {
         setSelectedProject(null);
       }
     } catch (error) {
-      console.error('Error deleting project:', error);
+      loggerService.error('Error deleting project:', error);
     }
   };
 
   const duplicateProject = async (project) => {
     try {
-      const { data, error } = await supabase
-        .from('chordcraft_projects')
-        .insert({
+      const { data, error } = await databaseService.createProject({
           user_id: user.id,
           title: `${project.title} (Copy)`,
           description: project.description,
@@ -193,7 +192,7 @@ export function ProjectManager() {
       
       setProjects(prev => [data, ...prev]);
     } catch (error) {
-      console.error('Error duplicating project:', error);
+      loggerService.error('Error duplicating project:', error);
     }
   };
 

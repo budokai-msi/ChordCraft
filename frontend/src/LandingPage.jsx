@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 export function LandingPage({ onGetStarted }) {
   const heroRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [showDemo, setShowDemo] = useState(false);
 
   useEffect(() => {
     // Add a subtle parallax effect on scroll
@@ -145,6 +146,7 @@ export function LandingPage({ onGetStarted }) {
               </Button>
               <Button 
                 variant="outline" 
+                onClick={() => setShowDemo(true)}
                 className="btn-secondary text-lg px-8 py-4 h-auto hover:scale-105 transition-transform duration-300"
               >
                 <Play className="w-5 h-5 mr-2" />
@@ -307,6 +309,60 @@ export function LandingPage({ onGetStarted }) {
           </div>
         </div>
       </footer>
+
+      {/* Demo Modal */}
+      {showDemo && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b border-slate-700">
+              <div className="flex items-center justify-between">
+                <h3 className="text-2xl font-bold text-white">ChordCraft Demo</h3>
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowDemo(false)}
+                  className="text-slate-400 hover:text-white"
+                >
+                  ✕
+                </Button>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="aspect-video bg-slate-800 rounded-lg mb-6 flex items-center justify-center">
+                <div className="text-center">
+                  <Play className="w-16 h-16 text-blue-400 mx-auto mb-4" />
+                  <h4 className="text-xl font-semibold text-white mb-2">Interactive Demo</h4>
+                  <p className="text-slate-400 mb-4">
+                    Experience ChordCraft's AI-powered music creation in action
+                  </p>
+                  <div className="space-y-2 text-sm text-slate-300">
+                    <p>• Upload audio files for AI analysis</p>
+                    <p>• Generate music from text prompts</p>
+                    <p>• Real-time collaboration features</p>
+                    <p>• Professional DAW interface</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-center space-x-4">
+                <Button
+                  onClick={() => {
+                    setShowDemo(false);
+                    onGetStarted();
+                  }}
+                  className="btn-primary"
+                >
+                  Try It Now
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDemo(false)}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

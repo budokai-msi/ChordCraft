@@ -1,4 +1,5 @@
 import React from 'react';
+import { loggerService } from '../services/loggerService';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
@@ -20,7 +21,7 @@ class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     // Log error details
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    loggerService.error('ErrorBoundary caught an error:', error, errorInfo);
     
     this.setState({
       error: error,

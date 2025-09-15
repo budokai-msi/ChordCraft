@@ -14,43 +14,63 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  XCircle
+  XCircle,
+  RefreshCw
 } from 'lucide-react';
 import { stripeService } from '../services/stripeService';
 import { useAuth } from '../Auth';
 import { SUBSCRIPTION_PLANS } from '../config/stripe';
+import { loggerService } from '../services/loggerService';
 
 export function SubscriptionStatus({ className = '' }) {
   const { user } = useAuth();
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [usage, setUsage] = useState(null);
 
   useEffect(() => {
     if (user) {
       fetchSubscription();
+      fetchUsage();
     }
   }, [user]);
 
   const fetchSubscription = async () => {
     try {
       setLoading(true);
-      // This would typically come from your backend
-      // For now, we'll simulate a subscription status
-      const mockSubscription = {
-        id: 'sub_123',
-        status: 'active',
-        plan: 'pro',
-        current_period_end: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days from now
-        cancel_at_period_end: false
-      };
-      setSubscription(mockSubscription);
+      setError(null);
+      
+              const response = await stripeService.getCurrentSubscription();
+      if (response.success) {
+        setSubscription(response.subscription);
+      } else {
+        throw new Error(response.error || 'Failed to fetch subscription');
+      }
     } catch (error) {
-      console.error('Error fetching subscription:', error);
+      loggerService.error('Error fetching subscription:', error);
       setError('Failed to load subscription status');
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchUsage = async () => {
+    try {
+      const response = await stripeService.getUsage();
+      if (response.success) {
+        setUsage(response.usage);
+      }
+    } catch (error) {
+      loggerService.error('Error fetching usage:', error);
+    }
+  };
+
+  const refreshSubscription = async () => {
+    setRefreshing(true);
+    await Promise.all([fetchSubscription(), fetchUsage()]);
+    setRefreshing(false);
   };
 
   const getPlanIcon = (planId) => {
@@ -127,7 +147,7 @@ export function SubscriptionStatus({ className = '' }) {
       // Redirect to Stripe Customer Portal
       window.location.href = session.url;
     } catch (error) {
-      console.error('Error opening customer portal:', error);
+      loggerService.error('Error opening customer portal:', error);
       setError('Failed to open subscription management');
     }
   };
@@ -245,19 +265,42 @@ export function SubscriptionStatus({ className = '' }) {
 
         {/* Usage Stats */}
         <div className="space-y-2">
-          <h4 className="text-sm font-medium text-slate-300">Usage This Month</h4>
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-medium text-slate-300">Usage This Month</h4>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={refreshSubscription}
+              disabled={refreshing}
+              className="h-6 w-6 p-0"
+            >
+              <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
           <div className="space-y-1 text-xs">
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Projects</span>
-              <span>2 / {currentPlan.limits.projects === -1 ? '∞' : currentPlan.limits.projects}</span>
+              <span>
+                {usage?.projects || 0} / {currentPlan.limits.projects === -1 ? '∞' : currentPlan.limits.projects}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-slate-400">AI Requests</span>
-              <span>15 / {currentPlan.limits.aiRequests === -1 ? '∞' : currentPlan.limits.aiRequests}</span>
+              <span>
+                {usage?.aiRequests || 0} / {currentPlan.limits.aiRequests === -1 ? '∞' : currentPlan.limits.aiRequests}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Storage</span>
-              <span>45MB / {currentPlan.limits.storage === -1 ? '∞' : `${currentPlan.limits.storage}GB`}</span>
+              <span>
+                {usage?.storage || '0MB'} / {currentPlan.limits.storage === -1 ? '∞' : `${currentPlan.limits.storage}GB`}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-slate-400">Audio Analysis</span>
+              <span>
+                {usage?.audioAnalysis || 0} / {currentPlan.limits.audioAnalysis === -1 ? '∞' : currentPlan.limits.audioAnalysis}
+              </span>
             </div>
           </div>
         </div>

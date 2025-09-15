@@ -1,4 +1,5 @@
 import { apiService } from './apiService';
+import { loggerService } from './loggerService';
 
 class StripeService {
   // Customer Management
@@ -7,7 +8,7 @@ class StripeService {
       const response = await apiService.client.post('/stripe/create-customer', customerData);
       return response.data;
     } catch (error) {
-      console.error('Error creating customer:', error);
+      loggerService.error('Error creating customer:', error);
       throw error;
     }
   }
@@ -17,7 +18,7 @@ class StripeService {
       const response = await apiService.client.get(`/stripe/customer/${customerId}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting customer:', error);
+      loggerService.error('Error getting customer:', error);
       throw error;
     }
   }
@@ -27,7 +28,7 @@ class StripeService {
       const response = await apiService.client.put(`/stripe/customer/${customerId}`, updates);
       return response.data;
     } catch (error) {
-      console.error('Error updating customer:', error);
+      loggerService.error('Error updating customer:', error);
       throw error;
     }
   }
@@ -42,7 +43,7 @@ class StripeService {
       });
       return response.data;
     } catch (error) {
-      console.error('Error creating payment intent:', error);
+      loggerService.error('Error creating payment intent:', error);
       throw error;
     }
   }
@@ -55,7 +56,7 @@ class StripeService {
       });
       return response.data;
     } catch (error) {
-      console.error('Error confirming payment intent:', error);
+      loggerService.error('Error confirming payment intent:', error);
       throw error;
     }
   }
@@ -70,7 +71,7 @@ class StripeService {
       });
       return response.data;
     } catch (error) {
-      console.error('Error creating subscription:', error);
+      loggerService.error('Error creating subscription:', error);
       throw error;
     }
   }
@@ -80,7 +81,7 @@ class StripeService {
       const response = await apiService.client.get(`/stripe/subscription/${subscriptionId}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting subscription:', error);
+      loggerService.error('Error getting subscription:', error);
       throw error;
     }
   }
@@ -90,7 +91,7 @@ class StripeService {
       const response = await apiService.client.put(`/stripe/subscription/${subscriptionId}`, updates);
       return response.data;
     } catch (error) {
-      console.error('Error updating subscription:', error);
+      loggerService.error('Error updating subscription:', error);
       throw error;
     }
   }
@@ -103,7 +104,7 @@ class StripeService {
       });
       return response.data;
     } catch (error) {
-      console.error('Error canceling subscription:', error);
+      loggerService.error('Error canceling subscription:', error);
       throw error;
     }
   }
@@ -119,7 +120,7 @@ class StripeService {
       });
       return response.data;
     } catch (error) {
-      console.error('Error creating checkout session:', error);
+      loggerService.error('Error creating checkout session:', error);
       throw error;
     }
   }
@@ -129,7 +130,7 @@ class StripeService {
       const response = await apiService.client.get(`/stripe/checkout-session/${sessionId}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting checkout session:', error);
+      loggerService.error('Error getting checkout session:', error);
       throw error;
     }
   }
@@ -143,7 +144,7 @@ class StripeService {
       });
       return response.data;
     } catch (error) {
-      console.error('Error creating portal session:', error);
+      loggerService.error('Error creating portal session:', error);
       throw error;
     }
   }
@@ -157,7 +158,7 @@ class StripeService {
       });
       return response.data;
     } catch (error) {
-      console.error('Error creating payment method:', error);
+      loggerService.error('Error creating payment method:', error);
       throw error;
     }
   }
@@ -170,7 +171,7 @@ class StripeService {
       });
       return response.data;
     } catch (error) {
-      console.error('Error attaching payment method:', error);
+      loggerService.error('Error attaching payment method:', error);
       throw error;
     }
   }
@@ -182,7 +183,7 @@ class StripeService {
       });
       return response.data;
     } catch (error) {
-      console.error('Error detaching payment method:', error);
+      loggerService.error('Error detaching payment method:', error);
       throw error;
     }
   }
@@ -192,7 +193,7 @@ class StripeService {
       const response = await apiService.client.get(`/stripe/payment-methods/${customerId}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting payment methods:', error);
+      loggerService.error('Error getting payment methods:', error);
       throw error;
     }
   }
@@ -203,7 +204,7 @@ class StripeService {
       const response = await apiService.client.get(`/stripe/invoices/${customerId}?limit=${limit}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting invoices:', error);
+      loggerService.error('Error getting invoices:', error);
       throw error;
     }
   }
@@ -213,7 +214,7 @@ class StripeService {
       const response = await apiService.client.get(`/stripe/invoice/${invoiceId}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting invoice:', error);
+      loggerService.error('Error getting invoice:', error);
       throw error;
     }
   }
@@ -228,7 +229,7 @@ class StripeService {
       });
       return response.data;
     } catch (error) {
-      console.error('Error creating usage record:', error);
+      loggerService.error('Error creating usage record:', error);
       throw error;
     }
   }
@@ -241,7 +242,7 @@ class StripeService {
       });
       return response.data;
     } catch (error) {
-      console.error('Error validating coupon:', error);
+      loggerService.error('Error validating coupon:', error);
       throw error;
     }
   }
@@ -256,7 +257,7 @@ class StripeService {
       });
       return response.data;
     } catch (error) {
-      console.error('Error handling webhook:', error);
+      loggerService.error('Error handling webhook:', error);
       throw error;
     }
   }
@@ -308,6 +309,74 @@ class StripeService {
     const daysLeft = Math.ceil((renewalTime - now) / (24 * 60 * 60));
     
     return Math.max(0, daysLeft);
+  }
+
+  // Get current subscription for the authenticated user
+  async getCurrentSubscription() {
+    try {
+      const response = await apiService.client.get('/stripe/subscription');
+      return response.data;
+    } catch (error) {
+      loggerService.error('Error fetching subscription:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Get usage statistics for the current billing period
+  async getUsage() {
+    try {
+      const response = await apiService.client.get('/stripe/usage');
+      return response.data;
+    } catch (error) {
+      loggerService.error('Error fetching usage:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Get billing history
+  async getBillingHistory(limit = 10) {
+    try {
+      const response = await apiService.client.get(`/stripe/billing-history?limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      loggerService.error('Error fetching billing history:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Get payment methods for current user
+  async getCurrentPaymentMethods() {
+    try {
+      const response = await apiService.client.get('/stripe/payment-methods');
+      return response.data;
+    } catch (error) {
+      loggerService.error('Error fetching payment methods:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Update payment method
+  async updatePaymentMethod(paymentMethodId) {
+    try {
+      const response = await apiService.client.put('/stripe/payment-method', { 
+        paymentMethodId 
+      });
+      return response.data;
+    } catch (error) {
+      loggerService.error('Error updating payment method:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Get subscription analytics
+  async getSubscriptionAnalytics() {
+    try {
+      const response = await apiService.client.get('/stripe/analytics');
+      return response.data;
+    } catch (error) {
+      loggerService.error('Error fetching subscription analytics:', error);
+      return { success: false, error: error.message };
+    }
   }
 }
 

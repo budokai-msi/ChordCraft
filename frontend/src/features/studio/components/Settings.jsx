@@ -39,9 +39,10 @@ import {
 import { useAuth } from '../../../Auth';
 import { PaymentModal } from '../../../components/PaymentModal';
 import { SubscriptionStatus } from '../../../components/SubscriptionStatus';
+import { notificationService } from '../../../services/notificationService';
 
 export function Settings() {
-  const { } = useAuth();
+  useAuth();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('pro');
   
@@ -185,8 +186,8 @@ export function Settings() {
           const importedSettings = JSON.parse(e.target.result);
           setSettings(importedSettings);
           setHasUnsavedChanges(true);
-        } catch (err) {
-          alert('Invalid settings file');
+        } catch {
+          notificationService.show('error', 'Invalid settings file');
         }
       };
       reader.readAsText(file);
