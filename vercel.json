@@ -4,20 +4,6 @@
   "installCommand": "cd frontend && npm install",
   "devCommand": "cd frontend && npm run dev",
   "framework": "vite",
-  "functions": {
-    "api/analyze.py": {
-      "runtime": "@vercel/python@3.9.0"
-    },
-    "api/generate-music.py": {
-      "runtime": "@vercel/python@3.9.0"
-    },
-    "api/generative-companion.py": {
-      "runtime": "@vercel/python@3.9.0"
-    },
-    "api/stripe.py": {
-      "runtime": "@vercel/python@3.9.0"
-    }
-  },
   "env": {
     "NEXT_PUBLIC_SUPABASE_URL": "https://wgofqkisiqkygpnliuwl.supabase.co",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indnb2Zxa2lzaXFreWdwbmxpdXdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4ODE4MzEsImV4cCI6MjA3MzQ1NzgzMX0.DcqJ7XNAkMiOT-3Vnlmvua84wNqahgfd3JQ9wpTW-yg"
