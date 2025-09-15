@@ -223,7 +223,7 @@ export function CookieConsent() {
               
               <div className="space-y-4">
                 {Object.entries(COOKIE_CATEGORIES).map(([key, category]) => (
-                  <div key={key} className="flex items-start justify-between space-x-4 p-4 bg-gray-800/50 rounded-lg">
+                  <div key={key} className="flex items-start justify-between space-x-4 p-4 bg-gray-800 bg-opacity-50 rounded-lg">
                     <div className="flex-1 space-y-2">
                       <div className="flex items-center space-x-2">
                         <h4 className="font-medium text-white">{category.name}</h4>

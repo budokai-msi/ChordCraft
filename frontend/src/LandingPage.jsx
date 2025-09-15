@@ -205,7 +205,7 @@ export function LandingPage({ onGetStarted }) {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-24 px-8 bg-gradient-to-r from-slate-900/50 to-slate-800/50">
+      <section className="py-24 px-8 bg-gradient-to-r from-slate-900 bg-opacity-50 to-slate-800 bg-opacity-50">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-5xl font-bold mb-6 vibrant-gradient-text">
