@@ -74,7 +74,7 @@ class ErrorBoundary extends React.Component {
             <CardContent className="space-y-4">
               {/* Error Details (only in development) */}
               {import.meta.env.DEV && this.state.error && (
-                <div className="bg-slate-800 bg-opacity-50 p-3 rounded-lg">
+                <div className="bg-gray-800 bg-opacity-50 p-3 rounded-lg">
                   <h4 className="text-sm font-medium text-red-400 mb-2">Error Details:</h4>
                   <pre className="text-xs text-slate-300 whitespace-pre-wrap overflow-auto max-h-32">
                     {this.state.error.toString()}

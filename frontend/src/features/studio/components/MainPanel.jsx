@@ -158,7 +158,7 @@ export function MainPanel() {
     <main className="flex-1 bg-slate-900 overflow-hidden flex flex-col">
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-        <div className="h-12 bg-slate-800 border-b border-slate-700 flex items-center justify-between px-4">
+        <div className="h-12 bg-gray-800 border-b border-slate-700 flex items-center justify-between px-4">
           <TabsList className="bg-slate-700">
             <TabsTrigger value="timeline" className="flex items-center gap-2">
               <Music className="w-4 h-4" />
@@ -205,7 +205,7 @@ export function MainPanel() {
         <TabsContent value="timeline" className="flex-1 flex flex-col">
           {/* Timeline */}
           <div 
-            className="h-10 bg-slate-800 border-b border-slate-700 relative overflow-x-auto"
+            className="h-10 bg-gray-800 border-b border-slate-700 relative overflow-x-auto"
             style={{ paddingLeft: PIANO_WIDTH }}
           >
             <div className="h-full relative" style={{ width: `${Math.max(1000, PIXELS_PER_SECOND * 10)}px` }}>
@@ -236,7 +236,7 @@ export function MainPanel() {
           {/* Piano Roll */}
           <div className="flex-1 flex overflow-auto relative">
             {/* Piano Keys */}
-            <div className="w-16 shrink-0 bg-slate-800 border-r border-slate-700">
+            <div className="w-16 shrink-0 bg-gray-800 border-r border-slate-700">
               {pianoKeys.map((key, index) => (
                 <div
                   key={key.note}

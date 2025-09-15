@@ -240,7 +240,7 @@ export function TimelineStudio() {
                 {/* Main Content Area */}
                 <div className="flex-1 flex flex-col">
                     {/* Top Bar */}
-                    <div className="h-16 bg-slate-800 border-b border-slate-700 flex items-center justify-between px-6">
+                    <div className="h-16 bg-gray-800 border-b border-slate-700 flex items-center justify-between px-6">
                         <div className="flex items-center space-x-4">
                             <h1 className="text-xl font-bold text-white">
                                 Song Editor Beta
@@ -271,7 +271,7 @@ export function TimelineStudio() {
                     </div>
 
                     {/* Learn Section */}
-                    <div className="h-32 bg-slate-800 border-b border-slate-700 p-6">
+                    <div className="h-32 bg-gray-800 border-b border-slate-700 p-6">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-lg font-semibold text-white">Learn</h2>
                             <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white">
@@ -346,7 +346,7 @@ export function TimelineStudio() {
             </div>
 
             {/* Bottom Playback Controls */}
-            <div className="fixed bottom-0 left-0 right-0 h-20 bg-slate-800 border-t border-slate-700 flex items-center justify-between px-6 z-20">
+            <div className="fixed bottom-0 left-0 right-0 h-20 bg-gray-800 border-t border-slate-700 flex items-center justify-between px-6 z-20">
                 <div className="flex items-center space-x-4">
                     <Button variant="ghost" size="sm">
                         <SkipBack className="w-5 h-5" />

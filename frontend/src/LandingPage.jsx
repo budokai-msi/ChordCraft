@@ -327,7 +327,7 @@ export function LandingPage({ onGetStarted }) {
               </div>
             </div>
             <div className="p-6">
-              <div className="aspect-video bg-slate-800 rounded-lg mb-6 flex items-center justify-center">
+              <div className="aspect-video bg-gray-800 rounded-lg mb-6 flex items-center justify-center">
                 <div className="text-center">
                   <Play className="w-16 h-16 text-blue-400 mx-auto mb-4" />
                   <h4 className="text-xl font-semibold text-white mb-2">Interactive Demo</h4>

@@ -105,9 +105,9 @@ export function BottomPanel() {
     };
 
     return (
-        <footer className="h-64 bg-slate-800 bg-opacity-50 border-t border-slate-700 shrink-0">
+        <footer className="h-64 bg-gray-800 bg-opacity-50 border-t border-slate-700 shrink-0">
             <Tabs defaultValue="code" className="h-full flex flex-col">
-                <TabsList className="shrink-0 rounded-none bg-slate-800 justify-start">
+                <TabsList className="shrink-0 rounded-none bg-gray-800 justify-start">
                     <TabsTrigger value="code">Code Editor</TabsTrigger>
                     <TabsTrigger value="analysis">Music Analysis</TabsTrigger>
                 </TabsList>

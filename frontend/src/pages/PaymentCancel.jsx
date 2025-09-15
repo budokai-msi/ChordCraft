@@ -23,7 +23,7 @@ export function PaymentCancel() {
         </CardHeader>
         
         <CardContent className="space-y-6">
-          <div className="bg-slate-800 bg-opacity-50 rounded-lg p-4 space-y-2">
+          <div className="bg-gray-800 bg-opacity-50 rounded-lg p-4 space-y-2">
             <h4 className="font-semibold text-slate-300">What happened?</h4>
             <p className="text-sm text-slate-400">
               You cancelled the payment process before completing your subscription. 

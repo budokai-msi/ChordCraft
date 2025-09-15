@@ -42,7 +42,7 @@ export function LoadingOverlay({
 
   return (
     <div className={`fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center ${className}`}>
-      <div className="bg-slate-800 rounded-lg p-6 shadow-xl">
+      <div className="bg-gray-800 rounded-lg p-6 shadow-xl">
         <LoadingSpinner size="lg" text={text} />
       </div>
     </div>

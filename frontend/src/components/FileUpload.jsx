@@ -226,7 +226,7 @@ export function FileUpload({ onAnalysisComplete, className = '' }) {
 
           {/* Uploaded File Info */}
           {uploadedFile && !isUploading && (
-            <div className="mt-4 p-4 bg-slate-800/50 rounded-lg">
+            <div className="mt-4 p-4 bg-gray-800/50 rounded-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <FileAudio className="w-8 h-8 text-blue-500" />

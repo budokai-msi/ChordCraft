@@ -293,15 +293,15 @@ export function TermsOfService() {
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white">Subscription Plans</h3>
               <div className="grid md:grid-cols-3 gap-4">
-                <div className="p-4 bg-slate-800/50 rounded-lg">
+                <div className="p-4 bg-gray-800/50 rounded-lg">
                   <h4 className="font-semibold text-white mb-2">Free Plan</h4>
                   <p className="text-sm text-slate-300">Basic features with usage limits</p>
                 </div>
-                <div className="p-4 bg-slate-800/50 rounded-lg">
+                <div className="p-4 bg-gray-800/50 rounded-lg">
                   <h4 className="font-semibold text-white mb-2">Pro Plan</h4>
                   <p className="text-sm text-slate-300">Advanced features and higher limits</p>
                 </div>
-                <div className="p-4 bg-slate-800/50 rounded-lg">
+                <div className="p-4 bg-gray-800/50 rounded-lg">
                   <h4 className="font-semibold text-white mb-2">Studio Plan</h4>
                   <p className="text-sm text-slate-300">Professional features and collaboration</p>
                 </div>

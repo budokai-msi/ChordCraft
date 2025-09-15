@@ -202,7 +202,7 @@ export function LeftPanel() {
     };
 
     return (
-        <aside className="w-80 bg-slate-800 bg-opacity-50 border-r border-slate-700 p-4 flex flex-col gap-4 shrink-0">
+        <aside className="w-80 bg-gray-800 bg-opacity-50 border-r border-slate-700 p-4 flex flex-col gap-4 shrink-0">
             {/* Upload Section */}
             <Card className="glass-pane">
                 <CardHeader className="pb-3">

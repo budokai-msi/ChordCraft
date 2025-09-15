@@ -442,7 +442,7 @@ export function Settings() {
                     <div key={action} className="flex items-center justify-between py-2 border-b border-slate-700 last:border-b-0">
                       <Label className="capitalize">{action.replace(/([A-Z])/g, ' $1').trim()}</Label>
                       <div className="flex items-center space-x-2">
-                        <kbd className="px-2 py-1 bg-slate-800 border border-slate-600 rounded text-sm">
+                        <kbd className="px-2 py-1 bg-gray-800 border border-slate-600 rounded text-sm">
                           {shortcut}
                         </kbd>
                         <Button variant="ghost" size="sm">
