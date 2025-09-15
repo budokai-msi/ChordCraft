@@ -52,6 +52,7 @@ python setup_muzic.py
 ```
 
 This will:
+
 - Install additional required packages
 - Clone the Muzic repository
 - Set up model configurations
@@ -66,21 +67,27 @@ python app.py
 ## API Endpoints
 
 ### Enhanced Analysis (Default)
-```
+
+```bash
 POST /analyze
 ```
+
 Uses Muzic-enhanced analysis when available, falls back to basic analysis if needed.
 
 ### Basic Analysis Only
-```
+
+```bash
 POST /analyze/basic
 ```
+
 Forces use of the original basic analysis method.
 
 ### Health Check
-```
+
+```bash
 GET /health
 ```
+
 Returns system status including Muzic integration status.
 
 ## Enhanced Code Generation
@@ -88,7 +95,8 @@ Returns system status including Muzic integration status.
 The Muzic integration generates more sophisticated ChordCraft code:
 
 ### Before (Basic Analysis)
-```
+
+```javascript
 // Analysis Results (HPSS + Duration):
 // Tempo: 120 BPM
 PLAY C4 FOR 0.500s AT 0.50s
@@ -96,7 +104,8 @@ PLAY E4 FOR 0.750s AT 1.00s
 ```
 
 ### After (Muzic-Enhanced)
-```
+
+```javascript
 // Enhanced ChordCraft Analysis (Muzic-Inspired)
 // Key: C major
 // Tempo: 120 BPM (4/4)
@@ -141,12 +150,16 @@ PLAY G4 FOR 0.250s AT 1.75s // Chord: F
 ## Configuration
 
 ### Model Configuration
+
 Models and configurations are stored in `backend/models/`:
+
 - `musicbert_config.json`: MusicBERT-inspired configuration
 - `clamp_config.json`: CLaMP (Contrastive Language-Music) configuration
 
 ### Analysis Parameters
+
 Key parameters can be adjusted in `muzic_integration.py`:
+
 - `sample_rate`: Audio sample rate (default: 22050 Hz)
 - `hop_length`: Analysis hop length (default: 512)
 - `frame_size`: Analysis frame size (default: 2048)
@@ -170,7 +183,8 @@ Key parameters can be adjusted in `muzic_integration.py`:
 ### Logs and Debugging
 
 The backend logs analysis method selection and any errors:
-```
+
+```bash
 INFO - Using Muzic-enhanced analysis
 INFO - Muzic integration initialized successfully
 WARNING - Enhanced analysis failed, used fallback

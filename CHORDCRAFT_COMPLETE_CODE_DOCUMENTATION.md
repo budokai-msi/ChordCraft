@@ -1,9 +1,11 @@
 # ChordCraft Complete Code Documentation
 
 ## Project Overview
+
 ChordCraft is an AI-powered music studio that transforms audio into playable code using Microsoft Muzic AI. The application features both Classic and Timeline studio interfaces with award-winning UI/UX design.
 
 ## Architecture
+
 - **Frontend**: React + Vite + Tailwind CSS + Design System
 - **Backend**: Flask + Microsoft Muzic AI Integration
 - **Database**: Supabase (PostgreSQL)
