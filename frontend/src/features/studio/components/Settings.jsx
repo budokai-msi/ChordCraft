@@ -37,9 +37,13 @@ import {
   EyeOff
 } from 'lucide-react';
 import { useAuth } from '../../../Auth';
+import { PaymentModal } from '../../../components/PaymentModal';
+import { SubscriptionStatus } from '../../../components/SubscriptionStatus';
 
 export function Settings() {
   const { user, signOut } = useAuth();
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState('pro');
   
   const [settings, setSettings] = useState({
     // Audio Settings
@@ -218,12 +222,13 @@ export function Settings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="audio">Audio</TabsTrigger>
           <TabsTrigger value="ui">Interface</TabsTrigger>
           <TabsTrigger value="shortcuts">Shortcuts</TabsTrigger>
           <TabsTrigger value="ai">AI</TabsTrigger>
           <TabsTrigger value="collaboration">Collaborate</TabsTrigger>
+          <TabsTrigger value="billing">Billing</TabsTrigger>
           <TabsTrigger value="privacy">Privacy</TabsTrigger>
         </TabsList>
 
@@ -603,6 +608,62 @@ export function Settings() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="billing" className="space-y-6">
+            <SubscriptionStatus />
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <CreditCard className="w-5 h-5 mr-2 text-blue-400" />
+                  Billing & Subscription
+                </CardTitle>
+                <CardDescription>
+                  Manage your subscription and billing information
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Button 
+                    onClick={() => {
+                      setSelectedPlan('pro');
+                      setShowPaymentModal(true);
+                    }}
+                    className="h-20 flex flex-col items-center justify-center"
+                  >
+                    <Crown className="w-6 h-6 mb-2" />
+                    <span className="font-semibold">Upgrade to Pro</span>
+                    <span className="text-sm opacity-80">$19.99/month</span>
+                  </Button>
+                  
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedPlan('studio');
+                      setShowPaymentModal(true);
+                    }}
+                    className="h-20 flex flex-col items-center justify-center"
+                  >
+                    <Building className="w-6 h-6 mb-2" />
+                    <span className="font-semibold">Upgrade to Studio</span>
+                    <span className="text-sm opacity-80">$49.99/month</span>
+                  </Button>
+                </div>
+                
+                <div className="pt-4 border-t border-slate-700">
+                  <h4 className="font-medium mb-2">Billing Information</h4>
+                  <p className="text-sm text-slate-400 mb-4">
+                    Your subscription is managed securely through Stripe. 
+                    You can update your payment method, view invoices, and manage your subscription at any time.
+                  </p>
+                  <Button variant="outline" size="sm">
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    Manage Billing
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="privacy" className="space-y-6">
             <Card>
               <CardHeader>
@@ -707,6 +768,13 @@ export function Settings() {
           </TabsContent>
         </div>
       </Tabs>
+
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        selectedPlan={selectedPlan}
+      />
     </div>
   );
 }

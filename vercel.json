@@ -13,6 +13,9 @@
     },
     "api/generative-companion.py": {
       "runtime": "python3.9"
+    },
+    "api/stripe.py": {
+      "runtime": "python3.9"
     }
   },
   "env": {
