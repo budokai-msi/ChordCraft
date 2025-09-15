@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useReducer } from 'react';
+import React, { createContext, useReducer } from 'react';
+import { TIMELINE_ACTIONS } from './timelineConstants';
 
 // Timeline State Structure
 const initialState = {
@@ -32,37 +33,25 @@ const initialState = {
       id: 'verse-2',
       type: 'verse',
       name: 'VERSE 2 - BLACKOUT ENERGY',
-      code: '// Verse 2 section\nPLAY G4 FOR 0.5s AT 0.0s\nPLAY A4 FOR 0.5s AT 0.5s\nPLAY B4 FOR 0.5s AT 1.0s\nPLAY C5 FOR 0.5s AT 1.5s',
-      duration: 20.0,
-      color: '#EC4899',
+      code: '// Verse 2 section\nPLAY A3 FOR 0.25s AT 0.0s\nPLAY C4 FOR 0.25s AT 0.25s\nPLAY E4 FOR 0.25s AT 0.5s\nPLAY A4 FOR 0.5s AT 0.75s',
+      duration: 30.0,
+      color: '#8B5CF6',
       waveform: null,
       isSelected: false,
       isPlaying: false,
       startTime: 45.0
     },
     {
-      id: 'verse-3',
-      type: 'verse',
-      name: 'VERSE 3 - NO CHORUS, JUST DEATH TALK',
-      code: '// Verse 3 section\nPLAY D4 FOR 0.5s AT 0.0s\nPLAY E4 FOR 0.5s AT 0.5s\nPLAY F4 FOR 0.5s AT 1.0s\nPLAY G4 FOR 0.5s AT 1.5s',
-      duration: 20.0,
-      color: '#EC4899',
-      waveform: null,
-      isSelected: false,
-      isPlaying: false,
-      startTime: 65.0
-    },
-    {
       id: 'outro-1',
       type: 'outro',
-      name: 'OUTRO - FADE TO BLACK',
-      code: '// Outro section\nPLAY C4 FOR 2.0s AT 0.0s\nPLAY G4 FOR 2.0s AT 2.0s\nPLAY C4 FOR 2.0s AT 4.0s',
-      duration: 24.0,
-      color: '#10B981',
+      name: 'OUTRO - FOCUS',
+      code: '// Outro section\nPLAY G2 FOR 2.0s AT 0.0s\nPLAY C3 FOR 2.0s AT 2.0s\nPLAY G3 FOR 2.0s AT 4.0s',
+      duration: 15.0,
+      color: '#F59E0B',
       waveform: null,
       isSelected: false,
       isPlaying: false,
-      startTime: 85.0
+      startTime: 75.0
     }
   ],
   
@@ -70,22 +59,16 @@ const initialState = {
   timeline: {
     zoom: 1.0,
     scrollPosition: 0,
-    totalDuration: 109.0,
-    bpm: 143,
-    timeSignature: '4/4'
+    bpm: 140,
+    timeSignature: '4/4',
+    totalDuration: 90.0
   },
-  
-  // Currently selected block
-  selectedBlockId: null,
   
   // Playback state
-  playback: {
-    isPlaying: false,
-    currentTime: 0,
-    playheadPosition: 0
-  },
+  isPlaying: false,
+  currentTime: 0.0,
   
-  // Lyrics and style input
+  // Lyrics and style
   lyrics: {
     sections: [
       { id: 'intro', title: 'Intro', content: '[Intro, Muffled Bass + Silencer Click]\nBradenton, Bay Dr...\n941 - not safe\nYou talkin\'? Then I\'m walkin.' },
@@ -93,7 +76,6 @@ const initialState = {
       { id: 'verse-2', title: 'Verse 2', content: 'Blackout energy, no emotions\nJust order, just focus\nDrill music, no chorus\nDeath talk, no remorse' }
     ]
   },
-  
   style: {
     prompt: 'Style: Dark Florida Drill, no chorus, full-pressure stream of bars, dead-eyed energy, no emotions, just order',
     genre: 'drill',
@@ -102,46 +84,10 @@ const initialState = {
   }
 };
 
-// Action Types
-const TIMELINE_ACTIONS = {
-  // Block management
-  ADD_BLOCK: 'ADD_BLOCK',
-  UPDATE_BLOCK: 'UPDATE_BLOCK',
-  DELETE_BLOCK: 'DELETE_BLOCK',
-  SELECT_BLOCK: 'SELECT_BLOCK',
-  DUPLICATE_BLOCK: 'DUPLICATE_BLOCK',
-  
-  // Block arrangement
-  MOVE_BLOCK: 'MOVE_BLOCK',
-  RESIZE_BLOCK: 'RESIZE_BLOCK',
-  SPLIT_BLOCK: 'SPLIT_BLOCK',
-  MERGE_BLOCKS: 'MERGE_BLOCKS',
-  
-  // Timeline controls
-  SET_ZOOM: 'SET_ZOOM',
-  SET_SCROLL: 'SET_SCROLL',
-  SET_BPM: 'SET_BPM',
-  SET_TIME_SIGNATURE: 'SET_TIME_SIGNATURE',
-  
-  // Playback
-  PLAY: 'PLAY',
-  PAUSE: 'PAUSE',
-  STOP: 'STOP',
-  SEEK: 'SEEK',
-  
-  // Lyrics and style
-  UPDATE_LYRICS: 'UPDATE_LYRICS',
-  UPDATE_STYLE: 'UPDATE_STYLE',
-  
-  // Import/Export
-  LOAD_PROJECT: 'LOAD_PROJECT',
-  SAVE_PROJECT: 'SAVE_PROJECT'
-};
-
 // Reducer function
 function timelineReducer(state, action) {
   switch (action.type) {
-    case TIMELINE_ACTIONS.ADD_BLOCK:
+    case TIMELINE_ACTIONS.ADD_BLOCK: {
       const newBlock = {
         id: `block-${Date.now()}`,
         type: action.blockType || 'section',
@@ -158,6 +104,7 @@ function timelineReducer(state, action) {
         ...state,
         blocks: [...state.blocks, newBlock]
       };
+    }
 
     case TIMELINE_ACTIONS.UPDATE_BLOCK:
       return {
@@ -186,7 +133,7 @@ function timelineReducer(state, action) {
         selectedBlockId: action.blockId
       };
 
-    case TIMELINE_ACTIONS.MOVE_BLOCK:
+    case TIMELINE_ACTIONS.MOVE_BLOCK: {
       const { blockId, newStartTime } = action;
       return {
         ...state,
@@ -196,8 +143,9 @@ function timelineReducer(state, action) {
             : block
         )
       };
+    }
 
-    case TIMELINE_ACTIONS.RESIZE_BLOCK:
+    case TIMELINE_ACTIONS.RESIZE_BLOCK: {
       const { blockId: resizeBlockId, newDuration } = action;
       return {
         ...state,
@@ -207,6 +155,7 @@ function timelineReducer(state, action) {
             : block
         )
       };
+    }
 
     case TIMELINE_ACTIONS.SET_ZOOM:
       return {
@@ -229,25 +178,26 @@ function timelineReducer(state, action) {
     case TIMELINE_ACTIONS.PLAY:
       return {
         ...state,
-        playback: { ...state.playback, isPlaying: true }
+        isPlaying: true
       };
 
     case TIMELINE_ACTIONS.PAUSE:
       return {
         ...state,
-        playback: { ...state.playback, isPlaying: false }
+        isPlaying: false
       };
 
     case TIMELINE_ACTIONS.STOP:
       return {
         ...state,
-        playback: { ...state.playback, isPlaying: false, currentTime: 0, playheadPosition: 0 }
+        isPlaying: false,
+        currentTime: 0
       };
 
     case TIMELINE_ACTIONS.SEEK:
       return {
         ...state,
-        playback: { ...state.playback, currentTime: action.time, playheadPosition: action.time }
+        currentTime: action.time
       };
 
     case TIMELINE_ACTIONS.UPDATE_LYRICS:
@@ -265,7 +215,10 @@ function timelineReducer(state, action) {
     case TIMELINE_ACTIONS.LOAD_PROJECT:
       return {
         ...state,
-        ...action.projectData
+        blocks: action.projectData.blocks || state.blocks,
+        timeline: { ...state.timeline, ...action.projectData.timeline },
+        lyrics: { ...state.lyrics, ...action.projectData.lyrics },
+        style: { ...state.style, ...action.projectData.style }
       };
 
     default:
@@ -274,14 +227,17 @@ function timelineReducer(state, action) {
 }
 
 // Context creation
-const TimelineContext = createContext();
+export const TimelineContext = createContext();
 
 // Provider component
 export function TimelineProvider({ children }) {
   const [state, dispatch] = useReducer(timelineReducer, initialState);
 
-  // Action creators
-  const actions = {
+  const value = {
+    // State
+    ...state,
+    
+    // Actions
     addBlock: (blockData) => dispatch({ type: TIMELINE_ACTIONS.ADD_BLOCK, ...blockData }),
     updateBlock: (blockId, updates) => dispatch({ type: TIMELINE_ACTIONS.UPDATE_BLOCK, blockId, updates }),
     deleteBlock: (blockId) => dispatch({ type: TIMELINE_ACTIONS.DELETE_BLOCK, blockId }),
@@ -301,19 +257,8 @@ export function TimelineProvider({ children }) {
   };
 
   return (
-    <TimelineContext.Provider value={{ state, actions }}>
+    <TimelineContext.Provider value={value}>
       {children}
     </TimelineContext.Provider>
   );
 }
-
-// Custom hook to use timeline context
-export function useTimeline() {
-  const context = useContext(TimelineContext);
-  if (!context) {
-    throw new Error('useTimeline must be used within a TimelineProvider');
-  }
-  return context;
-}
-
-export { TIMELINE_ACTIONS };
