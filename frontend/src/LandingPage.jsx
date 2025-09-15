@@ -31,19 +31,19 @@ export function LandingPage({ onGetStarted }) {
       icon: Music,
       title: "AI-Powered Music Generation",
       description: "Create professional-quality music with our advanced AI that understands musical theory, harmony, and composition.",
-      color: "from-blue-500 to-cyan-500"
+      color: "primary-gradient-text"
     },
     {
       icon: Brain,
       title: "Microsoft Muzic AI Integration",
       description: "Powered by cutting-edge Microsoft Muzic AI for deep audio analysis, stem separation, and intelligent music understanding.",
-      color: "from-purple-500 to-pink-500"
+      color: "vibrant-gradient-text"
     },
     {
       icon: Layers,
       title: "Professional DAW Interface",
       description: "A complete digital audio workstation with piano roll, timeline editing, and real-time collaboration features.",
-      color: "from-green-500 to-emerald-500"
+      color: "cyber-gradient-text"
     },
     {
       icon: Zap,
@@ -114,13 +114,13 @@ export function LandingPage({ onGetStarted }) {
         <div className="absolute inset-0 bg-black/20" />
         
         {/* Floating Elements */}
-        <div className="absolute top-20 left-20 w-32 h-32 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-xl float"></div>
-        <div className="absolute top-40 right-32 w-24 h-24 bg-gradient-to-r from-pink-500/20 to-orange-500/20 rounded-full blur-xl float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute bottom-32 left-1/4 w-40 h-40 bg-gradient-to-r from-green-500/20 to-cyan-500/20 rounded-full blur-xl float" style={{ animationDelay: '4s' }}></div>
+        <div className="absolute top-20 left-20 w-32 h-32 bg-blue-500 bg-opacity-20 rounded-full blur-xl float"></div>
+        <div className="absolute top-40 right-32 w-24 h-24 bg-pink-500 bg-opacity-20 rounded-full blur-xl float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute bottom-32 left-1/4 w-40 h-40 bg-green-500 bg-opacity-20 rounded-full blur-xl float" style={{ animationDelay: '4s' }}></div>
         
         <div className="z-10 text-center p-8 max-w-6xl mx-auto">
           <div className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-            <Badge className="mb-6 px-4 py-2 text-sm font-medium bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-500/30 text-purple-300 neon-glow-pink">
+            <Badge className="mb-6 px-4 py-2 text-sm font-medium bg-purple-500 bg-opacity-20 border-purple-500 border-opacity-30 text-purple-300 neon-glow-pink">
               <Sparkles className="w-4 h-4 mr-2" />
               Powered by Microsoft Muzic AI
             </Badge>
