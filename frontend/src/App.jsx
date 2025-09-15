@@ -10,6 +10,9 @@ function App() {
   const { user } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
 
+  // Debug logging
+  console.log('App rendering, user:', user, 'showLogin:', showLogin);
+
   // Flow: LandingPage -> Login -> Studio
   if (user) return (
     <ErrorBoundary>

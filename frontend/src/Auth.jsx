@@ -12,7 +12,9 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Check for an active session on initial load
     const getSession = async () => {
+        console.log('AuthProvider: Getting session...');
         const { data: { session } } = await supabase.auth.getSession();
+        console.log('AuthProvider: Session result:', session);
         setUser(session?.user ?? null);
         setLoading(false);
     };
