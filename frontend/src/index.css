@@ -336,17 +336,28 @@
 
   /* Loading Spinner */
   .vibrant-spinner {
-    @apply animate-spin rounded-full border-4 border-slate-600;
-    @apply border-t-primary border-r-accent;
+    animation: spin 1s linear infinite;
+    border-radius: 50%;
+    border: 4px solid #475569;
+    border-top-color: hsl(var(--primary));
+    border-right-color: hsl(var(--accent));
   }
 
   /* Hover Effects */
   .hover-lift {
-    @apply transition-transform duration-300 hover:-translate-y-2;
+    transition: transform 300ms;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-0.5rem);
   }
 
   .hover-glow {
-    @apply transition-all duration-300 hover:shadow-lg hover:shadow-primary/25;
+    transition: all 300ms;
+  }
+  
+  .hover-glow:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(59, 130, 246, 0.25);
   }
 
   /* Text Effects */
