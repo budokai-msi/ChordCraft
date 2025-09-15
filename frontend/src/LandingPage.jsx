@@ -125,7 +125,7 @@ export function LandingPage({ onGetStarted }) {
               Powered by Microsoft Muzic AI
             </Badge>
             
-            <h1 className="text-8xl font-bold mb-6 cyber-gradient-text text-shadow-lg">
+            <h1 className="text-6xl md:text-8xl font-bold mb-6 cyber-gradient-text text-shadow-lg">
               ChordCraft Studio
             </h1>
             
@@ -188,7 +188,7 @@ export function LandingPage({ onGetStarted }) {
                 style={{ transitionDelay: `${index * 100}ms` }}
               >
                 <CardHeader>
-                  <div className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 neon-glow`}>
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 neon-glow">
                     <feature.icon className="w-8 h-8 text-white" />
                   </div>
                   <CardTitle className="text-2xl font-bold mb-3">{feature.title}</CardTitle>
