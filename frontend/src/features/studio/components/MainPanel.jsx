@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useProjectStore } from '../../../stores/useProjectStore';
 import { usePlaybackStore } from '../../../stores/usePlaybackStore';
 import { useUIStore } from '../../../stores/useUIStore';
@@ -42,17 +42,20 @@ export function MainPanel() {
   const TIMELINE_HEIGHT = 40;
   
   // Generate piano keys (C1 to C8)
-  const pianoKeys = [];
-  for (let octave = 1; octave <= 8; octave++) {
-    const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-    notes.forEach(note => {
-      pianoKeys.push({
-        note: `${note}${octave}`,
-        midi: noteToMidi(`${note}${octave}`),
-        isSharp: note.includes('#')
+  const pianoKeys = useMemo(() => {
+    const keys = [];
+    for (let octave = 1; octave <= 8; octave++) {
+      const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+      notes.forEach(note => {
+        keys.push({
+          note: `${note}${octave}`,
+          midi: noteToMidi(`${note}${octave}`),
+          isSharp: note.includes('#')
+        });
       });
-    });
-  }
+    }
+    return keys;
+  }, []);
   pianoKeys.reverse(); // C8 at top, C1 at bottom
 
   const getNotePosition = useCallback((note) => {
@@ -237,7 +240,7 @@ export function MainPanel() {
           <div className="flex-1 flex overflow-auto relative">
             {/* Piano Keys */}
             <div className="w-16 shrink-0 bg-gray-800 border-r border-slate-700">
-              {pianoKeys.map((key, index) => (
+              {pianoKeys.map((key) => (
                 <div
                   key={key.note}
                   className={`flex items-center justify-center text-xs border-b border-slate-700 ${

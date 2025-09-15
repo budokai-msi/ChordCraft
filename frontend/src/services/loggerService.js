@@ -76,7 +76,7 @@ class LoggerService {
     const logEntry = this.formatLog(this.logLevels.DEBUG, message, data);
     this.addToBuffer(logEntry);
     
-    if (process.env.NODE_ENV === 'development') {
+    if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
       console.debug(`[DEBUG] ${message}`, data);
     }
   }
@@ -87,7 +87,7 @@ class LoggerService {
     const logEntry = this.formatLog(this.logLevels.INFO, message, data);
     this.addToBuffer(logEntry);
     
-    if (process.env.NODE_ENV === 'development') {
+    if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
       console.info(`[INFO] ${message}`, data);
     }
   }
@@ -98,7 +98,7 @@ class LoggerService {
     const logEntry = this.formatLog(this.logLevels.WARN, message, data);
     this.addToBuffer(logEntry);
     
-    if (process.env.NODE_ENV === 'development') {
+    if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
       console.warn(`[WARN] ${message}`, data);
     }
   }
@@ -109,7 +109,7 @@ class LoggerService {
     const logEntry = this.formatLog(this.logLevels.ERROR, message, data);
     this.addToBuffer(logEntry);
     
-    if (process.env.NODE_ENV === 'development') {
+    if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
       console.error(`[ERROR] ${message}`, data);
     }
     
@@ -123,7 +123,7 @@ class LoggerService {
     const logEntry = this.formatLog(this.logLevels.CRITICAL, message, data);
     this.addToBuffer(logEntry);
     
-    if (process.env.NODE_ENV === 'development') {
+    if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
       console.error(`[CRITICAL] ${message}`, data);
     }
     

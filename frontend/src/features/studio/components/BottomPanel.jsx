@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import axios from 'axios';
 import { useProjectStore } from '../../../stores/useProjectStore';
 import { usePlaybackStore } from '../../../stores/usePlaybackStore';
@@ -20,7 +20,7 @@ if (languages.chordcraft === undefined) {
 
 export function BottomPanel() {
     const { chordCraftCode, updateCode, musicAnalysis, setMusicAnalysis, notes } = useProjectStore();
-    const { isPlaying, play, pause, stop, tempo } = usePlaybackStore();
+    const { isPlaying, play, pause, tempo } = usePlaybackStore();
     const { isAnalyzing, setAnalyzing, showSuccess, showError } = useUIStore();
 
     const handlePlayCode = () => {

@@ -130,7 +130,7 @@ export function NotificationCenter() {
     notificationService.remove(id);
   };
 
-  const handleAction = (id, action) => {
+  const handleAction = () => {
     // Action handling is done in the notification service
     // This is just for any additional UI updates if needed
   };

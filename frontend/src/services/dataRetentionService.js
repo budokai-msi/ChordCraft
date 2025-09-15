@@ -680,7 +680,7 @@ class DataRetentionService {
 
   // Update retention policy
   updateRetentionPolicy(dataType, days) {
-    if (this.retentionPolicies.hasOwnProperty(dataType)) {
+    if (Object.hasOwn(this.retentionPolicies, dataType)) {
       this.retentionPolicies[dataType] = days;
       loggerService.info(`Retention policy updated for ${dataType}: ${days} days`);
       return true;

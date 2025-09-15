@@ -78,7 +78,7 @@ class AuditService {
       }
       
       // Also log to console for development
-      if (process.env.NODE_ENV === 'development') {
+      if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
         console.log(`[AUDIT ${level.toUpperCase()}] ${category}: ${message}`, details);
       }
       

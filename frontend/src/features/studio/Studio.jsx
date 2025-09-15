@@ -36,8 +36,8 @@ import {
 export function Studio() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('studio');
-  const [isCollaborating, setIsCollaborating] = useState(false);
-  const [onlineUsers, setOnlineUsers] = useState(0);
+  const [isCollaborating] = useState(false);
+  const [onlineUsers] = useState(0);
 
   return (
     <div className="flex flex-col h-screen w-screen animated-bg text-white font-sans overflow-hidden">
