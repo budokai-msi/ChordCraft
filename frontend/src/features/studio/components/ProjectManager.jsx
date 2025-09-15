@@ -35,7 +35,7 @@ import {
 } from 'lucide-react';
 import { useProjectStore } from '../../../stores/useProjectStore';
 import { useAuth } from '../../../Auth';
-import { supabase } from '../../../supabaseClient';
+import { databaseService } from '../../../services/databaseService';
 
 export function ProjectManager() {
   const { user } = useAuth();
@@ -74,13 +74,11 @@ export function ProjectManager() {
     
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('chordcraft_projects')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('updated_at', { ascending: false });
-      
-      if (error) throw error;
+      const data = await databaseService.getProjects(user.id, {
+        search: searchQuery,
+        tags: filterTag !== 'all' ? [filterTag] : [],
+        limit: 50
+      });
       setProjects(data || []);
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -129,22 +127,16 @@ export function ProjectManager() {
     if (!user || !newProjectName.trim()) return;
 
     try {
-      const { data, error } = await supabase
-        .from('chordcraft_projects')
-        .insert({
-          user_id: user.id,
-          title: newProjectName,
-          description: newProjectDescription,
-          code_content: '// New project\n// Start creating your music here...',
-          music_analysis: null,
-          tags: []
-        })
-        .select()
-        .single();
+      const newProject = await databaseService.createProject({
+        user_id: user.id,
+        title: newProjectName,
+        description: newProjectDescription,
+        chordcraft_code: chordCraftCode || '// New project\n// Start creating your music here...',
+        music_analysis: musicAnalysis,
+        tags: []
+      });
       
-      if (error) throw error;
-      
-      setProjects(prev => [data, ...prev]);
+      setProjects(prev => [newProject, ...prev]);
       setShowCreateDialog(false);
       setNewProjectName('');
       setNewProjectDescription('');
@@ -155,10 +147,13 @@ export function ProjectManager() {
 
   const loadProject = async (project) => {
     try {
-      setProjectTitle(project.title);
-      updateCode(project.code_content || '');
-      setMusicAnalysis(project.music_analysis);
-      setSelectedProject(project);
+      // Load full project data
+      const fullProject = await databaseService.getProject(project.id);
+      
+      setProjectTitle(fullProject.title);
+      updateCode(fullProject.chordcraft_code || '');
+      setMusicAnalysis(fullProject.music_analysis);
+      setSelectedProject(fullProject);
     } catch (error) {
       console.error('Error loading project:', error);
     }
@@ -168,14 +163,12 @@ export function ProjectManager() {
     if (!confirm('Are you sure you want to delete this project?')) return;
 
     try {
-      const { error } = await supabase
-        .from('chordcraft_projects')
-        .delete()
-        .eq('id', projectId);
-      
-      if (error) throw error;
+      await databaseService.deleteProject(projectId);
       
       setProjects(prev => prev.filter(p => p.id !== projectId));
+      if (selectedProject?.id === projectId) {
+        setSelectedProject(null);
+      }
     } catch (error) {
       console.error('Error deleting project:', error);
     }

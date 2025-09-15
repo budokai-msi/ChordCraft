@@ -3,6 +3,7 @@ import { useAuth } from './Auth';
 import { Login } from './Login';
 import { Studio } from './features/studio/Studio';
 import { LandingPage } from './LandingPage';
+import ErrorBoundary from './components/ErrorBoundary';
 import './design-system.css';
 
 function App() {
@@ -10,9 +11,21 @@ function App() {
   const [showLogin, setShowLogin] = useState(false);
 
   // Flow: LandingPage -> Login -> Studio
-  if (user) return <Studio />;
-  if (showLogin) return <Login onBack={() => setShowLogin(false)} />;
-  return <LandingPage onGetStarted={() => setShowLogin(true)} />;
+  if (user) return (
+    <ErrorBoundary>
+      <Studio />
+    </ErrorBoundary>
+  );
+  if (showLogin) return (
+    <ErrorBoundary>
+      <Login onBack={() => setShowLogin(false)} />
+    </ErrorBoundary>
+  );
+  return (
+    <ErrorBoundary>
+      <LandingPage onGetStarted={() => setShowLogin(true)} />
+    </ErrorBoundary>
+  );
 }
 
 export default App;

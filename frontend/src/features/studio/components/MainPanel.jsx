@@ -5,7 +5,9 @@ import { useUIStore } from '../../../stores/useUIStore';
 import { noteToMidi, midiToNote, snapToGrid, formatTime } from '../../../chordcraftUtils';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { ZoomIn, ZoomOut, Grid, Ruler } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FileUpload } from '../../FileUpload';
+import { ZoomIn, ZoomOut, Grid, Ruler, Upload, Music } from 'lucide-react';
 
 export function MainPanel() {
   const { 
@@ -33,6 +35,7 @@ export function MainPanel() {
   const [isResizing, setIsResizing] = useState(false);
   const [resizeStart, setResizeStart] = useState(null);
   const [pianoRollRef, setPianoRollRef] = useState(null);
+  const [activeTab, setActiveTab] = useState('timeline');
   
   // Piano roll dimensions
   const PIXELS_PER_SECOND = 100 * zoomLevel;
@@ -195,8 +198,22 @@ export function MainPanel() {
   
   return (
     <main className="flex-1 bg-slate-900 overflow-hidden flex flex-col">
-      {/* Toolbar */}
-      <div className="h-12 bg-slate-800 border-b border-slate-700 flex items-center justify-between px-4">
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+        <div className="h-12 bg-slate-800 border-b border-slate-700 flex items-center justify-between px-4">
+          <TabsList className="bg-slate-700">
+            <TabsTrigger value="timeline" className="flex items-center gap-2">
+              <Music className="w-4 h-4" />
+              Timeline
+            </TabsTrigger>
+            <TabsTrigger value="upload" className="flex items-center gap-2">
+              <Upload className="w-4 h-4" />
+              Upload Audio
+            </TabsTrigger>
+          </TabsList>
+          
+          {/* Toolbar */}
+          <div className="flex items-center gap-4">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Button
@@ -256,7 +273,9 @@ export function MainPanel() {
         </div>
       </div>
       
-      {/* Timeline */}
+      {/* Tab Content */}
+      <TabsContent value="timeline" className="flex-1 flex flex-col">
+        {/* Timeline */}
       <div 
         className="h-10 bg-slate-800 border-b border-slate-700 relative overflow-x-auto"
         style={{ paddingLeft: PIANO_WIDTH }}
@@ -368,6 +387,17 @@ export function MainPanel() {
           </div>
         </div>
       </div>
+      </TabsContent>
+      
+      <TabsContent value="upload" className="flex-1 p-6">
+        <FileUpload 
+          onAnalysisComplete={(result) => {
+            console.log('Analysis complete:', result);
+            showSuccess('Audio analysis completed!');
+          }}
+        />
+      </TabsContent>
+      </Tabs>
     </main>
   );
 }

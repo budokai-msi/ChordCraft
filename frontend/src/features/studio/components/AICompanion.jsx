@@ -35,7 +35,8 @@ import {
 } from 'lucide-react';
 import { useProjectStore } from '../../../stores/useProjectStore';
 import { useUIStore } from '../../../stores/useUIStore';
-import axios from 'axios';
+import { apiService } from '../../../services/apiService';
+import { LoadingSpinner } from '../../../components/LoadingSpinner';
 
 export function AICompanion() {
   const { chordCraftCode, updateCode, musicAnalysis } = useProjectStore();
@@ -118,19 +119,13 @@ export function AICompanion() {
     setConversation(prev => [...prev, userMessage]);
 
     try {
-      const response = await axios.post(
-        import.meta.env.PROD 
-          ? 'https://chord-craft-l32h.vercel.app/api/generative-companion'
-          : 'http://localhost:5000/api/generative-companion',
-        { 
-          prompt: prompt, 
-          code: chordCraftCode,
-          context: musicAnalysis 
-        }
-      );
+      const response = await apiService.generateWithAI(prompt, {
+        code: chordCraftCode,
+        context: musicAnalysis 
+      });
 
-      if (response.data.success) {
-        const generatedCode = response.data.generated_code;
+      if (response.success) {
+        const generatedCode = response.generated_code;
         setGeneratedCode(generatedCode);
         
         const aiMessage = {
@@ -150,7 +145,7 @@ export function AICompanion() {
         setConversation(prev => [...prev, aiMessage]);
         showSuccess('AI generated music successfully!');
       } else {
-        throw new Error(response.data.error || 'Generation failed');
+        throw new Error(response.error || 'Generation failed');
       }
     } catch (error) {
       const errorMessage = {
