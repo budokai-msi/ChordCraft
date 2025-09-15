@@ -14,7 +14,7 @@ export function LeftPanel() {
     };
 
     return (
-        <aside className="w-64 bg-slate-800/50 border-r border-slate-700 p-4 flex flex-col gap-4 shrink-0">
+        <aside className="w-64 bg-slate-800 bg-opacity-50 border-r border-slate-700 p-4 flex flex-col gap-4 shrink-0">
             <h2 className="text-lg font-semibold">Tracks</h2>
             <div className="flex-1 space-y-2 overflow-y-auto">
                 {tracks.map(track => (

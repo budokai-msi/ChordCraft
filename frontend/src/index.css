@@ -254,7 +254,7 @@
   }
 
   .btn-secondary {
-    @apply bg-slate-800/50 text-foreground font-semibold px-6 py-3 rounded-lg;
+    @apply bg-slate-800 bg-opacity-50 text-foreground font-semibold px-6 py-3 rounded-lg;
     @apply hover:bg-slate-700/50 transition-all duration-300;
     @apply border border-slate-600 hover:border-slate-500;
   }
@@ -277,7 +277,7 @@
 
   /* Input Styles */
   .vibrant-input {
-    @apply bg-slate-800/50 border border-slate-600 rounded-lg px-4 py-3;
+    @apply bg-slate-800 bg-opacity-50 border border-slate-600 rounded-lg px-4 py-3;
     @apply focus:border-primary focus:ring-2 focus:ring-primary/20;
     @apply transition-all duration-200;
     @apply backdrop-blur-sm;

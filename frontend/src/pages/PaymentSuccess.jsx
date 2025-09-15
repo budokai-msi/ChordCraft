@@ -85,7 +85,7 @@ export function PaymentSuccess() {
         </CardHeader>
         
         <CardContent className="space-y-6">
-          <div className="bg-slate-800/50 rounded-lg p-4 space-y-2">
+          <div className="bg-slate-800 bg-opacity-50 rounded-lg p-4 space-y-2">
             <h4 className="font-semibold text-slate-300">What's Next?</h4>
             <ul className="text-sm text-slate-400 space-y-1">
               <li>• Access to unlimited projects</li>

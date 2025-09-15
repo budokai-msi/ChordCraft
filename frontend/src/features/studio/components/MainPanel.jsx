@@ -6,7 +6,7 @@ import { noteToMidi, snapToGrid, formatTime } from '../../../chordcraftUtils';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileUpload } from '../../components/FileUpload';
+// import { FileUpload } from '../../components/FileUpload';
 import { ZoomIn, ZoomOut, Grid, Ruler, Upload, Music } from 'lucide-react';
 
 export function MainPanel() {
@@ -314,14 +314,17 @@ export function MainPanel() {
           </div>
         </TabsContent>
         
-        <TabsContent value="upload" className="flex-1 p-6">
-          <FileUpload 
-            onAnalysisComplete={(result) => {
-              console.log('Analysis complete:', result);
-              showSuccess('Audio analysis completed!');
-            }}
-          />
-        </TabsContent>
+            <TabsContent value="upload" className="flex-1 p-6">
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <Upload className="w-16 h-16 text-slate-400 mb-4" />
+                <h3 className="text-xl font-semibold text-white mb-2">Audio Upload</h3>
+                <p className="text-slate-400 mb-4">Upload audio files for analysis and processing</p>
+                <Button variant="outline">
+                  <Upload className="w-4 h-4 mr-2" />
+                  Choose File
+                </Button>
+              </div>
+            </TabsContent>
       </Tabs>
     </main>
   );

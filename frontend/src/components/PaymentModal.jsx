@@ -241,7 +241,7 @@ export function PaymentModal({ isOpen, onClose, selectedPlan = 'pro' }) {
         </div>
 
         {/* Security Notice */}
-        <div className="mt-4 p-3 bg-slate-800/50 rounded-lg">
+        <div className="mt-4 p-3 bg-slate-800 bg-opacity-50 rounded-lg">
           <div className="flex items-start gap-2">
             <Lock className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
             <div className="text-xs text-slate-400">
