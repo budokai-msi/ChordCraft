@@ -41,7 +41,7 @@ import { PaymentModal } from '../../../components/PaymentModal';
 import { SubscriptionStatus } from '../../../components/SubscriptionStatus';
 
 export function Settings() {
-  const { user, signOut } = useAuth();
+  const { } = useAuth();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('pro');
   
@@ -185,7 +185,7 @@ export function Settings() {
           const importedSettings = JSON.parse(e.target.result);
           setSettings(importedSettings);
           setHasUnsavedChanges(true);
-        } catch (error) {
+        } catch (err) {
           alert('Invalid settings file');
         }
       };

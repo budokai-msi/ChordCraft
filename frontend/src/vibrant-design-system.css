@@ -128,7 +128,10 @@
 
   /* Gradient Text Effects */
   .primary-gradient-text {
-    @apply bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent;
+    background: linear-gradient(to right, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   .vibrant-gradient-text {
@@ -231,9 +234,19 @@
 
   /* Button Styles */
   .btn-primary {
-    @apply bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold px-6 py-3 rounded-lg;
-    @apply hover:from-blue-600 hover:to-purple-600 transition-all duration-300;
-    @apply shadow-lg hover:shadow-xl transform hover:-translate-y-1;
+    background: linear-gradient(to right, #3b82f6, #8b5cf6);
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(to right, #2563eb, #7c3aed);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    transform: translateY(-1px);
   }
 
   .btn-secondary {

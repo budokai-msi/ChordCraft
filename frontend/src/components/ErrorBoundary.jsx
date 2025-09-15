@@ -13,7 +13,7 @@ class ErrorBoundary extends React.Component {
     };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError() {
     // Update state so the next render will show the fallback UI
     return { hasError: true };
   }
@@ -72,7 +72,7 @@ class ErrorBoundary extends React.Component {
             
             <CardContent className="space-y-4">
               {/* Error Details (only in development) */}
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {import.meta.env.DEV && this.state.error && (
                 <div className="bg-slate-800/50 p-3 rounded-lg">
                   <h4 className="text-sm font-medium text-red-400 mb-2">Error Details:</h4>
                   <pre className="text-xs text-slate-300 whitespace-pre-wrap overflow-auto max-h-32">
