@@ -132,7 +132,7 @@
 
   /* Gradient Text Effects */
   .primary-gradient-text {
-    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent;
   }
 
   .vibrant-gradient-text {
@@ -235,8 +235,8 @@
 
   /* Button Styles */
   .btn-primary {
-    @apply bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold px-6 py-3 rounded-lg;
-    @apply hover:from-primary/90 hover:to-accent/90 transition-all duration-300;
+    @apply bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold px-6 py-3 rounded-lg;
+    @apply hover:from-blue-600 hover:to-purple-600 transition-all duration-300;
     @apply shadow-lg hover:shadow-xl transform hover:-translate-y-1;
   }
 
@@ -273,7 +273,7 @@
   /* Badge Styles */
   .vibrant-badge {
     @apply px-3 py-1 rounded-full text-xs font-medium;
-    @apply bg-gradient-to-r from-primary/20 to-accent/20;
+    @apply bg-gradient-to-r from-blue-500/20 to-purple-500/20;
     @apply border border-primary/30;
     @apply text-primary-foreground;
   }

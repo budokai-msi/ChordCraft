@@ -397,7 +397,7 @@ export function MainPanel() {
           }}
         />
       </TabsContent>
-      </Tabs>
+    </Tabs>
     </main>
   );
 }
