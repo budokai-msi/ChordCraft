@@ -1,4 +1,3 @@
-import { loggerService } from './loggerService';
 import { supabase } from '../supabaseClient';
 
 class AuditService {
@@ -36,7 +35,7 @@ class AuditService {
     this.setupAuditFlushing();
     this.setupAuditRetention();
     
-    loggerService.info('Audit service initialized');
+    console.log('Audit service initialized');
   }
 
   setupAuditLogging() {
@@ -83,7 +82,7 @@ class AuditService {
       }
       
     } catch (error) {
-      loggerService.error('Error logging audit event:', error);
+      console.error('Error logging audit event:', error);
     }
   }
 
@@ -229,14 +228,14 @@ class AuditService {
         .insert(eventsToFlush);
         
       if (error) {
-        loggerService.error('Error flushing audit buffer:', error);
+        console.error('Error flushing audit buffer:', error);
         // Re-add events to buffer if flush failed
         this.auditBuffer.unshift(...eventsToFlush);
       } else {
-        loggerService.debug(`Flushed ${eventsToFlush.length} audit events`);
+        console.debug(`Flushed ${eventsToFlush.length} audit events`);
       }
     } catch (error) {
-      loggerService.error('Error flushing audit buffer:', error);
+      console.error('Error flushing audit buffer:', error);
     }
   }
 
@@ -260,12 +259,12 @@ class AuditService {
         .lt('timestamp', cutoffDate.toISOString());
         
       if (error) {
-        loggerService.error('Error cleaning up old audit logs:', error);
+        console.error('Error cleaning up old audit logs:', error);
       } else {
-        loggerService.info('Old audit logs cleaned up');
+        console.log('Old audit logs cleaned up');
       }
     } catch (error) {
-      loggerService.error('Error cleaning up old audit logs:', error);
+      console.error('Error cleaning up old audit logs:', error);
     }
   }
 
@@ -304,13 +303,13 @@ class AuditService {
       const { data: logs, error } = await query;
       
       if (error) {
-        loggerService.error('Error fetching audit logs:', error);
+        console.error('Error fetching audit logs:', error);
         return [];
       }
       
       return logs || [];
     } catch (error) {
-      loggerService.error('Error getting audit logs:', error);
+      console.error('Error getting audit logs:', error);
       return [];
     }
   }
@@ -328,7 +327,7 @@ class AuditService {
         .order('timestamp', { ascending: false });
         
       if (error) {
-        loggerService.error('Error fetching audit summary:', error);
+        console.error('Error fetching audit summary:', error);
         return null;
       }
       
@@ -351,7 +350,7 @@ class AuditService {
       
       return summary;
     } catch (error) {
-      loggerService.error('Error getting audit summary:', error);
+      console.error('Error getting audit summary:', error);
       return null;
     }
   }
@@ -375,10 +374,10 @@ class AuditService {
       link.click();
       URL.revokeObjectURL(url);
       
-      loggerService.info('Audit logs exported successfully');
+      console.log('Audit logs exported successfully');
       return true;
     } catch (error) {
-      loggerService.error('Error exporting audit logs:', error);
+      console.error('Error exporting audit logs:', error);
       return false;
     }
   }
@@ -389,7 +388,7 @@ class AuditService {
       const data = await response.json();
       return data.ip;
     } catch (error) {
-      loggerService.error('Error getting client IP:', error);
+      console.error('Error getting client IP:', error);
       return 'unknown';
     }
   }
