@@ -68,29 +68,78 @@ class MuzicEnhancedAnalyzer:
             
             # Generate enhanced ChordCraft code
             code_lines = self._generate_enhanced_code(analysis_results)
+            generated_code = "\n".join(code_lines)
             
-            return "\n".join(code_lines)
+            # Return comprehensive analysis results
+            return {
+                "generated_code": generated_code,
+                "tempo": analysis_results['tempo_analysis']['bpm'],
+                "key": analysis_results['harmonic_analysis']['key'],
+                "time_signature": analysis_results['tempo_analysis']['time_signature'],
+                "chord_progression": analysis_results['harmonic_analysis']['chord_progressions'],
+                "musical_features": {
+                    "total_notes": len(analysis_results['pitch_analysis']['onset_times']),
+                    "dominant_pitches": analysis_results['pitch_analysis']['pitch_classes'],
+                    "rhythm_complexity": analysis_results['rhythm_analysis']['complexity'],
+                    "sections": analysis_results['structure_analysis']['sections']
+                },
+                "harmony_analysis": {
+                    "key": analysis_results['harmonic_analysis']['key'],
+                    "chord_progressions": analysis_results['harmonic_analysis']['chord_progressions']
+                },
+                "rhythm_analysis": {
+                    "complexity": analysis_results['rhythm_analysis']['complexity'],
+                    "patterns": analysis_results['rhythm_analysis']['patterns']
+                },
+                "analysis_type": "muzic_enhanced"
+            }
             
         except Exception as e:
             logger.error(f"Enhanced analysis error: {e}")
-            return f"// Error in enhanced analysis: {e}"
+            return {
+                "generated_code": f"// Error in enhanced analysis: {e}",
+                "tempo": 120,
+                "key": "C major",
+                "time_signature": "4/4",
+                "chord_progression": [],
+                "musical_features": {},
+                "harmony_analysis": {},
+                "rhythm_analysis": {},
+                "analysis_type": "muzic_error",
+                "error": str(e)
+            }
     
     def _analyze_tempo(self, y_percussive, sr):
         """Advanced tempo analysis with beat tracking"""
-        # Multi-level tempo analysis
-        tempo, beats = librosa.beat.beat_track(y=y_percussive, sr=sr, units='time')
-        
-        # Tempo stability analysis
-        hop_length = 512
-        tempo_series = librosa.feature.tempo(y=y_percussive, sr=sr, hop_length=hop_length)
-        tempo_stability = np.std(tempo_series)
-        
-        return {
-            'bpm': round(float(tempo)),
-            'beats': beats.tolist(),
-            'stability': float(tempo_stability),
-            'time_signature': self._estimate_time_signature(beats)
-        }
+        try:
+            # Multi-level tempo analysis
+            tempo, beats = librosa.beat.beat_track(y=y_percussive, sr=sr, units='time')
+            
+            # Ensure we have a valid tempo
+            if tempo <= 0 or np.isnan(tempo):
+                # Fallback tempo estimation
+                tempo = 120.0
+                beats = np.array([0.0, 0.5, 1.0, 1.5])  # Default beat pattern
+            
+            # Tempo stability analysis
+            hop_length = 512
+            tempo_series = librosa.feature.tempo(y=y_percussive, sr=sr, hop_length=hop_length)
+            tempo_stability = np.std(tempo_series) if len(tempo_series) > 0 else 0.0
+            
+            return {
+                'bpm': max(60, min(200, round(float(tempo)))),  # Clamp between 60-200 BPM
+                'beats': beats.tolist() if len(beats) > 0 else [0.0, 0.5, 1.0, 1.5],
+                'stability': float(tempo_stability),
+                'time_signature': self._estimate_time_signature(beats)
+            }
+        except Exception as e:
+            logger.warning(f"Tempo analysis failed: {e}, using defaults")
+            return {
+                'bpm': 120,
+                'beats': [0.0, 0.5, 1.0, 1.5],
+                'stability': 0.0,
+                'time_signature': "4/4"
+            }
     
     def _analyze_pitch_advanced(self, y_harmonic, sr):
         """Advanced pitch analysis with chord detection"""
@@ -383,6 +432,9 @@ def validate_muzic_integration():
         logger.error(f"Muzic integration validation failed: {e}")
         return False
 
+class MuzicCodeAnalyzer:
+    """Enhanced code analyzer using Muzic-inspired techniques"""
+    
     def analyze_code_enhanced(self, chordcraft_code):
         """
         Enhanced analysis of ChordCraft code using Muzic-inspired techniques
