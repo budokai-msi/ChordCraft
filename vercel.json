@@ -6,16 +6,16 @@
   "framework": "vite",
   "functions": {
     "api/analyze.py": {
-      "runtime": "python3.9"
+      "runtime": "@vercel/python@3.9.0"
     },
     "api/generate-music.py": {
-      "runtime": "python3.9"
+      "runtime": "@vercel/python@3.9.0"
     },
     "api/generative-companion.py": {
-      "runtime": "python3.9"
+      "runtime": "@vercel/python@3.9.0"
     },
     "api/stripe.py": {
-      "runtime": "python3.9"
+      "runtime": "@vercel/python@3.9.0"
     }
   },
   "env": {
