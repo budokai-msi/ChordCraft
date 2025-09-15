@@ -31,6 +31,17 @@ except ImportError:
     TORCH_AVAILABLE = False
     torch = None
 
+try:
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.svm import SVC
+    from sklearn.ensemble import RandomForestClassifier
+    import pickle
+    SKLEARN_AVAILABLE = True
+    logger.info("✅ Scikit-learn available for timbre analysis")
+except ImportError:
+    SKLEARN_AVAILABLE = False
+    logger.warning("⚠️ Scikit-learn not available. Timbre analysis will be limited.")
+
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -44,6 +55,13 @@ class MuzicEnhancedAnalyzer:
         self.sample_rate = 22050
         self.hop_length = 512
         self.frame_size = 2048
+        
+        # Initialize instrument classifier
+        self.instrument_classifier = None
+        self.timbre_scaler = None
+        
+        # Load pre-trained models if available
+        self._load_timbre_models()
         
     def analyze_audio_enhanced(self, audio_path):
         """
@@ -356,7 +374,9 @@ class MuzicEnhancedAnalyzer:
                     
                     # Add harmonic context
                     chord_context = self._get_chord_context(
-                        onset_time, analysis['harmonic_analysis']['chord_progressions']
+                        onset_time,
+                        analysis['harmonic_analysis']['chord_progressions'],
+                        beats=np.array(beats)
                     )
                     
                     if duration > 0.05:  # Filter very short notes
@@ -385,16 +405,24 @@ class MuzicEnhancedAnalyzer:
         # Reasonable limits
         return max(0.1, min(duration, 4.0))
     
-    def _get_chord_context(self, time, chord_progression):
-        """Get chord context for a given time"""
+    def _get_chord_context(self, time, chord_progression, beats=None):
+        """Get chord context for a given time using beat grid if available"""
         if not chord_progression:
             return "Unknown"
-        
-        # Simple mapping - in real implementation, this would be more sophisticated
-        chord_idx = int(time * len(chord_progression) / 10)  # Assume 10s total
+
+        # If beat positions are available, map chords to beat segments
+        if beats is not None and len(beats) > 1:
+            total_beats = len(beats)
+            beat_idx = np.searchsorted(beats, time, side='right') - 1
+            beat_idx = max(0, min(beat_idx, total_beats - 1))
+            chord_idx = int(beat_idx / max(1, total_beats) * len(chord_progression))
+            chord_idx = min(chord_idx, len(chord_progression) - 1)
+            return chord_progression[chord_idx]
+
+        # Fallback: even segmentation across total duration estimate
+        chord_idx = int(time * len(chord_progression) / 10)
         chord_idx = min(chord_idx, len(chord_progression) - 1)
-        
-        return chord_progression[chord_idx] if chord_progression else "Unknown"
+        return chord_progression[chord_idx]
 
 
 # Utility functions for Muzic integration
@@ -431,6 +459,7 @@ def validate_muzic_integration():
     except Exception as e:
         logger.error(f"Muzic integration validation failed: {e}")
         return False
+<<<<<<< Current (Your changes)
 
 class MuzicCodeAnalyzer:
     """Enhanced code analyzer using Muzic-inspired techniques"""
@@ -594,3 +623,5 @@ class MuzicCodeAnalyzer:
             "intervals": intervals[:10],  # Limit to 10 intervals
             "note_range": f"{min(notes)} to {max(notes)}" if notes else "none"
         }
+=======
+>>>>>>> Incoming (Background Agent changes)

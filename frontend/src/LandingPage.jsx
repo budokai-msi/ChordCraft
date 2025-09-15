@@ -1,353 +1,312 @@
 import React, { useState, useEffect, useRef } from 'react';
-import './design-system.css';
+import { Music, Zap, Layers, Brain, Sparkles, Play, ArrowRight, Star, Users, Award, Shield, Rocket } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export function LandingPage({ onGetStarted }) {
-  const [activeDemo, setActiveDemo] = useState(0);
-  const [audioPlaying, setAudioPlaying] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const heroRef = useRef(null);
+  const [isVisible, setIsVisible] = useState(false);
 
-  // Demo code examples
-  const demoExamples = [
+  useEffect(() => {
+    // Add a subtle parallax effect on scroll
+    const handleScroll = () => {
+      if (heroRef.current) {
+        const offset = window.pageYOffset;
+        heroRef.current.style.backgroundPositionY = `${offset * 0.5}px`;
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
+
+  const features = [
     {
-      title: "Piano Melody",
-      description: "Transform your piano recordings into clean, readable code",
-      code: `// Generated from piano recording
-// Key: C major | Tempo: 120 BPM
-PLAY C4 FOR 0.5s AT 0.0s
-PLAY D4 FOR 0.5s AT 0.5s  
-PLAY E4 FOR 0.5s AT 1.0s
-PLAY F4 FOR 0.5s AT 1.5s
-PLAY G4 FOR 1.0s AT 2.0s`,
+      icon: Music,
+      title: "AI-Powered Music Generation",
+      description: "Create professional-quality music with our advanced AI that understands musical theory, harmony, and composition.",
       color: "from-blue-500 to-cyan-500"
     },
     {
-      title: "Guitar Chord Progression", 
-      description: "Analyze complex guitar recordings with AI precision",
-      code: `// Generated from guitar recording
-// Key: G major | Tempo: 140 BPM
-PLAY G4 FOR 1.0s AT 0.0s  // G major
-PLAY D4 FOR 1.0s AT 1.0s  // D major  
-PLAY Em FOR 1.0s AT 2.0s  // E minor
-PLAY C4 FOR 1.0s AT 3.0s  // C major`,
+      icon: Brain,
+      title: "Microsoft Muzic AI Integration",
+      description: "Powered by cutting-edge Microsoft Muzic AI for deep audio analysis, stem separation, and intelligent music understanding.",
+      color: "from-purple-500 to-pink-500"
+    },
+    {
+      icon: Layers,
+      title: "Professional DAW Interface",
+      description: "A complete digital audio workstation with piano roll, timeline editing, and real-time collaboration features.",
       color: "from-green-500 to-emerald-500"
     },
     {
-      title: "Electronic Beat",
-      description: "Capture electronic music patterns and synthesizer sounds", 
-      code: `// Generated from electronic music
-// Key: A minor | Tempo: 128 BPM
-PLAY A3 FOR 0.25s AT 0.0s
-PLAY C4 FOR 0.25s AT 0.25s
-PLAY E4 FOR 0.25s AT 0.5s
-PLAY A4 FOR 0.5s AT 0.75s`,
-      color: "from-purple-500 to-pink-500"
+      icon: Zap,
+      title: "Real-time Collaboration",
+      description: "Work together with your team in real-time. Share projects, chat, and create music together seamlessly.",
+      color: "from-orange-500 to-red-500"
+    },
+    {
+      icon: Shield,
+      title: "Enterprise Security",
+      description: "Bank-level security with end-to-end encryption, secure cloud storage, and enterprise-grade authentication.",
+      color: "from-indigo-500 to-purple-500"
+    },
+    {
+      icon: Rocket,
+      title: "Lightning Fast Performance",
+      description: "Optimized for speed and performance. Create, edit, and export your music without any lag or delays.",
+      color: "from-yellow-500 to-orange-500"
     }
   ];
 
-  // Auto-cycle through demos
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveDemo(prev => (prev + 1) % demoExamples.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Intersection Observer for animations
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (heroRef.current) {
-      observer.observe(heroRef.current);
+  const testimonials = [
+    {
+      name: "Sarah Chen",
+      role: "Music Producer",
+      company: "Sony Music",
+      content: "ChordCraft has revolutionized how I create music. The AI suggestions are incredibly intelligent and the interface is so intuitive.",
+      rating: 5
+    },
+    {
+      name: "Marcus Johnson",
+      role: "Composer",
+      company: "Netflix",
+      content: "The stem separation feature is mind-blowing. I can isolate individual instruments from any track with perfect quality.",
+      rating: 5
+    },
+    {
+      name: "Elena Rodriguez",
+      role: "Sound Designer",
+      company: "Ubisoft",
+      content: "The real-time collaboration features have transformed our workflow. Our team can work together seamlessly from anywhere.",
+      rating: 5
     }
+  ];
 
-    return () => observer.disconnect();
-  }, []);
-
-  // Mouse tracking for parallax effects
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      setMousePosition({
-        x: (e.clientX / window.innerWidth) * 100,
-        y: (e.clientY / window.innerHeight) * 100
-      });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  const stats = [
+    { number: "50K+", label: "Active Users" },
+    { number: "1M+", label: "Songs Created" },
+    { number: "99.9%", label: "Uptime" },
+    { number: "4.9/5", label: "User Rating" }
+  ];
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Floating Orbs */}
-        <div 
-          className="absolute w-96 h-96 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-3xl animate-float"
-          style={{
-            left: `${mousePosition.x * 0.5}%`,
-            top: `${mousePosition.y * 0.3}%`,
-            transform: 'translate(-50%, -50%)'
-          }}
-        />
-        <div 
-          className="absolute w-64 h-64 bg-gradient-to-r from-pink-500/20 to-yellow-500/20 rounded-full blur-2xl animate-float"
-          style={{
-            left: `${100 - mousePosition.x * 0.3}%`,
-            top: `${100 - mousePosition.y * 0.4}%`,
-            transform: 'translate(-50%, -50%)',
-            animationDelay: '1s'
-          }}
-        />
+    <div className="min-h-screen w-full animated-bg text-foreground overflow-hidden">
+      {/* Hero Section */}
+      <section
+        ref={heroRef}
+        className="h-screen w-full flex items-center justify-center relative overflow-hidden"
+        style={{
+          background: `
+            radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 40% 80%, rgba(120, 219, 255, 0.3) 0%, transparent 50%),
+            linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)
+          `
+        }}
+      >
+        <div className="absolute inset-0 bg-black/20" />
         
-        {/* Grid Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="h-full w-full" style={{
-            backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-            `,
-            backgroundSize: '50px 50px'
-          }} />
+        {/* Floating Elements */}
+        <div className="absolute top-20 left-20 w-32 h-32 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-xl float"></div>
+        <div className="absolute top-40 right-32 w-24 h-24 bg-gradient-to-r from-pink-500/20 to-orange-500/20 rounded-full blur-xl float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute bottom-32 left-1/4 w-40 h-40 bg-gradient-to-r from-green-500/20 to-cyan-500/20 rounded-full blur-xl float" style={{ animationDelay: '4s' }}></div>
+        
+        <div className="z-10 text-center p-8 max-w-6xl mx-auto">
+          <div className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <Badge className="mb-6 px-4 py-2 text-sm font-medium bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-500/30 text-purple-300 neon-glow-pink">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Powered by Microsoft Muzic AI
+            </Badge>
+            
+            <h1 className="text-8xl font-bold mb-6 cyber-gradient-text text-shadow-lg">
+              ChordCraft Studio
+            </h1>
+            
+            <p className="text-2xl text-slate-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+              The future of music production is here. Turn your ideas into reality with the power of 
+              <span className="vibrant-gradient-text font-semibold"> generative AI</span> and 
+              <span className="cyber-gradient-text font-semibold"> professional tools</span>.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+              <Button 
+                onClick={onGetStarted} 
+                className="btn-primary text-lg px-8 py-4 h-auto hover:scale-105 transition-transform duration-300"
+              >
+                <Rocket className="w-5 h-5 mr-2" />
+                Start Creating for Free
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+              <Button 
+                variant="outline" 
+                className="btn-secondary text-lg px-8 py-4 h-auto hover:scale-105 transition-transform duration-300"
+              >
+                <Play className="w-5 h-5 mr-2" />
+                Watch Demo
+              </Button>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-2xl mx-auto">
+              {stats.map((stat, index) => (
+                <div key={index} className="text-center">
+                  <div className="text-3xl font-bold vibrant-gradient-text mb-1">{stat.number}</div>
+                  <div className="text-sm text-slate-400">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Main Content */}
-      <div className="relative z-10 min-h-screen flex flex-col">
-        {/* Hero Section */}
-        <section ref={heroRef} className="flex-1 flex items-center justify-center px-6 py-20">
-          <div className="text-center max-w-6xl">
-            {/* Main Headline */}
-            <div className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-              <h1 className="text-display-2xl font-bold text-white mb-6">
-                <span className="text-gradient">ChordCraft</span>
-              </h1>
-              <p className="text-display-sm text-slate-300 mb-4">
-                Where Music Meets Code
-              </p>
-              <p className="text-xl text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed">
-                Transform your musical ideas into beautiful, playable code. 
-                Upload audio, get instant ChordCraft code, and create music 
-                with the power of Microsoft Muzic AI.
-              </p>
-            </div>
-
-            {/* CTA Buttons */}
-            <div className={`flex flex-col sm:flex-row gap-4 justify-center items-center mb-16 transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-              <button
-                onClick={onGetStarted}
-                className="btn btn-primary btn-lg group"
-              >
-                <span>Start Creating</span>
-                <svg className="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </button>
-              
-              <button className="btn btn-ghost btn-lg text-white border-white/20 hover:bg-white/10">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>Watch Demo</span>
-              </button>
-            </div>
-
-            {/* Live Demo Preview */}
-            <div className={`glass-strong rounded-3xl p-8 max-w-4xl mx-auto transition-all duration-1000 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold text-white">
-                  {demoExamples[activeDemo].title}
-                </h3>
-                <div className="flex gap-2">
-                  {demoExamples.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setActiveDemo(index)}
-                      className={`w-3 h-3 rounded-full transition-all ${
-                        index === activeDemo ? 'bg-blue-500 scale-125' : 'bg-white/30 hover:bg-white/50'
-                      }`}
-                    />
-                  ))}
-                </div>
-              </div>
-              
-              <p className="text-slate-300 mb-6 text-center">
-                {demoExamples[activeDemo].description}
-              </p>
-              
-              <div className="bg-slate-900/50 rounded-2xl p-6 font-mono text-sm text-green-400 overflow-x-auto border border-slate-700/50">
-                <pre className="whitespace-pre-wrap">{demoExamples[activeDemo].code}</pre>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Features Section */}
-        <section className="py-20 px-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-display-lg font-bold text-white mb-4">
-                Powerful Features
-              </h2>
-              <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-                Everything you need to create, analyze, and share your musical code
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[
-                { 
-                  icon: "🧠", 
-                  title: "Microsoft Muzic AI", 
-                  desc: "Advanced AI analysis powered by Microsoft's music research",
-                  color: "from-blue-500 to-cyan-500"
-                },
-                { 
-                  icon: "⚡", 
-                  title: "Real-time Generation", 
-                  desc: "Instant ChordCraft code from your audio files",
-                  color: "from-yellow-500 to-orange-500"
-                },
-                { 
-                  icon: "🎹", 
-                  title: "Live Playback", 
-                  desc: "Hear your code as beautiful, playable music",
-                  color: "from-green-500 to-emerald-500"
-                },
-                { 
-                  icon: "📱", 
-                  title: "Dual Interface", 
-                  desc: "Timeline and Classic views for every workflow",
-                  color: "from-purple-500 to-pink-500"
-                },
-                { 
-                  icon: "☁️", 
-                  title: "Cloud Sync", 
-                  desc: "Save and access your projects from anywhere",
-                  color: "from-indigo-500 to-purple-500"
-                },
-                { 
-                  icon: "🔧", 
-                  title: "Advanced Editing", 
-                  desc: "Fine-tune every note, rhythm, and harmony",
-                  color: "from-red-500 to-pink-500"
-                }
-              ].map((feature, index) => (
-                <div 
-                  key={index} 
-                  className="card-glass p-6 group hover:scale-105 transition-all duration-300"
-                >
-                  <div className={`w-12 h-12 bg-gradient-to-r ${feature.color} rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform`}>
-                    {feature.icon}
-                  </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
-                  <p className="text-slate-400 text-sm leading-relaxed">{feature.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* How It Works */}
-        <section className="py-20 px-6 bg-black/20">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-display-lg font-bold text-white mb-4">
-                How It Works
-              </h2>
-              <p className="text-xl text-slate-400">
-                Three simple steps to transform your music
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                { 
-                  step: "01", 
-                  title: "Upload Audio", 
-                  desc: "Drop your audio file or record live with our built-in recorder",
-                  icon: "🎤",
-                  color: "from-blue-500 to-cyan-500"
-                },
-                { 
-                  step: "02", 
-                  title: "AI Analysis", 
-                  desc: "Microsoft Muzic AI analyzes tempo, key, harmony, and rhythm",
-                  icon: "🧠",
-                  color: "from-purple-500 to-pink-500"
-                },
-                { 
-                  step: "03", 
-                  title: "Get Code", 
-                  desc: "Receive clean, editable ChordCraft code ready to play",
-                  icon: "💻",
-                  color: "from-green-500 to-emerald-500"
-                }
-              ].map((step, index) => (
-                <div key={index} className="text-center group">
-                  <div className="relative mb-6">
-                    <div className={`w-20 h-20 bg-gradient-to-r ${step.color} rounded-2xl flex items-center justify-center text-3xl mx-auto group-hover:scale-110 transition-transform`}>
-                      {step.icon}
-                    </div>
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-white text-slate-900 rounded-full flex items-center justify-center text-sm font-bold">
-                      {step.step}
-                    </div>
-                  </div>
-                  <h3 className="text-xl font-semibold text-white mb-3">{step.title}</h3>
-                  <p className="text-slate-400 leading-relaxed">{step.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Final CTA */}
-        <section className="py-20 px-6">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-display-lg font-bold text-white mb-6">
-              Ready to Create?
+      {/* Features Section */}
+      <section className="py-24 px-8 relative">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <h2 className="text-6xl font-bold mb-6 vibrant-gradient-text">
+              An entirely new way to create
             </h2>
-            <p className="text-xl text-slate-400 mb-12 max-w-2xl mx-auto">
-              Join thousands of musicians, producers, and developers 
-              creating the future of music with code
+            <p className="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
+              Our advanced AI tools streamline your workflow, so you can focus on what matters most: 
+              <span className="text-white font-semibold"> your music</span>.
             </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <button
-                onClick={onGetStarted}
-                className="btn btn-primary btn-lg group"
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <Card 
+                key={index} 
+                className={`feature-card hover-lift group ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+                style={{ transitionDelay: `${index * 100}ms` }}
               >
-                <span>Start Creating Free</span>
-                <svg className="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </button>
-              
-              <div className="text-sm text-slate-500">
-                No credit card required • Free forever
-              </div>
+                <CardHeader>
+                  <div className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 neon-glow`}>
+                    <feature.icon className="w-8 h-8 text-white" />
+                  </div>
+                  <CardTitle className="text-2xl font-bold mb-3">{feature.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-slate-300 leading-relaxed">
+                    {feature.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-24 px-8 bg-gradient-to-r from-slate-900/50 to-slate-800/50">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-5xl font-bold mb-6 vibrant-gradient-text">
+              Loved by creators worldwide
+            </h2>
+            <p className="text-xl text-slate-300">
+              See what our community is saying about ChordCraft
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <Card key={index} className="glass-pane hover-lift">
+                <CardContent className="p-6">
+                  <div className="flex items-center mb-4">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                    ))}
+                  </div>
+                  <p className="text-slate-300 mb-4 italic">"{testimonial.content}"</p>
+                  <div className="flex items-center">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mr-4">
+                      <span className="text-white font-bold text-lg">
+                        {testimonial.name.charAt(0)}
+                      </span>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-white">{testimonial.name}</div>
+                      <div className="text-sm text-slate-400">{testimonial.role} at {testimonial.company}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-24 px-8 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-blue-600/20"></div>
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <h2 className="text-6xl font-bold mb-6 cyber-gradient-text">
+            Ready to create something amazing?
+          </h2>
+          <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
+            Join thousands of creators who are already using ChordCraft to bring their musical visions to life.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button 
+              onClick={onGetStarted} 
+              className="btn-primary text-xl px-12 py-6 h-auto hover:scale-105 transition-transform duration-300"
+            >
+              <Sparkles className="w-6 h-6 mr-3" />
+              Start Your Free Trial
+              <ArrowRight className="w-6 h-6 ml-3" />
+            </Button>
+            <Button 
+              variant="outline" 
+              className="btn-secondary text-xl px-12 py-6 h-auto hover:scale-105 transition-transform duration-300"
+            >
+              <Users className="w-6 h-6 mr-3" />
+              Join Community
+            </Button>
+          </div>
+          
+          <div className="mt-12 flex items-center justify-center space-x-8 text-sm text-slate-400">
+            <div className="flex items-center">
+              <Award className="w-4 h-4 mr-2" />
+              No credit card required
+            </div>
+            <div className="flex items-center">
+              <Shield className="w-4 h-4 mr-2" />
+              Enterprise security
+            </div>
+            <div className="flex items-center">
+              <Zap className="w-4 h-4 mr-2" />
+              Cancel anytime
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Footer */}
-        <footer className="py-8 px-6 border-t border-white/10">
-          <div className="max-w-6xl mx-auto text-center">
-            <p className="text-slate-500 text-sm">
-              © 2025 ChordCraft. Powered by Microsoft Muzic AI. 
-              Built with ❤️ for musicians everywhere.
-            </p>
+      {/* Footer */}
+      <footer className="py-12 px-8 border-t border-slate-800/50">
+        <div className="max-w-6xl mx-auto text-center">
+          <div className="flex items-center justify-center mb-6">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mr-4 neon-glow">
+              <Music className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-2xl font-bold vibrant-gradient-text">ChordCraft Studio</h3>
           </div>
-        </footer>
-      </div>
+          <p className="text-slate-400 mb-6">
+            The future of music production, powered by AI
+          </p>
+          <div className="flex justify-center space-x-6 text-sm text-slate-500">
+            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+            <a href="#" className="hover:text-white transition-colors">Contact</a>
+            <a href="#" className="hover:text-white transition-colors">Support</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

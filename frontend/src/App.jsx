@@ -1,6 +1,18 @@
-import React from 'react';
-import { Studio } from './Studio';
+import { useState } from 'react';
+import { useAuth } from './Auth';
+import { Login } from './Login';
+import { Studio } from './features/studio/Studio';
+import { LandingPage } from './LandingPage';
+import './design-system.css';
 
-export default function App() {
-  return <Studio />;
+function App() {
+  const { user } = useAuth();
+  const [showLogin, setShowLogin] = useState(false);
+
+  // Flow: LandingPage -> Login -> Studio
+  if (user) return <Studio />;
+  if (showLogin) return <Login onBack={() => setShowLogin(false)} />;
+  return <LandingPage onGetStarted={() => setShowLogin(true)} />;
 }
+
+export default App;
