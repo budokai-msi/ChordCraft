@@ -31,15 +31,10 @@ export function TimelineStudio() {
 
     const [sidebarWidth, setSidebarWidth] = useState(320);
     const [isResizing, setIsResizing] = useState(false);
-    const [isVisible, setIsVisible] = useState(false);
     const sidebarRef = useRef(null);
     const resizeRef = useRef(null);
 
     const selectedBlock = blocks.find(block => block.id === selectedBlockId);
-
-    useEffect(() => {
-        setIsVisible(true);
-    }, []);
 
     // Resize functionality
     useEffect(() => {
@@ -81,218 +76,271 @@ export function TimelineStudio() {
         setCurrentTime(0);
     };
 
-    return (
-        <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-            {/* Animated Background */}
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute w-96 h-96 bg-gradient-to-r from-blue-500/5 to-purple-500/5 rounded-full blur-3xl animate-float" />
-                <div className="absolute w-64 h-64 bg-gradient-to-r from-pink-500/5 to-yellow-500/5 rounded-full blur-2xl animate-float" style={{ animationDelay: '1s' }} />
-            </div>
+    const handleAddSection = () => {
+        const newBlock = {
+            id: `block-${Date.now()}`,
+            type: 'verse',
+            name: `Verse ${blocks.filter(b => b.type === 'verse').length + 1}`,
+            startTime: blocks.length * 8,
+            duration: 8,
+            code: `// ${blocks.filter(b => b.type === 'verse').length + 1}\nPLAY C4 FOR 1.0s AT 0.0s\nPLAY E4 FOR 1.0s AT 1.0s\nPLAY G4 FOR 1.0s AT 2.0s`,
+            color: '#EC4899'
+        };
+        addBlock(newBlock);
+    };
 
-            {/* Main Layout */}
-            <div className="relative z-10 min-h-screen flex">
-                {/* Sidebar */}
+    const handleDuplicateSection = () => {
+        if (selectedBlockId) {
+            const selectedBlock = blocks.find(b => b.id === selectedBlockId);
+            if (selectedBlock) {
+                const newBlock = {
+                    ...selectedBlock,
+                    id: `block-${Date.now()}`,
+                    startTime: selectedBlock.startTime + selectedBlock.duration,
+                    name: `${selectedBlock.name} (Copy)`
+                };
+                addBlock(newBlock);
+            }
+        }
+    };
+
+    const handleExtendSong = () => {
+        const lastBlock = blocks[blocks.length - 1];
+        if (lastBlock) {
+            const newBlock = {
+                id: `block-${Date.now()}`,
+                type: 'outro',
+                name: 'Outro',
+                startTime: lastBlock.startTime + lastBlock.duration,
+                duration: 8,
+                code: `// Outro\nPLAY C4 FOR 2.0s AT 0.0s\nPLAY G4 FOR 2.0s AT 2.0s`,
+                color: '#10B981'
+            };
+            addBlock(newBlock);
+        }
+    };
+
+    const handleRearrange = () => {
+        if (selectedBlockId) {
+            const selectedBlock = blocks.find(b => b.id === selectedBlockId);
+            if (selectedBlock) {
+                const otherBlocks = blocks.filter(b => b.id !== selectedBlockId);
+                const newBlock = {
+                    ...selectedBlock,
+                    startTime: otherBlocks.length * 8
+                };
+                updateBlock(selectedBlockId, newBlock);
+            }
+        }
+    };
+
+    const handleExtractStems = () => {
+        alert('Stem extraction feature coming soon!');
+    };
+
+    return (
+        <div className="min-h-screen bg-black text-white">
+            {/* Three.js Background */}
+            <div id="three-canvas" className="fixed inset-0 z-0" />
+            
+            <div className="relative z-10 flex h-screen">
+                {/* Left Panel - Song Editor */}
                 <div 
                     ref={sidebarRef}
-                    className="glass-strong border-r border-white/10 flex flex-col"
+                    className="bg-gray-900/95 backdrop-blur-xl border-r border-gray-700 flex flex-col"
                     style={{ width: `${sidebarWidth}px` }}
                 >
-                    {/* Sidebar Header */}
-                    <div className="p-6 border-b border-white/10">
-                        <h1 className="text-display-sm font-bold text-white mb-2">
-                            <span className="text-gradient">Timeline Studio</span>
-                        </h1>
-                        <p className="text-sm text-slate-400">
-                            Professional music production environment
-                        </p>
-                    </div>
-
-                    {/* Sidebar Content */}
-                    <div className="flex-1 overflow-y-auto">
+                    <div className="p-6 border-b border-gray-700">
+                        <h2 className="text-lg font-semibold text-white mb-4">Song Editor</h2>
                         <LyricsStyleEditor />
-                        <ArrangementPanel />
+                    </div>
+                    
+                    {/* Credits Display */}
+                    <div className="mt-auto p-6 border-t border-gray-700">
+                        <div className="flex items-center justify-between">
+                            <div className="text-sm text-gray-400">1,060 Credits</div>
+                            <div className="flex items-center space-x-2">
+                                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded"></div>
+                                <div className="text-xs">
+                                    <div className="text-white font-medium">ChordCraft Project</div>
+                                    <div className="text-gray-400">by ChordCraft AI</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 {/* Resize Handle */}
                 <div
                     ref={resizeRef}
-                    className="w-1 bg-slate-700/50 hover:bg-slate-600/50 cursor-col-resize transition-colors relative group"
+                    className="w-1 bg-gray-700 hover:bg-gray-600 cursor-col-resize flex-shrink-0"
                     onMouseDown={handleResizeStart}
-                >
-                    <div className="absolute inset-y-0 -left-1 -right-1 group-hover:bg-blue-500/20 transition-colors" />
-                </div>
+                />
 
-                {/* Main Content */}
+                {/* Main Content Area */}
                 <div className="flex-1 flex flex-col">
-                    {/* Timeline Header */}
-                    <div className="glass-strong border-b border-white/10 p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-4">
-                                <h2 className="text-xl font-semibold text-white">Timeline</h2>
-                                <div className="flex items-center gap-2 text-sm text-slate-400">
-                                    <span>BPM: {timelineSettings.bpm}</span>
-                                    <span>•</span>
-                                    <span>Zoom: {timelineSettings.zoom}x</span>
-                                </div>
-                            </div>
-
-                            {/* Playback Controls */}
-                            <div className="flex items-center gap-3">
-                                <button
-                                    onClick={handlePlayPause}
-                                    className="btn btn-primary btn-sm"
-                                >
-                                    {isPlaying ? (
-                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                                        </svg>
-                                    ) : (
-                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M8 5v14l11-7z" />
-                                        </svg>
-                                    )}
-                                    {isPlaying ? 'Pause' : 'Play'}
-                                </button>
-
-                                <button
-                                    onClick={handleStop}
-                                    className="btn btn-ghost btn-sm text-white border-white/20 hover:bg-white/10"
-                                >
-                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M6 6h12v12H6z" />
-                                    </svg>
-                                    Stop
-                                </button>
-
-                                <div className="text-sm text-slate-400">
-                                    {Math.floor(currentTime / 60)}:{(currentTime % 60).toFixed(1).padStart(4, '0')}
-                                </div>
+                    {/* Top Bar */}
+                    <div className="h-16 bg-gray-800/95 backdrop-blur-xl border-b border-gray-700 flex items-center justify-between px-6">
+                        <div className="flex items-center space-x-4">
+                            <h1 className="text-xl font-bold text-white">
+                                Song Editor Beta
+                            </h1>
+                            <div className="text-sm text-gray-400">
+                                Legacy Editor
                             </div>
                         </div>
+                        
+                        <div className="flex items-center space-x-4">
+                            <button className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-sm">
+                                Reset All
+                            </button>
+                            <button className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-sm">
+                                My Workspace
+                            </button>
+                            <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors text-sm">
+                                Save as New Song
+                            </button>
+                            <button className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-sm">
+                                Stems New
+                            </button>
+                        </div>
+                    </div>
 
-                        {/* Timeline Controls */}
-                        <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2">
-                                <label className="text-sm text-slate-300">BPM:</label>
-                                <input
-                                    type="number"
-                                    value={timelineSettings.bpm}
-                                    onChange={(e) => updateTimelineSettings({ bpm: parseInt(e.target.value) || 120 })}
-                                    className="input input-glass w-20 text-center"
-                                    min="60"
-                                    max="200"
-                                />
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <label className="text-sm text-slate-300">Zoom:</label>
-                                <input
-                                    type="range"
-                                    min="0.5"
-                                    max="4"
-                                    step="0.1"
-                                    value={timelineSettings.zoom}
-                                    onChange={(e) => updateTimelineSettings({ zoom: parseFloat(e.target.value) })}
-                                    className="w-24"
-                                />
-                                <span className="text-sm text-slate-400 w-8">{timelineSettings.zoom}x</span>
+                    {/* Learn Section */}
+                    <div className="h-32 bg-gray-800/95 backdrop-blur-xl border-b border-gray-700 p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg font-semibold text-white">Learn</h2>
+                            <button className="text-sm text-gray-400 hover:text-white transition-colors">
+                                Hide Tips
+                            </button>
+                        </div>
+                        
+                        <div className="grid grid-cols-5 gap-4">
+                            <button 
+                                onClick={handleAddSection}
+                                className="p-4 bg-gradient-to-r from-pink-500 to-orange-500 rounded-lg hover:scale-105 transition-transform"
+                            >
+                                <div className="text-center">
+                                    <div className="text-2xl mb-2">🎵</div>
+                                    <div className="text-sm font-medium">Change lyrics or melodies</div>
+                                </div>
+                            </button>
+                            
+                            <button 
+                                onClick={handleAddSection}
+                                className="p-4 bg-gradient-to-r from-green-500 to-orange-500 rounded-lg hover:scale-105 transition-transform"
+                            >
+                                <div className="text-center">
+                                    <div className="text-2xl mb-2">➕</div>
+                                    <div className="text-sm font-medium">Add a new section</div>
+                                </div>
+                            </button>
+                            
+                            <button 
+                                onClick={handleExtendSong}
+                                className="p-4 bg-gradient-to-r from-purple-500 to-orange-500 rounded-lg hover:scale-105 transition-transform"
+                            >
+                                <div className="text-center">
+                                    <div className="text-2xl mb-2">⏱️</div>
+                                    <div className="text-sm font-medium">Extend your song</div>
+                                </div>
+                            </button>
+                            
+                            <button 
+                                onClick={handleRearrange}
+                                className="p-4 bg-gradient-to-r from-blue-500 to-orange-500 rounded-lg hover:scale-105 transition-transform"
+                            >
+                                <div className="text-center">
+                                    <div className="text-2xl mb-2">🔄</div>
+                                    <div className="text-sm font-medium">Rearrange your song</div>
+                                </div>
+                            </button>
+                            
+                            <div className="relative">
+                                <div className="absolute -top-2 left-0 right-0 text-center">
+                                    <span className="text-xs bg-gray-700 px-2 py-1 rounded">Stems</span>
+                                </div>
+                                <button 
+                                    onClick={handleExtractStems}
+                                    className="p-4 bg-gradient-to-r from-indigo-500 to-orange-500 rounded-lg hover:scale-105 transition-transform w-full"
+                                >
+                                    <div className="text-center">
+                                        <div className="text-2xl mb-2">🎛️</div>
+                                        <div className="text-sm font-medium">Extract stems</div>
+                                    </div>
+                                </button>
                             </div>
                         </div>
                     </div>
 
-                    {/* Timeline Area */}
-                    <div className="flex-1 flex">
-                        {/* Timeline */}
-                        <div className="flex-1 p-6">
-                            <Timeline />
-                        </div>
-
-                        {/* Code Editor Panel */}
-                        {selectedBlock && (
-                            <div className="w-96 glass-strong border-l border-white/10 flex flex-col">
-                                <div className="p-4 border-b border-white/10">
-                                    <h3 className="text-lg font-semibold text-white mb-2">
-                                        Code Editor
-                                    </h3>
-                                    <p className="text-sm text-slate-400">
-                                        Block: {selectedBlock.name}
-                                    </p>
-                                </div>
-
-                                <div className="flex-1 p-4">
-                                    <Editor
-                                        value={selectedBlock.code}
-                                        onValueChange={(code) => updateBlock(selectedBlockId, { code })}
-                                        highlight={(code) => highlight(code, languages.chordcraft, 'chordcraft')}
-                                        padding={16}
-                                        className="w-full h-full font-mono text-sm"
-                                        style={{
-                                            fontFamily: 'JetBrains Mono, Fira Code, Monaco, Consolas, monospace',
-                                            fontSize: 13,
-                                            lineHeight: 1.5,
-                                            backgroundColor: 'transparent',
-                                            color: '#f1f5f9'
-                                        }}
-                                    />
-                                </div>
-
-                                <div className="p-4 border-t border-white/10">
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => {
-                                                navigator.clipboard.writeText(selectedBlock.code);
-                                            }}
-                                            className="btn btn-ghost btn-sm text-white border-white/20 hover:bg-white/10"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                            </svg>
-                                            Copy
-                                        </button>
-
-                                        <button
-                                            onClick={() => {
-                                                // Play this specific block
-                                                console.log('Playing block:', selectedBlock.name);
-                                            }}
-                                            className="btn btn-primary btn-sm"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            Play
-                                        </button>
-
-                                        <button
-                                            onClick={() => deleteBlock(selectedBlockId)}
-                                            className="btn btn-ghost btn-sm text-red-400 border-red-500/20 hover:bg-red-500/10"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                            Delete
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                    {/* Timeline Editor */}
+                    <div className="flex-1 bg-gray-900/95 backdrop-blur-xl p-6">
+                        <Timeline />
                     </div>
                 </div>
             </div>
 
-            {/* Status Bar */}
-            <div className="absolute bottom-0 left-0 right-0 glass-strong border-t border-white/10 p-3">
-                <div className="max-w-7xl mx-auto flex items-center justify-between text-sm text-slate-400">
-                    <div className="flex items-center gap-4">
-                        <span>Blocks: {blocks.length}</span>
-                        <span>•</span>
-                        <span>Duration: {Math.max(...blocks.map(b => b.startTime + b.duration), 0).toFixed(1)}s</span>
+            {/* Bottom Playback Controls */}
+            <div className="fixed bottom-0 left-0 right-0 h-20 bg-gray-800/95 backdrop-blur-xl border-t border-gray-700 flex items-center justify-between px-6 z-20">
+                <div className="flex items-center space-x-4">
+                    <button className="p-2 hover:bg-gray-700 rounded-lg transition-colors">
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M15.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 1.414L11.414 10l4.293 4.293a1 1 0 010 1.414zm-6 0a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 1.414L5.414 10l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div className="flex items-center space-x-6">
+                    <button className="p-2 hover:bg-gray-700 rounded-lg transition-colors">
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                        </svg>
+                    </button>
+                    
+                    <button 
+                        onClick={handlePlayPause}
+                        className="p-3 bg-white hover:bg-gray-200 rounded-full transition-colors"
+                    >
+                        {isPlaying ? (
+                            <svg className="w-6 h-6 text-black" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 00-1 1v2a1 1 0 002 0V9a1 1 0 00-1-1zm4 0a1 1 0 00-1 1v2a1 1 0 002 0V9a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                        ) : (
+                            <svg className="w-6 h-6 text-black" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                            </svg>
+                        )}
+                    </button>
+                    
+                    <button className="p-2 hover:bg-gray-700 rounded-lg transition-colors">
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                    </button>
+                    
+                    <button className="p-2 hover:bg-gray-700 rounded-lg transition-colors">
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div className="flex items-center space-x-4">
+                    <div className="text-lg font-mono text-white">
+                        {Math.floor(currentTime / 60)}:{(currentTime % 60).toFixed(3).padStart(6, '0')}
                     </div>
-                    <div className="flex items-center gap-4">
-                        <span>Microsoft Muzic AI</span>
-                        <span>•</span>
-                        <span>ChordCraft Studio</span>
+                    <div className="text-sm text-gray-400">
+                        143 BPM
+                    </div>
+                    <button className="p-2 hover:bg-gray-700 rounded-lg transition-colors">
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd" />
+                        </svg>
+                    </button>
+                    <div className="flex items-center space-x-2">
+                        <button className="p-1 hover:bg-gray-700 rounded transition-colors text-gray-400">-</button>
+                        <button className="p-1 hover:bg-gray-700 rounded transition-colors text-gray-400">+</button>
+                        <button className="p-1 hover:bg-gray-700 rounded transition-colors text-gray-400">⟷</button>
                     </div>
                 </div>
             </div>

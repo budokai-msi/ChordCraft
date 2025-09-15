@@ -7,11 +7,11 @@ const initialState = {
     {
       id: 'intro-1',
       type: 'intro',
-      title: 'Intro',
-      code: '// Intro section\nPLAY C4 FOR 1.0s AT 0.0s\nPLAY E4 FOR 1.0s AT 1.0s\nPLAY G4 FOR 1.0s AT 2.0s',
-      duration: 3.0,
-      color: '#7c3aed',
-      waveform: null, // Will store waveform data
+      name: 'INTRO, MUFFLED BASS +',
+      code: '// Intro section\nPLAY C2 FOR 2.0s AT 0.0s\nPLAY E2 FOR 2.0s AT 2.0s\nPLAY G2 FOR 2.0s AT 4.0s',
+      duration: 15.0,
+      color: '#10B981',
+      waveform: null,
       isSelected: false,
       isPlaying: false,
       startTime: 0.0
@@ -19,14 +19,50 @@ const initialState = {
     {
       id: 'verse-1',
       type: 'verse',
-      title: 'Verse 1',
+      name: 'VERSE 1 - STATIC PRESSURE',
       code: '// Verse section\nPLAY C4 FOR 0.5s AT 0.0s\nPLAY D4 FOR 0.5s AT 0.5s\nPLAY E4 FOR 0.5s AT 1.0s\nPLAY F4 FOR 0.5s AT 1.5s',
-      duration: 2.0,
-      color: '#059669',
+      duration: 30.0,
+      color: '#EC4899',
       waveform: null,
       isSelected: false,
       isPlaying: false,
-      startTime: 3.0
+      startTime: 15.0
+    },
+    {
+      id: 'verse-2',
+      type: 'verse',
+      name: 'VERSE 2 - BLACKOUT ENERGY',
+      code: '// Verse 2 section\nPLAY G4 FOR 0.5s AT 0.0s\nPLAY A4 FOR 0.5s AT 0.5s\nPLAY B4 FOR 0.5s AT 1.0s\nPLAY C5 FOR 0.5s AT 1.5s',
+      duration: 20.0,
+      color: '#EC4899',
+      waveform: null,
+      isSelected: false,
+      isPlaying: false,
+      startTime: 45.0
+    },
+    {
+      id: 'verse-3',
+      type: 'verse',
+      name: 'VERSE 3 - NO CHORUS, JUST DEATH TALK',
+      code: '// Verse 3 section\nPLAY D4 FOR 0.5s AT 0.0s\nPLAY E4 FOR 0.5s AT 0.5s\nPLAY F4 FOR 0.5s AT 1.0s\nPLAY G4 FOR 0.5s AT 1.5s',
+      duration: 20.0,
+      color: '#EC4899',
+      waveform: null,
+      isSelected: false,
+      isPlaying: false,
+      startTime: 65.0
+    },
+    {
+      id: 'outro-1',
+      type: 'outro',
+      name: 'OUTRO - FADE TO BLACK',
+      code: '// Outro section\nPLAY C4 FOR 2.0s AT 0.0s\nPLAY G4 FOR 2.0s AT 2.0s\nPLAY C4 FOR 2.0s AT 4.0s',
+      duration: 24.0,
+      color: '#10B981',
+      waveform: null,
+      isSelected: false,
+      isPlaying: false,
+      startTime: 85.0
     }
   ],
   
@@ -34,8 +70,8 @@ const initialState = {
   timeline: {
     zoom: 1.0,
     scrollPosition: 0,
-    totalDuration: 5.0,
-    bpm: 120,
+    totalDuration: 109.0,
+    bpm: 143,
     timeSignature: '4/4'
   },
   
@@ -52,17 +88,17 @@ const initialState = {
   // Lyrics and style input
   lyrics: {
     sections: [
-      { id: 'intro', title: 'Intro', content: '' },
-      { id: 'verse-1', title: 'Verse 1', content: '' },
-      { id: 'chorus-1', title: 'Chorus 1', content: '' }
+      { id: 'intro', title: 'Intro', content: '[Intro, Muffled Bass + Silencer Click]\nBradenton, Bay Dr...\n941 - not safe\nYou talkin\'? Then I\'m walkin.' },
+      { id: 'verse-1', title: 'Verse 1', content: 'I\'m a drilla - not for play\nShe text bold, I text decay\nStill hit her phone just to ruin her day\nJust to show she a mark that\'ll never escape\nI don\'t move for the clout - I move for the kill\nYou post for likes - I post on the real\nBay Dr silent, I walk with the night\nAddie in blood, got my focus right' },
+      { id: 'verse-2', title: 'Verse 2', content: 'Blackout energy, no emotions\nJust order, just focus\nDrill music, no chorus\nDeath talk, no remorse' }
     ]
   },
   
   style: {
-    prompt: '',
-    genre: 'pop',
-    mood: 'upbeat',
-    instruments: ['piano', 'guitar', 'drums']
+    prompt: 'Style: Dark Florida Drill, no chorus, full-pressure stream of bars, dead-eyed energy, no emotions, just order',
+    genre: 'drill',
+    mood: 'dark',
+    instruments: ['bass', 'drums', 'synth']
   }
 };
 
