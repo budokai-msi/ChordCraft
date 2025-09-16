@@ -1,4 +1,4 @@
 # ChordCraft Frontend Start Script
 Write-Host "Starting ChordCraft Frontend..." -ForegroundColor Blue
-cd frontend
+Set-Location -Path "$PSScriptRoot\frontend"
 npm run dev

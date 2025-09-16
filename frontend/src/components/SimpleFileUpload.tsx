@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef } from "react";
-import { Upload, FileAudio, Loader2, Music } from "lucide-react";
+import { Upload, FileAudio, Loader2, Music, CheckCircle, AlertTriangle } from "lucide-react";
 import { HapticButton } from "./HapticButton";
 import { Card, CardContent } from "./ui/card";
 import { Progress } from "./ui/progress";
@@ -25,6 +25,7 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [checksumStatus, setChecksumStatus] = useState<{ valid: boolean; hash: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const backendUrl =
@@ -109,6 +110,12 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
       try {
         song = await chordCraftDecoder.parseChordCraftCode(code);
         strategy = chordCraftDecoder.getPlaybackStrategy(song);
+        
+        // Verify checksum for identical playback guarantee
+        if (song && strategy === 'lossless') {
+          const checksum = await chordCraftDecoder.verifyChecksum(song);
+          setChecksumStatus({ valid: checksum.valid, hash: checksum.hash });
+        }
       } catch (e) {
         console.warn("ChordCraft parse failed (still OK for plain text code):", e);
       }
@@ -211,6 +218,22 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
                   <p className="text-xs text-muted-foreground">
                     MP3, WAV, OGG, AAC, M4A, FLAC
                   </p>
+                  
+                  {checksumStatus && (
+                    <div className="flex items-center justify-center gap-2 text-xs mt-2">
+                      {checksumStatus.valid ? (
+                        <>
+                          <CheckCircle className="w-3 h-3 text-green-400" />
+                          <span className="text-green-400">✅ Identical Playback Guaranteed</span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertTriangle className="w-3 h-3 text-yellow-400" />
+                          <span className="text-yellow-400">⚠️ Code Modified</span>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <HapticButton

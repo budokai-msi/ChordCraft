@@ -214,13 +214,42 @@ export class ChordCraftDecoder {
   private async decodeFlac(flacData: ArrayBuffer): Promise<AudioBuffer> {
     if (!this.audioContext) throw new Error('AudioContext not available');
     
+    // 1) Try native decode first (Chrome/Edge often OK)
     try {
-      // Try native decode first (some browsers support FLAC)
-      return await this.audioContext.decodeAudioData(flacData);
+      return await this.audioContext.decodeAudioData(flacData.slice(0));
+    } catch (_) {
+      // continue to wasm fallback
+    }
+
+    // 2) ffmpeg.wasm fallback (lazy-loaded, cross-browser)
+    try {
+      const { createFFmpeg, fetchFile } = await import('@ffmpeg/ffmpeg');
+      const ffmpeg = createFFmpeg({ 
+        log: false, 
+        corePath: '/node_modules/@ffmpeg/core/dist/ffmpeg-core.js' as any 
+      });
+      
+      if (!ffmpeg.isLoaded()) {
+        console.log('Loading ffmpeg.wasm for FLAC decoding...');
+        await ffmpeg.load();
+      }
+
+      // Write FLAC to virtual FS
+      ffmpeg.FS('writeFile', 'in.flac', new Uint8Array(flacData));
+      
+      // Transcode FLAC → WAV (preserves original sample rate and channels)
+      await ffmpeg.run('-i', 'in.flac', '-f', 'wav', 'out.wav');
+      const wavU8 = ffmpeg.FS('readFile', 'out.wav');
+      
+      // Clean up virtual files
+      ffmpeg.FS('unlink', 'in.flac');
+      ffmpeg.FS('unlink', 'out.wav');
+
+      // Decode WAV natively (universally supported)
+      return await this.audioContext.decodeAudioData(wavU8.buffer);
     } catch (e) {
-      // For now, fall back to neural codec or synthetic playback
-      console.warn('Native FLAC decode not supported, falling back to neural/synthetic');
-      throw new Error('FLAC decoding not supported in this browser - use neural codec or WAV format');
+      console.error('ffmpeg.wasm FLAC decode failed:', e);
+      throw new Error('FLAC decoding failed - please use WAV format or neural codec');
     }
   }
 
@@ -277,6 +306,34 @@ export class ChordCraftDecoder {
     if (song.flacData) return 'lossless';
     if (song.neuralTokens) return 'neural';
     return 'synthetic';
+  }
+
+  /**
+   * Verify checksum integrity for identical playback guarantee
+   */
+  async verifyChecksum(song: ChordCraftSong): Promise<{ valid: boolean; hash: string; expected: string }> {
+    if (!song.flacData || !song.audio?.sha256) {
+      return { valid: false, hash: '', expected: song.audio?.sha256 || '' };
+    }
+
+    if (typeof crypto === 'undefined' || !crypto.subtle) {
+      return { valid: false, hash: '', expected: song.audio.sha256 };
+    }
+
+    try {
+      const hashBuffer = await crypto.subtle.digest('SHA-256', song.flacData);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      
+      return {
+        valid: hash === song.audio.sha256,
+        hash,
+        expected: song.audio.sha256
+      };
+    } catch (e) {
+      console.error('Checksum verification failed:', e);
+      return { valid: false, hash: '', expected: song.audio.sha256 };
+    }
   }
 
   /**
