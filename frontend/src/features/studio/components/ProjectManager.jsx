@@ -31,12 +31,26 @@ import {
   FolderPlus,
   Sparkles,
   Zap,
-  Brain
+  Brain,
+  Crown,
+  Lock,
+  Unlock,
+  AlertCircle,
+  CheckCircle,
+  Upload,
+  Save,
+  RefreshCw,
+  Settings,
+  BarChart3,
+  Users,
+  Cloud,
+  HardDrive
 } from 'lucide-react';
 import { useProjectStore } from '../../../stores/useProjectStore';
 import { useAuth } from '../../../Auth';
 import { databaseService } from '../../../services/databaseService';
-import { loggerService } from '../../../services/loggerService';
+import { subscriptionService } from '../../../services/subscriptionService';
+import { notificationService } from '../../../services/notificationService';
 
 export function ProjectManager() {
   const { user } = useAuth();
@@ -53,6 +67,11 @@ export function ProjectManager() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectDescription, setNewProjectDescription] = useState('');
+  const [isPro, setIsPro] = useState(false);
+  const [projectQuota, setProjectQuota] = useState({ current: 0, max: 3 });
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showProjectMenu, setShowProjectMenu] = useState(null);
 
   const tags = ['All', 'Electronic', 'Jazz', 'Classical', 'Rock', 'Hip-Hop', 'Ambient', 'Experimental'];
   const sortOptions = [
@@ -63,12 +82,40 @@ export function ProjectManager() {
   ];
 
   useEffect(() => {
+    checkSubscriptionStatus();
     fetchProjects();
-  }, [user, fetchProjects]);
+  }, [user]);
 
   useEffect(() => {
     filterProjects();
-  }, [projects, searchQuery, filterTag, sortBy, filterProjects]);
+  }, [projects, searchQuery, filterTag, sortBy]);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showProjectMenu && !event.target.closest('.project-menu-trigger') && !event.target.closest('.project-menu-dropdown')) {
+        setShowProjectMenu(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showProjectMenu]);
+
+  const checkSubscriptionStatus = async () => {
+    try {
+      const status = subscriptionService.getSubscriptionStatus();
+      setIsPro(status.isPro);
+      
+      const limits = subscriptionService.getFeatureLimits();
+      setProjectQuota({
+        current: projects.length,
+        max: limits.maxTracks === -1 ? -1 : limits.maxTracks * 2 // Convert track limit to project limit
+      });
+    } catch (error) {
+      console.error('Error checking subscription status:', error);
+    }
+  };
 
   const fetchProjects = useCallback(async () => {
     if (!user) return;
@@ -81,8 +128,16 @@ export function ProjectManager() {
         limit: 50
       });
       setProjects(data || []);
+      
+      // Update project quota
+      const limits = subscriptionService.getFeatureLimits();
+      setProjectQuota({
+        current: (data || []).length,
+        max: limits.maxTracks === -1 ? -1 : limits.maxTracks * 2
+      });
     } catch (error) {
-      loggerService.error('Error fetching projects:', error);
+      console.error('Error fetching projects:', error);
+      notificationService.showError('Failed to load projects');
     } finally {
       setIsLoading(false);
     }
@@ -127,6 +182,13 @@ export function ProjectManager() {
   const createProject = async () => {
     if (!user || !newProjectName.trim()) return;
 
+    // Check project quota for free users
+    if (!isPro && projectQuota.current >= projectQuota.max) {
+      setShowUpgradeDialog(true);
+      return;
+    }
+
+    setIsSaving(true);
     try {
       const newProject = await databaseService.createProject({
         user_id: user.id,
@@ -134,15 +196,23 @@ export function ProjectManager() {
         description: newProjectDescription,
         chordcraft_code: chordCraftCode || '// New project\n// Start creating your music here...',
         music_analysis: musicAnalysis,
-        tags: []
+        tags: [],
+        is_public: false,
+        is_template: false
       });
       
       setProjects(prev => [newProject, ...prev]);
+      setProjectQuota(prev => ({ ...prev, current: prev.current + 1 }));
       setShowCreateDialog(false);
       setNewProjectName('');
       setNewProjectDescription('');
+      
+      notificationService.showSuccess('Project created successfully!');
     } catch (error) {
-      loggerService.error('Error creating project:', error);
+      console.error('Error creating project:', error);
+      notificationService.showError('Failed to create project');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -155,44 +225,93 @@ export function ProjectManager() {
       updateCode(fullProject.chordcraft_code || '');
       setMusicAnalysis(fullProject.music_analysis);
       setSelectedProject(fullProject);
+      
+      notificationService.showSuccess(`Loaded project: ${fullProject.title}`);
     } catch (error) {
-      loggerService.error('Error loading project:', error);
+      console.error('Error loading project:', error);
+      notificationService.showError('Failed to load project');
     }
   };
 
   const deleteProject = async (projectId) => {
-    if (!confirm('Are you sure you want to delete this project?')) return;
+    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) return;
 
     try {
       await databaseService.deleteProject(projectId);
       
       setProjects(prev => prev.filter(p => p.id !== projectId));
+      setProjectQuota(prev => ({ ...prev, current: prev.current - 1 }));
       if (selectedProject?.id === projectId) {
         setSelectedProject(null);
       }
+      
+      notificationService.showSuccess('Project deleted successfully');
     } catch (error) {
-      loggerService.error('Error deleting project:', error);
+      console.error('Error deleting project:', error);
+      notificationService.showError('Failed to delete project');
     }
   };
 
   const duplicateProject = async (project) => {
+    // Check project quota for free users
+    if (!isPro && projectQuota.current >= projectQuota.max) {
+      setShowUpgradeDialog(true);
+      return;
+    }
+
     try {
-      const { data, error } = await databaseService.createProject({
-          user_id: user.id,
-          title: `${project.title} (Copy)`,
-          description: project.description,
-          code_content: project.code_content,
-          music_analysis: project.music_analysis,
-          tags: project.tags
-        })
-        .select()
-        .single();
+      const newProject = await databaseService.createProject({
+        user_id: user.id,
+        title: `${project.title} (Copy)`,
+        description: project.description,
+        chordcraft_code: project.chordcraft_code,
+        music_analysis: project.music_analysis,
+        tags: project.tags || [],
+        is_public: false,
+        is_template: false
+      });
       
-      if (error) throw error;
-      
-      setProjects(prev => [data, ...prev]);
+      setProjects(prev => [newProject, ...prev]);
+      setProjectQuota(prev => ({ ...prev, current: prev.current + 1 }));
+      notificationService.showSuccess('Project duplicated successfully!');
     } catch (error) {
-      loggerService.error('Error duplicating project:', error);
+      console.error('Error duplicating project:', error);
+      notificationService.showError('Failed to duplicate project');
+    }
+  };
+
+  const saveCurrentProject = async () => {
+    if (!selectedProject) {
+      notificationService.showWarning('No project selected to save');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await databaseService.updateProject(selectedProject.id, {
+        chordcraft_code: chordCraftCode,
+        music_analysis: musicAnalysis,
+        updated_at: new Date().toISOString()
+      });
+      
+      notificationService.showSuccess('Project saved successfully!');
+    } catch (error) {
+      console.error('Error saving project:', error);
+      notificationService.showError('Failed to save project');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleUpgradeToPro = async () => {
+    try {
+      // This would typically redirect to Stripe checkout
+      notificationService.showInfo('Redirecting to upgrade page...');
+      // For now, just close the dialog
+      setShowUpgradeDialog(false);
+    } catch (error) {
+      console.error('Error upgrading to PRO:', error);
+      notificationService.showError('Failed to start upgrade process');
     }
   };
 
@@ -222,14 +341,39 @@ export function ProjectManager() {
           <h2 className="text-3xl font-bold flex items-center vibrant-gradient-text">
             <FolderOpen className="w-8 h-8 mr-3 text-blue-400 pulse-glow" />
             Project Manager
+            {isPro && (
+              <Badge className="ml-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold">
+                <Crown className="w-3 h-3 mr-1" />
+                PRO
+              </Badge>
+            )}
           </h2>
           <p className="text-slate-300 mt-2">Organize and manage your music projects</p>
         </div>
         <div className="flex items-center space-x-3">
+          {/* Project Quota Indicator */}
           <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30 neon-glow">
-            <Music className="w-4 h-4 mr-2" />
-            {projects.length} Projects
+            <HardDrive className="w-4 h-4 mr-2" />
+            {projectQuota.current}{projectQuota.max === -1 ? '∞' : `/${projectQuota.max}`} Projects
           </Badge>
+          
+          {/* Save Current Project Button */}
+          {selectedProject && (
+            <Button 
+              onClick={saveCurrentProject} 
+              disabled={isSaving}
+              variant="outline"
+              className="hover:bg-green-500/20 hover:border-green-500/50"
+            >
+              {isSaving ? (
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4 mr-2" />
+              )}
+              Save
+            </Button>
+          )}
+          
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
             <DialogTrigger asChild>
               <Button className="btn-primary">
@@ -267,8 +411,16 @@ export function ProjectManager() {
                   <Button variant="outline" onClick={() => setShowCreateDialog(false)} className="hover:bg-slate-700/50">
                     Cancel
                   </Button>
-                  <Button onClick={createProject} disabled={!newProjectName.trim()} className="btn-primary">
-                    <Sparkles className="w-4 h-4 mr-2" />
+                  <Button 
+                    onClick={createProject} 
+                    disabled={!newProjectName.trim() || isSaving} 
+                    className="btn-primary"
+                  >
+                    {isSaving ? (
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-4 h-4 mr-2" />
+                    )}
                     Create Project
                   </Button>
                 </div>
@@ -277,6 +429,61 @@ export function ProjectManager() {
           </Dialog>
         </div>
       </div>
+
+      {/* Upgrade to PRO Dialog */}
+      <Dialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+        <DialogContent className="glass-pane max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl vibrant-gradient-text flex items-center">
+              <Crown className="w-6 h-6 mr-2 text-yellow-500" />
+              Upgrade to PRO
+            </DialogTitle>
+            <DialogDescription>
+              You've reached your project limit. Upgrade to PRO for unlimited projects and more features!
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 p-4 rounded-lg border border-yellow-500/30">
+              <h3 className="font-semibold text-yellow-400 mb-2">PRO Features:</h3>
+              <ul className="space-y-1 text-sm text-slate-300">
+                <li className="flex items-center">
+                  <CheckCircle className="w-4 h-4 mr-2 text-green-400" />
+                  Unlimited projects
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="w-4 h-4 mr-2 text-green-400" />
+                  AI Companion access
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="w-4 h-4 mr-2 text-green-400" />
+                  Advanced music analysis
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="w-4 h-4 mr-2 text-green-400" />
+                  Cloud collaboration
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="w-4 h-4 mr-2 text-green-400" />
+                  Priority support
+                </li>
+              </ul>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-yellow-400 mb-2">$19/month</p>
+              <p className="text-sm text-slate-400">Cancel anytime</p>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setShowUpgradeDialog(false)}>
+                Maybe Later
+              </Button>
+              <Button onClick={handleUpgradeToPro} className="btn-primary">
+                <Crown className="w-4 h-4 mr-2" />
+                Upgrade Now
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Filters and Search */}
       <Card className="glass-pane">
@@ -368,7 +575,7 @@ export function ProjectManager() {
             {filteredProjects.map((project) => (
               <Card 
                 key={project.id} 
-                className={`cursor-pointer hover:scale-105 transition-all duration-300 glass-pane ${
+                className={`project-menu-trigger cursor-pointer hover:scale-105 transition-all duration-300 glass-pane ${
                   selectedProject?.id === project.id ? 'ring-2 ring-primary neon-glow' : ''
                 }`}
                 onClick={() => loadProject(project)}
@@ -386,17 +593,33 @@ export function ProjectManager() {
                             <p className="text-sm text-slate-400">{formatDate(project.updated_at)}</p>
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Show project menu
-                          }}
-                          className="hover:bg-slate-700/50"
-                        >
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
+                        <div className="flex items-center space-x-1">
+                          {isPro && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Share project functionality
+                              }}
+                              className="hover:bg-blue-500/20"
+                              title="Share Project"
+                            >
+                              <Share2 className="w-3 h-3" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowProjectMenu(showProjectMenu === project.id ? null : project.id);
+                            }}
+                            className="hover:bg-slate-700/50"
+                          >
+                            <MoreVertical className="w-3 h-3" />
+                          </Button>
+                        </div>
                       </div>
                       
                       {project.description && (
@@ -406,11 +629,17 @@ export function ProjectManager() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                           <Badge variant="secondary" className="vibrant-badge">
-                            {getProjectSize(project.code_content)}
+                            {getProjectSize(project.chordcraft_code)}
                           </Badge>
                           {project.tags && project.tags.length > 0 && (
                             <Badge variant="outline" className="text-xs border-primary/30 text-primary">
                               {project.tags[0]}
+                            </Badge>
+                          )}
+                          {isPro && project.is_public && (
+                            <Badge variant="outline" className="text-xs border-green-500/30 text-green-400">
+                              <Cloud className="w-3 h-3 mr-1" />
+                              Public
                             </Badge>
                           )}
                         </div>
@@ -423,6 +652,7 @@ export function ProjectManager() {
                               duplicateProject(project);
                             }}
                             className="hover:bg-primary/20"
+                            title="Duplicate Project"
                           >
                             <Copy className="w-3 h-3" />
                           </Button>
@@ -434,11 +664,74 @@ export function ProjectManager() {
                               deleteProject(project.id);
                             }}
                             className="hover:bg-destructive/20"
+                            title="Delete Project"
                           >
                             <Trash2 className="w-3 h-3" />
                           </Button>
                         </div>
                       </div>
+                      
+                      {/* Project Menu Dropdown */}
+                      {showProjectMenu === project.id && (
+                        <div className="project-menu-dropdown absolute top-12 right-2 bg-slate-800 border border-slate-600 rounded-lg shadow-lg z-10 min-w-[200px]">
+                          <div className="p-2 space-y-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full justify-start hover:bg-slate-700"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowProjectMenu(null);
+                                // Edit project
+                              }}
+                            >
+                              <Edit className="w-4 h-4 mr-2" />
+                              Edit Details
+                            </Button>
+                            {isPro && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="w-full justify-start hover:bg-slate-700"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowProjectMenu(null);
+                                  // Share project
+                                }}
+                              >
+                                <Share2 className="w-4 h-4 mr-2" />
+                                Share Project
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full justify-start hover:bg-slate-700"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowProjectMenu(null);
+                                duplicateProject(project);
+                              }}
+                            >
+                              <Copy className="w-4 h-4 mr-2" />
+                              Duplicate
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full justify-start hover:bg-destructive/20 text-destructive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowProjectMenu(null);
+                                deleteProject(project.id);
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="flex items-center justify-between">

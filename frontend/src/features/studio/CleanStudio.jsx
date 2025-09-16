@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -32,7 +32,7 @@ import { SimpleFileUpload } from '@/components/SimpleFileUpload';
 
 export function CleanStudio() {
   const [tracks, setTracks] = useState([]);
-  const [bpm, setBpm] = useState(120);
+  const [bpm] = useState(120);
   const [isPlaying, setIsPlaying] = useState(false);
   const [codeEditor, setCodeEditor] = useState(`// Your music code will appear here
 // Try: PLAY C4 FOR 1s AT 0s`);

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../Auth';
 import { SimpleFileUpload } from '../../components/SimpleFileUpload';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -68,10 +68,9 @@ export function EnterpriseStudio() {
       color: '#3b82f6'
     }
   ]);
-  const [selectedNote, setSelectedNote] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(120); // 2 minutes
+  const [currentTime] = useState(0);
+  const [duration] = useState(120); // 2 minutes
   const [bpm, setBpm] = useState(120);
   const [timeSignature, setTimeSignature] = useState('4/4');
   const [codeEditor, setCodeEditor] = useState(`// ChordCraft Music Code
@@ -118,9 +117,8 @@ EXPORT_QUALITY = "HIGH";`);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [analysisResult, setAnalysisResult] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [audioContext, setAudioContext] = useState(null);
-  const [scheduledNotes, setScheduledNotes] = useState([]);
+  const [, setScheduledNotes] = useState([]);
 
   const handleFileUpload = (result) => {
     console.log('File uploaded:', result);
@@ -351,12 +349,7 @@ EXPORT_TEMPO = ${bpm};`;
     ));
   };
 
-  const playCode = () => {
-    console.log('Playing code:', codeEditor);
-    // Simulate code execution
-    setIsPlaying(true);
-    setTimeout(() => setIsPlaying(false), 5000);
-  };
+  // Removed unused playCode function
 
   const analyzeCode = () => {
     console.log('Analyzing code:', codeEditor);
@@ -738,7 +731,7 @@ EXPORT_TEMPO = ${bpm};`;
                       {/* Note Labels */}
                       <div className="absolute left-0 top-0 w-20 h-full border-r border-slate-500/50 bg-gradient-to-b from-slate-800/80 to-slate-900/80 backdrop-blur-sm">
                         <div className="p-3 space-y-0">
-                          {['C8', 'B7', 'A#7', 'A7', 'G#7', 'G7', 'F#7', 'F7', 'E7', 'D#7', 'D7', 'C#7', 'C7'].map((note, i) => (
+                          {['C8', 'B7', 'A#7', 'A7', 'G#7', 'G7', 'F#7', 'F7', 'E7', 'D#7', 'D7', 'C#7', 'C7'].map((note) => (
                             <div 
                               key={note} 
                               className="flex items-center justify-center h-8 text-xs font-mono font-semibold text-slate-300 hover:text-white hover:bg-slate-700/50 rounded transition-all duration-200 cursor-pointer group"

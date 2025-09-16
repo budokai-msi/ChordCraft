@@ -1,593 +1,530 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Play, 
-  Pause, 
-  Square, 
-  SkipBack, 
-  SkipForward, 
-  Volume2, 
-  VolumeX, 
-  Settings, 
-  Upload, 
-  Download, 
-  Share2, 
-  Copy, 
-  Trash2, 
-  Plus, 
-  Music, 
-  Headphones, 
-  Mic, 
-  Brain, 
-  Code, 
-  BarChart3, 
-  Piano, 
-  Zap, 
-  Sparkles, 
-  ChevronDown, 
-  ChevronUp, 
-  MoreHorizontal, 
-  Edit3, 
-  Save, 
-  RefreshCw, 
-  ExternalLink, 
-  ArrowRight, 
-  ArrowLeft, 
-  Star, 
-  Heart, 
-  Eye, 
-  EyeOff, 
-  Lock, 
-  Unlock, 
-  Shield, 
-  Check, 
-  X, 
-  PlusCircle, 
-  MinusCircle, 
-  Circle, 
-  Square as SquareIcon, 
-  Triangle, 
-  Hexagon, 
-  Octagon, 
-  Diamond
+  Play, Pause, Square, SkipBack, SkipForward, Volume2, VolumeX, Settings, 
+  Upload, Download, Share2, Copy, Trash2, Plus, Music, Headphones, Mic, 
+  Brain, Code, BarChart3, Piano, Zap, Sparkles, ChevronDown, ChevronUp, 
+  MoreHorizontal, Edit3, Save, RefreshCw, ExternalLink, ArrowRight, ArrowLeft, 
+  Star, Heart, Eye, EyeOff, Lock, Unlock, Shield, Crown, Target, Wand2,
+  MessageSquare, FileText, Layers, Clock, Users, FolderOpen, Search, Filter
 } from 'lucide-react';
-import { SimpleFileUpload } from '@/components/SimpleFileUpload';
+import { useProjectStore } from '../../stores/useProjectStore';
+import { useUIStore } from '../../stores/useUIStore';
+import { usePlaybackStore } from '../../stores/usePlaybackStore';
+import { AICompanion } from './components/AICompanion';
+import { ProjectManager } from './components/ProjectManager';
+import { AudioUpload } from '../../components/AudioUpload';
+import { Timeline } from '../../components/Timeline';
+import { TrackManager } from '../../components/TrackManager';
+import { subscriptionService } from '../../services/subscriptionService';
+import { musicApiService } from '../../services/musicApiService';
+import { audioAnalysisService } from '../../services/audioAnalysisService';
+
+// Ultra-compact constants
+const ASSETS = {
+  aiPowered: '/src/assets/ai-powered-icon.png',
+  daw: '/src/assets/daw-icon.png',
+  musicToCode: '/src/assets/music-to-code-icon.png',
+  realTimeAnalysis: '/src/assets/real-time-analysis-icon.png'
+};
+
+const TRANSPORT_CONTROLS = [
+  { id: 'skipBack', icon: SkipBack, action: 'skipBack' },
+  { id: 'play', icon: Play, action: 'play', primary: true },
+  { id: 'pause', icon: Pause, action: 'pause' },
+  { id: 'stop', icon: Square, action: 'stop' },
+  { id: 'skipForward', icon: SkipForward, action: 'skipForward' }
+];
+
+const TRACK_TYPES = [
+  { id: 'audio', label: 'Audio', icon: Music, color: 'bg-blue-500' },
+  { id: 'midi', label: 'MIDI', icon: Piano, color: 'bg-green-500' },
+  { id: 'drum', label: 'Drums', icon: Headphones, color: 'bg-purple-500' },
+  { id: 'vocal', label: 'Vocals', icon: Mic, color: 'bg-pink-500' }
+];
 
 export function ModernStudio() {
-  const [tracks, setTracks] = useState([]);
-  const [bpm, setBpm] = useState(120);
-  const [timeSignature, setTimeSignature] = useState('4/4');
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [codeEditor, setCodeEditor] = useState(`// Your music code will appear here
-// Try: PLAY C4 FOR 1s AT 0s`);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisProgress, setAnalysisProgress] = useState(0);
-  const [analysisResult, setAnalysisResult] = useState(null);
-  const [audioContext, setAudioContext] = useState(null);
-  const [scheduledNotes, setScheduledNotes] = useState([]);
+  const { 
+    chordCraftCode, updateCode, musicAnalysis, currentProject, 
+    projects, createProject, updateProject, deleteProject 
+  } = useProjectStore();
+  const { 
+    showSuccess, showError, setAnalyzing, isAnalyzing, 
+    showSubscriptionModal, setShowSubscriptionModal 
+  } = useUIStore();
+  const { 
+    isPlaying, isPaused, currentTime, duration, volume, 
+    play, pause, stop, setVolume, setCurrentTime 
+  } = usePlaybackStore();
 
-  const handleFileUpload = (result) => {
-    console.log('File uploaded:', result);
-    const newTrack = {
-      id: Date.now(),
-      name: result.fileName || 'New Track',
-      notes: 0,
-      isPlaying: false,
-      isMuted: false,
-      isVisible: true,
-      volume: 80,
-      pan: 0,
-      color: `hsl(${Math.random() * 360}, 70%, 60%)`
+  // Ultra-compact state
+  const [state, setState] = useState({
+    activeTab: 'timeline', selectedTrack: null, isRecording: false, 
+    isMuted: false, tempo: 120, timeSignature: '4/4', zoom: 1,
+    showSettings: false, showProjectManager: false, showAICompanion: false,
+    tracks: [], selectedTracks: [], isPro: false, dailyUsage: 0
+  });
+
+  const [maxDailyUsage] = useState(5);
+  const audioRef = useRef(null);
+  const canvasRef = useRef(null);
+
+  // Ultra-compact update function
+  const updateState = (updates) => setState(prev => ({ ...prev, ...updates }));
+
+  // Initialize everything in one effect
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const status = subscriptionService.getSubscriptionStatus();
+        updateState({ isPro: status.isPro });
+        const today = new Date().toDateString();
+        const storedUsage = localStorage.getItem(`ai-usage-${today}`);
+        updateState({ dailyUsage: storedUsage ? parseInt(storedUsage) : 0 });
+      } catch (error) {
+        console.error('Failed to initialize studio:', error);
+      }
     };
-    setTracks(prev => [...prev, newTrack]);
-    
-    // Simulate music analysis
-    simulateMusicAnalysis(result.fileName);
-  };
+    init();
+  }, []);
 
-  const simulateMusicAnalysis = async (fileName) => {
-    setIsAnalyzing(true);
-    setAnalysisProgress(0);
-    
-    const interval = setInterval(() => {
-      setAnalysisProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsAnalyzing(false);
-          
-          const generatedCode = generateMusicCode(fileName);
-          setCodeEditor(generatedCode);
-          setAnalysisResult({
-            success: true,
-            message: `Analysis complete for ${fileName}`,
-            details: {
-              bpm: 120,
-              key: 'C Major',
-              chords: ['C', 'Am', 'F', 'G'],
-              confidence: 0.95
-            }
-          });
-          return 100;
-        }
-        return prev + 2;
+  // Ultra-compact handlers
+  const handlers = {
+    transport: (action) => {
+      switch (action) {
+        case 'play': play(); break;
+        case 'pause': pause(); break;
+        case 'stop': stop(); break;
+        case 'skipBack': setCurrentTime(Math.max(0, currentTime - 5)); break;
+        case 'skipForward': setCurrentTime(Math.min(duration, currentTime + 5)); break;
+      }
+    },
+
+    addTrack: (type) => {
+      const newTrack = {
+        id: Date.now(),
+        type,
+        name: `${type.charAt(0).toUpperCase() + type.slice(1)} Track`,
+        volume: 0.8,
+        pan: 0,
+        mute: false,
+        solo: false,
+        color: TRACK_TYPES.find(t => t.id === type)?.color || 'bg-gray-500'
+      };
+      updateState({ tracks: [...state.tracks, newTrack] });
+    },
+
+    deleteTrack: (trackId) => {
+      updateState({ 
+        tracks: state.tracks.filter(t => t.id !== trackId),
+        selectedTracks: state.selectedTracks.filter(id => id !== trackId)
       });
-    }, 50);
-  };
+    },
 
-  const generateMusicCode = (fileName) => {
-    const timestamp = new Date().toLocaleString();
-    return `// ChordCraft Music Code - Generated from ${fileName}
-// Analysis completed: ${timestamp}
+    updateTrack: (trackId, updates) => {
+      updateState({
+        tracks: state.tracks.map(t => t.id === trackId ? { ...t, ...updates } : t)
+      });
+    },
 
-// Project Configuration
-BPM = ${bpm};
-TIME_SIGNATURE = "${timeSignature}";
-KEY = "C Major";
+    toggleTrackSelection: (trackId) => {
+      updateState({
+        selectedTracks: state.selectedTracks.includes(trackId)
+          ? state.selectedTracks.filter(id => id !== trackId)
+          : [...state.selectedTracks, trackId]
+      });
+    },
 
-// Track Definition
-TRACK ${fileName.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9]/g, "_")} = {
-  name: "${fileName}",
-  instrument: "audio_sample",
-  volume: 80,
-  pan: 0,
-  file: "${fileName}"
-};
-
-// Detected Musical Elements
-PATTERN detected_pattern = {
-  // Chord Progression: C - Am - F - G
-  PLAY C4 FOR 2s AT 0s;
-  PLAY E4 FOR 2s AT 0s;
-  PLAY G4 FOR 2s AT 0s;
-  
-  PLAY A3 FOR 2s AT 2s;
-  PLAY C4 FOR 2s AT 2s;
-  PLAY E4 FOR 2s AT 2s;
-  
-  PLAY F3 FOR 2s AT 4s;
-  PLAY A3 FOR 2s AT 4s;
-  PLAY C4 FOR 2s AT 4s;
-  
-  PLAY G3 FOR 2s AT 6s;
-  PLAY B3 FOR 2s AT 6s;
-  PLAY D4 FOR 2s AT 6s;
-  
-  // Melodic line
-  PLAY C5 FOR 0.5s AT 8s;
-  PLAY B4 FOR 0.5s AT 8.5s;
-  PLAY A4 FOR 0.5s AT 9s;
-  PLAY G4 FOR 0.5s AT 9.5s;
-  PLAY F4 FOR 1s AT 10s;
-  PLAY E4 FOR 1s AT 11s;
-  PLAY D4 FOR 1s AT 12s;
-  PLAY C4 FOR 2s AT 13s;
-};
-
-// Apply pattern
-APPLY detected_pattern TO ${fileName.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9]/g, "_")};
-
-// Export Configuration
-EXPORT_FORMAT = "MIDI";
-EXPORT_QUALITY = "HIGH";
-EXPORT_TEMPO = ${bpm};`;
-  };
-
-  // Audio playback functions
-  const initAudioContext = () => {
-    if (!audioContext) {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      setAudioContext(ctx);
-      return ctx;
-    }
-    return audioContext;
-  };
-
-  const noteToFrequency = (note) => {
-    const noteMap = {
-      'C': 0, 'C#': 1, 'D': 2, 'D#': 3, 'E': 4, 'F': 5, 'F#': 6, 'G': 7, 'G#': 8, 'A': 9, 'A#': 10, 'B': 11
-    };
-    
-    const match = note.match(/([A-G]#?\d+)/);
-    if (!match) return 440;
-    
-    const [, noteName, octave] = match;
-    const noteNumber = noteMap[noteName] + (parseInt(octave) * 12);
-    return 440 * Math.pow(2, (noteNumber - 69) / 12);
-  };
-
-  const playNote = (frequency, duration, startTime = 0) => {
-    const ctx = initAudioContext();
-    if (ctx.state === 'suspended') {
-      ctx.resume();
-    }
-    
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
-    
-    oscillator.frequency.setValueAtTime(frequency, ctx.currentTime + startTime);
-    oscillator.type = 'sine';
-    
-    gainNode.gain.setValueAtTime(0, ctx.currentTime + startTime);
-    gainNode.gain.linearRampToValueAtTime(0.3, ctx.currentTime + startTime + 0.01);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + startTime + duration);
-    
-    oscillator.start(ctx.currentTime + startTime);
-    oscillator.stop(ctx.currentTime + startTime + duration);
-    
-    return oscillator;
-  };
-
-  const parseAndPlayCode = (code) => {
-    const ctx = initAudioContext();
-    if (ctx.state === 'suspended') {
-      ctx.resume();
-    }
-    
-    const playCommands = code.match(/PLAY\s+([A-G]#?\d+)\s+FOR\s+([\d.]+)s\s+AT\s+([\d.]+)s/g);
-    if (!playCommands) return;
-    
-    const notes = [];
-    playCommands.forEach(cmd => {
-      const match = cmd.match(/PLAY\s+([A-G]#?\d+)\s+FOR\s+([\d.]+)s\s+AT\s+([\d.]+)s/);
-      if (match) {
-        const [, note, duration, startTime] = match;
-        notes.push({
-          note,
-          frequency: noteToFrequency(note),
-          duration: parseFloat(duration),
-          startTime: parseFloat(startTime)
-        });
+    generateMusic: async (prompt) => {
+      if (!state.isPro && state.dailyUsage >= maxDailyUsage) {
+        showError(`Daily limit reached (${maxDailyUsage} requests). Upgrade to PRO for unlimited access!`);
+        return;
       }
-    });
-    
-    setScheduledNotes(notes);
-    
-    // Play all notes
-    notes.forEach(({ frequency, duration, startTime }) => {
-      playNote(frequency, duration, startTime);
-    });
-  };
 
-  const handlePlayCode = () => {
-    if (isPlaying) {
-      setIsPlaying(false);
-      if (audioContext) {
-        audioContext.suspend();
+      setAnalyzing(true);
+      try {
+        const response = await musicApiService.generateMusic({ prompt, userId: 'user' });
+        if (response.success) {
+          updateCode(chordCraftCode + '\n\n' + response.chordCraftCode);
+          showSuccess('AI generated music successfully!');
+        } else {
+          throw new Error(response.error || 'Generation failed');
+        }
+      } catch (error) {
+        showError(`AI generation failed: ${error.message}`);
+      } finally {
+        setAnalyzing(false);
       }
-    } else {
-      setIsPlaying(true);
-      parseAndPlayCode(codeEditor);
+    },
+
+    analyzeAudio: async (file) => {
+      if (!state.isPro && state.dailyUsage >= maxDailyUsage) {
+        showError(`Daily limit reached (${maxDailyUsage} requests). Upgrade to PRO for unlimited access!`);
+        return;
+      }
+
+      setAnalyzing(true);
+      try {
+        const result = await audioAnalysisService.analyzeAudio(file);
+        if (result.success) {
+          showSuccess('Audio analyzed successfully!');
+          return result;
+        } else {
+          throw new Error(result.error || 'Analysis failed');
+        }
+      } catch (error) {
+        showError(`Audio analysis failed: ${error.message}`);
+      } finally {
+        setAnalyzing(false);
+      }
+    },
+
+    exportProject: () => {
+      const projectData = {
+        name: currentProject?.name || 'Untitled Project',
+        code: chordCraftCode,
+        tracks: state.tracks,
+        tempo: state.tempo,
+        timeSignature: state.timeSignature,
+        timestamp: new Date().toISOString()
+      };
       
-      setTimeout(() => {
-        setIsPlaying(false);
-      }, 20000);
+      const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${projectData.name}.chordcraft`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showSuccess('Project exported successfully!');
+    },
+
+    importProject: (file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const projectData = JSON.parse(e.target.result);
+          updateCode(projectData.code || '');
+          updateState({ 
+            tracks: projectData.tracks || [],
+            tempo: projectData.tempo || 120,
+            timeSignature: projectData.timeSignature || '4/4'
+          });
+          showSuccess('Project imported successfully!');
+        } catch (error) {
+          showError('Failed to import project. Invalid file format.');
+        }
+      };
+      reader.readAsText(file);
     }
   };
 
-  const copyCode = () => {
-    navigator.clipboard.writeText(codeEditor);
-  };
+  // Ultra-compact components
+  const AssetIcon = ({ src, alt, className = "w-6 h-6" }) => (
+    <img src={src} alt={alt} className={className} />
+  );
+
+  const TransportControls = () => (
+    <div className="flex items-center space-x-2">
+      {TRANSPORT_CONTROLS.map(({ id, icon: Icon, action, primary }) => (
+        <Button
+          key={id}
+          variant={primary ? "default" : "outline"}
+          size="sm"
+          onClick={() => handlers.transport(action)}
+          className={primary ? "btn-primary" : "hover:bg-primary/20"}
+        >
+          <Icon className="w-4 h-4" />
+        </Button>
+      ))}
+    </div>
+  );
+
+  const TrackList = () => (
+    <div className="space-y-2">
+      {state.tracks.map(track => (
+        <div key={track.id} className={`flex items-center space-x-3 p-3 rounded-lg border ${
+          state.selectedTracks.includes(track.id) ? 'border-primary bg-primary/10' : 'border-border'
+        }`}>
+          <div className={`w-3 h-3 rounded-full ${track.color}`} />
+          <div className="flex-1">
+            <p className="text-sm font-medium">{track.name}</p>
+            <p className="text-xs text-muted-foreground">{track.type}</p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button size="sm" variant="ghost" onClick={() => handlers.updateTrack(track.id, { mute: !track.mute })}>
+              {track.mute ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => handlers.deleteTrack(track.id)}>
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  const AddTrackButton = () => (
+    <div className="grid grid-cols-2 gap-2">
+      {TRACK_TYPES.map(({ id, label, icon: Icon, color }) => (
+        <Button
+          key={id}
+          variant="outline"
+          size="sm"
+          onClick={() => handlers.addTrack(id)}
+          className="justify-start hover:bg-primary/20"
+        >
+          <Icon className="w-4 h-4 mr-2" />
+          {label}
+        </Button>
+      ))}
+    </div>
+  );
 
   return (
-    <div className="h-screen w-full bg-background text-foreground overflow-hidden">
-      {/* Header */}
-      <header className="h-16 border-b bg-card/50 backdrop-blur-sm flex items-center justify-between px-6">
+    <div className="h-screen flex flex-col bg-background text-foreground">
+      {/* Enhanced Header with Assets */}
+      <header className="flex items-center justify-between p-4 border-b border-border bg-card">
         <div className="flex items-center space-x-4">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <Music className="w-5 h-5 text-primary-foreground" />
+          <div className="flex items-center space-x-2">
+            <AssetIcon src={ASSETS.daw} alt="DAW" className="w-8 h-8" />
+            <h1 className="text-2xl font-bold vibrant-gradient-text">ChordCraft Studio</h1>
           </div>
-          <div>
-            <h1 className="text-xl font-semibold">ChordCraft Studio</h1>
-            <p className="text-sm text-muted-foreground">Professional Music Production Platform</p>
-          </div>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 dark:text-blue-400">
-            <Zap className="w-3 h-3 mr-1" />
+          <Badge variant="secondary" className="bg-purple-500/20 text-purple-400 border-purple-500/30">
+            <AssetIcon src={ASSETS.aiPowered} alt="AI Powered" className="w-4 h-4 mr-2" />
             AI Powered
           </Badge>
-          <Badge variant="secondary" className="bg-purple-500/10 text-purple-600 dark:text-purple-400">
-            <Brain className="w-3 h-3 mr-1" />
-            Muzic AI
-          </Badge>
-          <Badge variant="secondary" className="bg-green-500/10 text-green-600 dark:text-green-400">
-            <Code className="w-3 h-3 mr-1" />
-            Code Generation
-          </Badge>
         </div>
         
-        <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="sm">
-            <Share2 className="w-4 h-4 mr-2" />
-            Share
-          </Button>
-          <Button variant="ghost" size="sm">
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </Button>
-          <Button variant="ghost" size="sm">
-            <Upload className="w-4 h-4 mr-2" />
-            Import
-          </Button>
-          <Separator orientation="vertical" className="h-6" />
-          <div className="flex items-center space-x-3">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-primary text-primary-foreground">I</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-sm font-medium">ivanovspccenter@gmail.com</p>
-              <p className="text-xs text-muted-foreground">Enterprise Plan</p>
-            </div>
+        <div className="flex items-center space-x-4">
+          <TransportControls />
+          <Separator orientation="vertical" className="h-8" />
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-muted-foreground">Tempo:</span>
+            <Slider
+              value={[state.tempo]}
+              onValueChange={([value]) => updateState({ tempo: value })}
+              min={60}
+              max={200}
+              step={1}
+              className="w-24"
+            />
+            <span className="text-sm font-mono w-12">{state.tempo} BPM</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-muted-foreground">Volume:</span>
+            <Slider
+              value={[volume]}
+              onValueChange={([value]) => setVolume(value)}
+              min={0}
+              max={1}
+              step={0.01}
+              className="w-24"
+            />
+            <span className="text-sm font-mono w-12">{Math.round(volume * 100)}%</span>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex">
         {/* Left Sidebar */}
-        <div className="w-80 border-r bg-card/30 backdrop-blur-sm flex flex-col">
-          <div className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Audio Upload</h2>
-            <Card>
-              <CardContent className="p-6">
-                <SimpleFileUpload onUpload={handleFileUpload} />
-              </CardContent>
-            </Card>
-          </div>
+        <div className="w-80 border-r border-border bg-card flex flex-col">
+          <Tabs value={state.activeTab} onValueChange={(value) => updateState({ activeTab: value })} className="flex-1 flex flex-col">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="timeline" className="flex items-center space-x-2">
+                <Clock className="w-4 h-4" />
+                <span>Timeline</span>
+              </TabsTrigger>
+              <TabsTrigger value="tracks" className="flex items-center space-x-2">
+                <Layers className="w-4 h-4" />
+                <span>Tracks</span>
+              </TabsTrigger>
+              <TabsTrigger value="ai" className="flex items-center space-x-2">
+                <Brain className="w-4 h-4" />
+                <span>AI</span>
+              </TabsTrigger>
+            </TabsList>
 
-          <Separator />
+            <TabsContent value="timeline" className="flex-1 p-4">
+              <Card className="h-full">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="flex items-center">
+                      <AssetIcon src={ASSETS.realTimeAnalysis} alt="Real-time Analysis" className="w-5 h-5 mr-2" />
+                      Timeline
+                    </span>
+                    <Button size="sm" variant="outline" onClick={() => updateState({ showProjectManager: true })}>
+                      <FolderOpen className="w-4 h-4" />
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Timeline />
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          <div className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Tracks ({tracks.length})</h2>
-            <div className="space-y-3">
-              {tracks.map((track) => (
-                <Card key={track.id} className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div 
-                        className="w-4 h-4 rounded-full" 
-                        style={{ backgroundColor: track.color }}
-                      />
-                      <div>
-                        <p className="font-medium text-sm">{track.name}</p>
-                        <p className="text-xs text-muted-foreground">{track.notes} notes</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Button variant="ghost" size="sm" aria-label="Toggle track visibility">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" aria-label="Delete track">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+            <TabsContent value="tracks" className="flex-1 p-4">
+              <Card className="h-full">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="flex items-center">
+                      <Music className="w-5 h-5 mr-2" />
+                      Tracks
+                    </span>
+                    <Button size="sm" variant="outline" onClick={() => updateState({ showSettings: !state.showSettings })}>
+                      <Settings className="w-4 h-4" />
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <TrackList />
+                  <Separator />
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Add Track</h4>
+                    <AddTrackButton />
                   </div>
-                  <div className="mt-3">
-                    <div className="flex items-center space-x-2">
-                      <Volume2 className="w-4 h-4 text-muted-foreground" />
-                      <Slider
-                        value={[track.volume]}
-                        onValueChange={([value]) => {
-                          setTracks(prev => prev.map(t => 
-                            t.id === track.id ? { ...t, volume: value } : t
-                          ));
-                        }}
-                        max={100}
-                        step={1}
-                        className="flex-1"
-                        aria-label={`Volume for ${track.name}`}
-                      />
-                      <span className="text-xs text-muted-foreground w-8">{track.volume}</span>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="ai" className="flex-1 p-4">
+              <Card className="h-full">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <AssetIcon src={ASSETS.musicToCode} alt="Music to Code" className="w-5 h-5 mr-2" />
+                    AI Companion
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <AICompanion />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
 
-        {/* Main Timeline Area */}
+        {/* Main Workspace */}
         <div className="flex-1 flex flex-col">
-          {/* Transport Controls */}
-          <div className="h-20 border-b bg-card/30 backdrop-blur-sm flex items-center justify-between px-6">
+          {/* Toolbar */}
+          <div className="flex items-center justify-between p-4 border-b border-border bg-card">
             <div className="flex items-center space-x-4">
-              <Button size="sm" variant="outline" aria-label="Skip backward">
-                <SkipBack className="w-4 h-4" />
+              <Button variant="outline" size="sm" onClick={() => handlers.exportProject()}>
+                <Download className="w-4 h-4 mr-2" />
+                Export
               </Button>
-              <Button 
-                size="lg" 
-                onClick={() => setIsPlaying(!isPlaying)}
-                className="w-12 h-12 rounded-full"
-                aria-label={isPlaying ? "Pause playback" : "Start playback"}
-              >
-                {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+              <Button variant="outline" size="sm" onClick={() => document.getElementById('import-file')?.click()}>
+                <Upload className="w-4 h-4 mr-2" />
+                Import
               </Button>
-              <Button size="sm" variant="outline" aria-label="Skip forward">
-                <SkipForward className="w-4 h-4" />
-              </Button>
-              <Button size="sm" variant="outline" aria-label="Stop playback">
-                <Square className="w-4 h-4" />
+              <input
+                id="import-file"
+                type="file"
+                accept=".chordcraft,.json"
+                onChange={(e) => e.target.files[0] && handlers.importProject(e.target.files[0])}
+                className="hidden"
+              />
+              <Separator orientation="vertical" className="h-6" />
+              <Button variant="outline" size="sm" onClick={() => updateState({ showAICompanion: !state.showAICompanion })}>
+                <Brain className="w-4 h-4 mr-2" />
+                AI Assistant
               </Button>
             </div>
-
-            <div className="flex items-center space-x-6">
-              <div className="text-center">
-                <p className="text-sm font-mono">{Math.floor(currentTime / 60)}:{(currentTime % 60).toString().padStart(2, '0')}</p>
-                <p className="text-xs text-muted-foreground">/ {Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, '0')}</p>
-              </div>
-              
-              <div className="flex items-center space-x-4">
-                <div className="text-center">
-                  <p className="text-sm font-medium">BPM:</p>
-                  <p className="text-lg font-mono">{bpm}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm font-medium">Time:</p>
-                  <p className="text-lg font-mono">{timeSignature}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Timeline Grid */}
-          <div className="flex-1 p-6">
-            <Card className="h-full">
-              <CardContent className="p-6 h-full">
-                <div className="h-full bg-gradient-to-br from-muted/20 to-muted/10 rounded-lg relative overflow-hidden">
-                  {/* Grid Pattern */}
-                  <div className="absolute inset-0 opacity-30">
-                    <div className="grid grid-cols-16 gap-0 h-full">
-                      {Array.from({ length: 16 }).map((_, i) => (
-                        <div key={i} className="border-r border-border/40"></div>
-                      ))}
-                    </div>
-                    <div className="absolute inset-0 grid grid-rows-12 gap-0 h-full">
-                      {Array.from({ length: 12 }).map((_, i) => (
-                        <div key={i} className="border-b border-border/20"></div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Note Labels */}
-                  <div className="absolute left-0 top-0 w-20 h-full border-r border-border/50 bg-card/80 backdrop-blur-sm">
-                    <div className="p-3 space-y-0">
-                      {['C8', 'B7', 'A#7', 'A7', 'G#7', 'G7', 'F#7', 'F7', 'E7', 'D#7', 'D7', 'C#7', 'C7'].map((note, i) => (
-                        <div 
-                          key={note} 
-                          className="flex items-center justify-center h-8 text-xs font-mono font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded transition-all duration-200 cursor-pointer group"
-                        >
-                          <span className="group-hover:scale-110 transition-transform duration-200">
-                            {note}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Timeline Area */}
-                  <div className="ml-20 h-full flex items-center justify-center relative">
-                    <div className="text-center">
-                      <div className="w-16 h-16 mx-auto mb-4 bg-primary/20 rounded-full flex items-center justify-center">
-                        <Piano className="w-8 h-8 text-primary" />
-                      </div>
-                      <h3 className="text-lg font-semibold mb-2">Professional Timeline</h3>
-                      <p className="text-muted-foreground mb-4">Upload audio files or use the code editor below</p>
-                      <div className="flex flex-wrap gap-2 justify-center">
-                        <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                          <Music className="w-3 h-3 mr-1" />
-                          Audio Upload
-                        </Badge>
-                        <Badge variant="secondary" className="bg-purple-500/10 text-purple-600 dark:text-purple-400">
-                          <Code className="w-3 h-3 mr-1" />
-                          Code Generation
-                        </Badge>
-                        <Badge variant="secondary" className="bg-green-500/10 text-green-600 dark:text-green-400">
-                          <Brain className="w-3 h-3 mr-1" />
-                          AI Analysis
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Right Sidebar - Code Editor */}
-        <div className="w-96 border-l bg-card/30 backdrop-blur-sm flex flex-col">
-          <div className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Code Editor</h2>
             
-            {/* Code Editor */}
-            <Card className="mb-4">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm">Music Code</CardTitle>
-                  <div className="flex space-x-2">
-                    <Button size="sm" variant="outline" onClick={handlePlayCode} aria-label={isPlaying ? "Stop code playback" : "Play generated code"}>
-                      {isPlaying ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
-                      {isPlaying ? 'Stop' : 'Play'}
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-muted-foreground">Time:</span>
+                <span className="text-sm font-mono">{Math.floor(currentTime / 60)}:{(currentTime % 60).toFixed(1).padStart(4, '0')}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-muted-foreground">Duration:</span>
+                <span className="text-sm font-mono">{Math.floor(duration / 60)}:{(duration % 60).toFixed(1).padStart(4, '0')}</span>
+              </div>
+              {isAnalyzing && (
+                <div className="flex items-center space-x-2">
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span className="text-sm text-muted-foreground">Analyzing...</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Main Content Area */}
+          <div className="flex-1 p-4">
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center">
+                    <Code className="w-5 h-5 mr-2" />
+                    ChordCraft Code
+                  </span>
+                  <div className="flex items-center space-x-2">
+                    <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText(chordCraftCode)}>
+                      <Copy className="w-4 h-4" />
                     </Button>
-                    <Button size="sm" variant="outline" onClick={copyCode} aria-label="Copy code to clipboard">
-                      <Copy className="w-4 h-4 mr-2" />
-                      Copy
+                    <Button size="sm" variant="outline" onClick={() => updateCode('')}>
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
-                </div>
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <Textarea
-                  className="min-h-[200px] font-mono text-sm"
-                  placeholder="// Your music code will appear here&#10;// Try: PLAY C4 FOR 1s AT 0s"
-                  value={codeEditor}
-                  onChange={(e) => setCodeEditor(e.target.value)}
-                  aria-label="Music code editor"
+                  value={chordCraftCode}
+                  onChange={(e) => updateCode(e.target.value)}
+                  placeholder="Enter your ChordCraft code here..."
+                  className="h-full min-h-[400px] font-mono text-sm"
                 />
-              </CardContent>
-            </Card>
-
-            {/* Analysis Results */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Analysis Results</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isAnalyzing ? (
-                  <div className="space-y-4">
-                    <div className="text-center">
-                      <Brain className="w-6 h-6 mx-auto mb-2 text-primary animate-pulse" />
-                      <p className="text-sm text-muted-foreground">Analyzing audio...</p>
-                    </div>
-                    <Progress value={analysisProgress} className="w-full" aria-label={`Analysis progress: ${analysisProgress}%`} />
-                    <p className="text-xs text-center text-muted-foreground">{analysisProgress}% complete</p>
-                  </div>
-                ) : analysisResult ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-2">
-                      <Check className="w-4 h-4 text-green-500" />
-                      <span className="text-sm font-medium">Analysis Complete</span>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Key:</span>
-                        <span className="font-mono">{analysisResult.details?.key}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">BPM:</span>
-                        <span className="font-mono">{analysisResult.details?.bpm}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Chords:</span>
-                        <span className="font-mono">{analysisResult.details?.chords?.join(', ')}</span>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center text-muted-foreground">
-                    <BarChart3 className="w-6 h-6 mx-auto mb-2" />
-                    <p className="text-sm">Upload audio to see analysis results</p>
-                  </div>
-                )}
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      {state.showProjectManager && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-4xl h-3/4">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Project Manager</span>
+                <Button variant="outline" size="sm" onClick={() => updateState({ showProjectManager: false })}>
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ProjectManager />
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {state.showAICompanion && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-6xl h-5/6">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>AI Companion</span>
+                <Button variant="outline" size="sm" onClick={() => updateState({ showAICompanion: false })}>
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AICompanion />
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
