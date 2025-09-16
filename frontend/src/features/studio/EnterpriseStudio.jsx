@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Music, 
   Sparkles, 
@@ -700,16 +701,17 @@ EXPORT_TEMPO = ${bpm};`;
                     </div>
                     <div className="flex items-center space-x-2 text-sm text-slate-400">
                       <span>Time:</span>
-                      <select
-                        value={timeSignature}
-                        onChange={(e) => setTimeSignature(e.target.value)}
-                        className="bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm"
-                      >
-                        <option value="4/4">4/4</option>
-                        <option value="3/4">3/4</option>
-                        <option value="2/4">2/4</option>
-                        <option value="6/8">6/8</option>
-                      </select>
+                      <Select value={timeSignature} onValueChange={setTimeSignature}>
+                        <SelectTrigger className="w-20 h-8 bg-slate-700 border-slate-600 text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="4/4">4/4</SelectItem>
+                          <SelectItem value="3/4">3/4</SelectItem>
+                          <SelectItem value="2/4">2/4</SelectItem>
+                          <SelectItem value="6/8">6/8</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>

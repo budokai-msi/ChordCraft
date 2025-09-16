@@ -368,10 +368,10 @@ EXPORT_TEMPO = ${bpm};`;
                       </div>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" aria-label="Toggle track visibility">
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" aria-label="Delete track">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
@@ -389,6 +389,7 @@ EXPORT_TEMPO = ${bpm};`;
                         max={100}
                         step={1}
                         className="flex-1"
+                        aria-label={`Volume for ${track.name}`}
                       />
                       <span className="text-xs text-muted-foreground w-8">{track.volume}</span>
                     </div>
@@ -404,20 +405,21 @@ EXPORT_TEMPO = ${bpm};`;
           {/* Transport Controls */}
           <div className="h-20 border-b bg-card/30 backdrop-blur-sm flex items-center justify-between px-6">
             <div className="flex items-center space-x-4">
-              <Button size="sm" variant="outline">
+              <Button size="sm" variant="outline" aria-label="Skip backward">
                 <SkipBack className="w-4 h-4" />
               </Button>
               <Button 
                 size="lg" 
                 onClick={() => setIsPlaying(!isPlaying)}
                 className="w-12 h-12 rounded-full"
+                aria-label={isPlaying ? "Pause playback" : "Start playback"}
               >
                 {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
               </Button>
-              <Button size="sm" variant="outline">
+              <Button size="sm" variant="outline" aria-label="Skip forward">
                 <SkipForward className="w-4 h-4" />
               </Button>
-              <Button size="sm" variant="outline">
+              <Button size="sm" variant="outline" aria-label="Stop playback">
                 <Square className="w-4 h-4" />
               </Button>
             </div>
@@ -521,13 +523,13 @@ EXPORT_TEMPO = ${bpm};`;
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-sm">Music Code</CardTitle>
-                      <div className="flex space-x-1">
-                        <Button size="sm" variant="outline" onClick={handlePlayCode}>
-                          {isPlaying ? <Pause className="w-4 h-4 mr-1" /> : <Play className="w-4 h-4 mr-1" />}
+                      <div className="flex space-x-2">
+                        <Button size="sm" variant="outline" onClick={handlePlayCode} aria-label={isPlaying ? "Stop code playback" : "Play generated code"}>
+                          {isPlaying ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
                           {isPlaying ? 'Stop' : 'Play'}
                         </Button>
-                        <Button size="sm" variant="outline" onClick={copyCode}>
-                          <Copy className="w-4 h-4 mr-1" />
+                        <Button size="sm" variant="outline" onClick={copyCode} aria-label="Copy code to clipboard">
+                          <Copy className="w-4 h-4 mr-2" />
                           Copy
                         </Button>
                       </div>
@@ -539,6 +541,7 @@ EXPORT_TEMPO = ${bpm};`;
                       placeholder="// Your music code will appear here&#10;// Try: PLAY C4 FOR 1s AT 0s"
                       value={codeEditor}
                       onChange={(e) => setCodeEditor(e.target.value)}
+                      aria-label="Music code editor"
                     />
                   </CardContent>
                 </Card>
@@ -556,7 +559,7 @@ EXPORT_TEMPO = ${bpm};`;
                           <Brain className="w-8 h-8 mx-auto mb-2 text-primary animate-pulse" />
                           <p className="text-sm text-muted-foreground">Analyzing audio...</p>
                         </div>
-                        <Progress value={analysisProgress} className="w-full" />
+                        <Progress value={analysisProgress} className="w-full" aria-label={`Analysis progress: ${analysisProgress}%`} />
                         <p className="text-xs text-center text-muted-foreground">{analysisProgress}% complete</p>
                       </div>
                     ) : analysisResult ? (
