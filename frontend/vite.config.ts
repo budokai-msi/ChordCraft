@@ -31,6 +31,6 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/core'] // keep ffmpeg wasm out of pre-bundle
+    exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/core', '@ffmpeg/util'] // keep ffmpeg wasm out of pre-bundle
   }
 })

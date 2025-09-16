@@ -221,32 +221,25 @@ export class ChordCraftDecoder {
       // continue to wasm fallback
     }
 
-    // 2) ffmpeg.wasm fallback (lazy-loaded, cross-browser)
+    // 2) Universal fallback via ffmpeg.wasm (CDN-loaded)
     try {
-      const { createFFmpeg, fetchFile } = await import('@ffmpeg/ffmpeg');
-      const ffmpeg = createFFmpeg({ 
-        log: false, 
-        corePath: '/node_modules/@ffmpeg/core/dist/ffmpeg-core.js' as any 
-      });
-      
-      if (!ffmpeg.isLoaded()) {
-        console.log('Loading ffmpeg.wasm for FLAC decoding...');
-        await ffmpeg.load();
-      }
+      const { getFFmpeg } = await import('./ffmpegSingleton');
+      const ffmpeg = await getFFmpeg();
 
       // Write FLAC to virtual FS
       ffmpeg.FS('writeFile', 'in.flac', new Uint8Array(flacData));
       
-      // Transcode FLAC → WAV (preserves original sample rate and channels)
-      await ffmpeg.run('-i', 'in.flac', '-f', 'wav', 'out.wav');
-      const wavU8 = ffmpeg.FS('readFile', 'out.wav');
+      // Transcode FLAC → WAV (44.1k default; keep channels)
+      await ffmpeg.run('-hide_banner', '-loglevel', 'error', '-i', 'in.flac', '-f', 'wav', 'out.wav');
       
-      // Clean up virtual files
-      ffmpeg.FS('unlink', 'in.flac');
-      ffmpeg.FS('unlink', 'out.wav');
+      const wav = ffmpeg.FS('readFile', 'out.wav');
+      
+      // Clean up virtual FS to release memory
+      try { ffmpeg.FS('unlink', 'in.flac'); } catch {}
+      try { ffmpeg.FS('unlink', 'out.wav'); } catch {}
 
-      // Decode WAV natively (universally supported)
-      return await this.audioContext.decodeAudioData(wavU8.buffer);
+      // Decode WAV via WebAudio (fast)
+      return await this.audioContext.decodeAudioData(wav.buffer);
     } catch (e) {
       console.error('ffmpeg.wasm FLAC decode failed:', e);
       throw new Error('FLAC decoding failed - please use WAV format or neural codec');
@@ -309,6 +302,18 @@ export class ChordCraftDecoder {
   }
 
   /**
+   * Compute SHA-256 hash of ArrayBuffer
+   */
+  async sha256Hex(ab: ArrayBuffer): Promise<string> {
+    if (typeof crypto === 'undefined' || !crypto.subtle) {
+      throw new Error('Crypto API not available');
+    }
+    
+    const h = await crypto.subtle.digest('SHA-256', ab);
+    return Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  /**
    * Verify checksum integrity for identical playback guarantee
    */
   async verifyChecksum(song: ChordCraftSong): Promise<{ valid: boolean; hash: string; expected: string }> {
@@ -316,14 +321,8 @@ export class ChordCraftDecoder {
       return { valid: false, hash: '', expected: song.audio?.sha256 || '' };
     }
 
-    if (typeof crypto === 'undefined' || !crypto.subtle) {
-      return { valid: false, hash: '', expected: song.audio.sha256 };
-    }
-
     try {
-      const hashBuffer = await crypto.subtle.digest('SHA-256', song.flacData);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      const hash = await this.sha256Hex(song.flacData);
       
       return {
         valid: hash === song.audio.sha256,

@@ -1,1 +1,43 @@
-.vercel
+# Node / Vite
+node_modules/
+dist/
+build/
+.vite/
+*.log
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+
+# App runtime
+temp_uploads/
+uploads/
+*.log
+
+# Env
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Audio files (optional - remove if you want to track them)
+*.mp3
+*.wav
+*.flac
+*.ogg
+*.aac
+*.m4a
