@@ -1,8 +1,8 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { createClient, User, Session } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://wgofqkisiqkygpnliuwl.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indnb2Zxa2lzaXFreWdwbmxpdXdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4ODE4MzEsImV4cCI6MjA3MzQ1NzgzMX0.DcqJ7XNAkMiOT-3Vnlmvua84wNqahgfd3JQ9wpTW-yg';
+const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL || 'https://wgofqkisiqkygpnliuwl.supabase.co';
+const supabaseAnonKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indnb2Zxa2lzaXFreWdwbmxpdXdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4ODE4MzEsImV4cCI6MjA3MzQ1NzgzMX0.DcqJ7XNAkMiOT-3Vnlmvua84wNqahgfd3JQ9wpTW-yg';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
