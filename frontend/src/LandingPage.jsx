@@ -118,6 +118,48 @@ export function LandingPage({ onGetStarted }) {
         <div className="absolute top-40 right-32 w-24 h-24 bg-pink-500 bg-opacity-20 rounded-full blur-xl float" style={{ animationDelay: '2s' }}></div>
         <div className="absolute bottom-32 left-1/4 w-40 h-40 bg-green-500 bg-opacity-20 rounded-full blur-xl float" style={{ animationDelay: '4s' }}></div>
         
+        {/* Professional Timeline Preview */}
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-64 opacity-15 pointer-events-none">
+          <div className="h-full glass-pane rounded-lg overflow-hidden">
+            <div className="h-full bg-gradient-to-br from-slate-900 to-slate-800 relative">
+              {/* Grid Pattern */}
+              <div className="absolute inset-0 opacity-30">
+                <div className="grid grid-cols-16 gap-0 h-full">
+                  {Array.from({ length: 16 }).map((_, i) => (
+                    <div key={i} className="border-r border-slate-500/40"></div>
+                  ))}
+                </div>
+                <div className="absolute inset-0 grid grid-rows-8 gap-0 h-full">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <div key={i} className="border-b border-slate-500/20"></div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Note Labels */}
+              <div className="absolute left-0 top-0 w-16 h-full border-r border-slate-500/50 bg-gradient-to-b from-slate-800/80 to-slate-900/80 backdrop-blur-sm">
+                <div className="p-2 space-y-0">
+                  {['C7', 'B6', 'A6', 'G6', 'F6', 'E6', 'D6', 'C6'].map((note, i) => (
+                    <div key={note} className="flex items-center justify-center h-8 text-xs font-mono font-semibold text-slate-300">
+                      {note}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Floating Music Notes */}
+              <div className="absolute inset-0 ml-16">
+                <div className="absolute top-4 left-8 w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
+                <div className="absolute top-12 left-16 w-3 h-3 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+                <div className="absolute top-20 left-24 w-3 h-3 bg-pink-400 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+                <div className="absolute top-8 left-32 w-3 h-3 bg-green-400 rounded-full animate-pulse" style={{ animationDelay: '1.5s' }}></div>
+                <div className="absolute top-16 left-40 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
+                <div className="absolute top-24 left-48 w-3 h-3 bg-cyan-400 rounded-full animate-pulse" style={{ animationDelay: '2.5s' }}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <div className="z-10 text-center p-8 max-w-6xl mx-auto">
           <div className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             <Badge className="mb-6 px-4 py-2 text-sm font-medium bg-purple-500 bg-opacity-20 border-purple-500 border-opacity-30 text-purple-300 neon-glow-pink">
@@ -152,6 +194,22 @@ export function LandingPage({ onGetStarted }) {
                 <Play className="w-5 h-5 mr-2" />
                 Watch Demo
               </Button>
+            </div>
+
+            {/* Studio Preview Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-2xl mx-auto">
+              <div className="glass-pane rounded-lg p-4 hover:scale-105 transition-transform duration-300">
+                <div className="text-2xl font-bold text-blue-400 mb-1">AI-Powered</div>
+                <div className="text-sm text-slate-400">Music Generation</div>
+              </div>
+              <div className="glass-pane rounded-lg p-4 hover:scale-105 transition-transform duration-300">
+                <div className="text-2xl font-bold text-purple-400 mb-1">Real-time</div>
+                <div className="text-sm text-slate-400">Code Conversion</div>
+              </div>
+              <div className="glass-pane rounded-lg p-4 hover:scale-105 transition-transform duration-300">
+                <div className="text-2xl font-bold text-green-400 mb-1">Professional</div>
+                <div className="text-sm text-slate-400">DAW Interface</div>
+              </div>
             </div>
 
             {/* Stats */}
