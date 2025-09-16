@@ -111,15 +111,15 @@ export function EnhancedStudio() {
           <div className="flex items-center space-x-4">
             {/* Quick Actions */}
             <div className="flex items-center space-x-2">
-              <Button variant="ghost" size="sm" className="hover:bg-slate-700/50">
+              <Button variant="ghost" size="sm" className="btn-ghost">
                 <Share2 className="w-4 h-4 mr-2" />
                 Share
               </Button>
-              <Button variant="ghost" size="sm" className="hover:bg-slate-700/50">
+              <Button variant="ghost" size="sm" className="btn-ghost">
                 <Download className="w-4 h-4 mr-2" />
                 Export
               </Button>
-              <Button variant="ghost" size="sm" className="hover:bg-slate-700/50">
+              <Button variant="ghost" size="sm" className="btn-ghost">
                 <Upload className="w-4 h-4 mr-2" />
                 Import
               </Button>
@@ -238,7 +238,7 @@ export function EnhancedStudio() {
                               onClick={() => setTracks(prev => prev.map(t => 
                                 t.id === track.id ? { ...t, isPlaying: !t.isPlaying } : t
                               ))}
-                              className="p-1"
+                              className="btn-icon"
                             >
                               {track.isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                             </Button>
@@ -253,7 +253,7 @@ export function EnhancedStudio() {
                               size="sm"
                               variant="ghost"
                               onClick={() => toggleTrackVisibility(track.id)}
-                              className="p-1"
+                              className="btn-icon"
                             >
                               {track.isVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                             </Button>
@@ -261,7 +261,7 @@ export function EnhancedStudio() {
                               size="sm"
                               variant="ghost"
                               onClick={() => toggleTrackMute(track.id)}
-                              className="p-1"
+                              className="btn-icon"
                             >
                               {track.isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
                             </Button>
@@ -269,7 +269,7 @@ export function EnhancedStudio() {
                               size="sm"
                               variant="ghost"
                               onClick={() => deleteTrack(track.id)}
-                              className="p-1 text-red-400 hover:text-red-300"
+                              className="btn-icon text-red-400 hover:text-red-300"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -304,13 +304,13 @@ export function EnhancedStudio() {
                 {/* Transport Controls */}
                 <div className="h-16 glass-pane border-b border-white/10 flex items-center justify-center px-6">
                   <div className="flex items-center space-x-4">
-                    <Button
-                      onClick={togglePlay}
-                      className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 neon-glow"
-                    >
+              <Button
+                onClick={togglePlay}
+                className="w-12 h-12 rounded-full btn-primary"
+              >
                       {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
                     </Button>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" className="btn-icon">
                       <Square className="w-4 h-4" />
                     </Button>
                     <div className="flex items-center space-x-2 text-sm text-slate-400">
@@ -384,15 +384,15 @@ export function EnhancedStudio() {
                     </div>
                     
                     <div className="space-y-3">
-                      <Button className="w-full justify-start" variant="outline">
+                      <Button className="w-full justify-start btn-outline">
                         <Music className="w-4 h-4 mr-2" />
                         Chat
                       </Button>
-                      <Button className="w-full justify-start" variant="outline">
+                      <Button className="w-full justify-start btn-outline">
                         <Sparkles className="w-4 h-4 mr-2" />
                         Generate
                       </Button>
-                      <Button className="w-full justify-start" variant="outline">
+                      <Button className="w-full justify-start btn-outline">
                         <Brain className="w-4 h-4 mr-2" />
                         Analyze
                       </Button>
@@ -444,7 +444,7 @@ export function EnhancedStudio() {
                         placeholder="Describe the music you want to create..."
                         className="flex-1 px-3 py-2 glass-pane rounded-lg border border-slate-600 focus:border-blue-500 focus:outline-none"
                       />
-                      <Button className="px-6">
+                      <Button className="px-6 btn-primary">
                         <Send className="w-4 h-4" />
                       </Button>
                     </div>
@@ -534,15 +534,15 @@ export function EnhancedStudio() {
                 defaultValue="// Your music code will appear here&#10;// Try: PLAY C4 FOR 1s AT 0s"
               />
               <div className="flex flex-col space-y-2">
-                <Button className="px-4">
+                <Button className="px-4 btn-primary">
                   <Play className="w-4 h-4 mr-2" />
                   Play Code
                 </Button>
-                <Button variant="outline" className="px-4">
+                <Button variant="outline" className="px-4 btn-outline">
                   <Brain className="w-4 h-4 mr-2" />
                   Analyze Code
                 </Button>
-                <Button variant="outline" className="px-4">
+                <Button variant="outline" className="px-4 btn-outline">
                   <Save className="w-4 h-4 mr-2" />
                   Copy
                 </Button>
