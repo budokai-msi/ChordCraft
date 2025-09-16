@@ -1,10 +1,11 @@
 "use client";
 import React, { useState, useRef } from "react";
-import { Upload, Music, FileAudio, Loader2 } from "lucide-react";
+import { Upload, FileAudio, Loader2, Music } from "lucide-react";
 import { HapticButton } from "./HapticButton";
 import { Card, CardContent } from "./ui/card";
 import { Progress } from "./ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
+import { chordCraftDecoder, ChordCraftSong } from "../utils/ChordCraftDecoder";
 
 interface FileUploadResult {
   fileName: string;
@@ -12,6 +13,8 @@ interface FileUploadResult {
   fileType: string;
   audioBuffer?: ArrayBuffer;
   generatedCode?: string;
+  chordCraftSong?: ChordCraftSong;
+  playbackStrategy?: "lossless" | "neural" | "synthetic";
 }
 
 interface SimpleFileUploadProps {
@@ -24,100 +27,108 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const backendUrl =
+    (import.meta as any).env?.VITE_BACKEND_URL || "http://127.0.0.1:5000";
+
+  const validFile = (f: File) =>
+    ["audio/mpeg", "audio/wav", "audio/ogg", "audio/aac", "audio/mp4"].includes(
+      f.type
+    ) || /\.(mp3|wav|ogg|aac|m4a|flac)$/i.test(f.name);
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
   };
-
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
   };
-
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    
     const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      handleFileUpload(files[0]);
-    }
+    if (files.length > 0) handleFileUpload(files[0]);
   };
-
-  const handleFileSelect = () => {
-    fileInputRef.current?.click();
-  };
-
+  const handleFileSelect = () => fileInputRef.current?.click();
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileUpload(file);
-    }
+    const f = e.target.files?.[0];
+    if (f) handleFileUpload(f);
   };
 
   const handleFileUpload = async (file: File) => {
-    // Validate file type
-    const validTypes = ['audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/ogg', 'audio/aac'];
-    if (!validTypes.includes(file.type) && !file.name.match(/\.(mp3|wav|ogg|aac|m4a)$/i)) {
-      alert('Please select a valid audio file (MP3, WAV, OGG, AAC)');
+    if (!validFile(file)) {
+      alert("Please select a valid audio file (MP3/WAV/OGG/AAC/M4A/FLAC).");
       return;
     }
-
     setIsUploading(true);
     setUploadProgress(0);
-
-    // Haptic feedback for upload start
-    if (typeof window !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate([10, 5, 10]);
-    }
+    if (navigator.vibrate) navigator.vibrate([10, 5, 10]);
 
     try {
-      // Create FormData for backend upload
-      const formData = new FormData();
-      formData.append('audio', file);
+      // Use XHR to get real progress
+      const fd = new FormData();
+      fd.append("audio", file);
 
-      // Upload to backend for analysis
-      const backendUrl = (import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:5000';
-      const response = await fetch(`${backendUrl}/upload-audio`, {
-        method: 'POST',
-        body: formData,
+      const url = `${backendUrl}/analyze`;
+      const xhr = new XMLHttpRequest();
+      const promise: Promise<string> = new Promise((resolve, reject) => {
+        xhr.open("POST", url, true);
+        xhr.responseType = "json";
+        xhr.upload.onprogress = (ev) => {
+          if (ev.lengthComputable) {
+            setUploadProgress(Math.round((ev.loaded / ev.total) * 100));
+          }
+        };
+        xhr.onerror = () => reject(new Error("Network error"));
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            // Expecting: { success: true, code: "..." }
+            const body = xhr.response || {};
+            if (body.success && typeof body.code === "string") {
+              resolve(body.code);
+            } else {
+              reject(
+                new Error(
+                  body.error || "Unexpected response (missing code field)"
+                )
+              );
+            }
+          } else {
+            reject(new Error(`HTTP ${xhr.status}`));
+          }
+        };
+        xhr.send(fd);
       });
 
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`);
+      const code = await promise;
+      setUploadProgress(100);
+
+      // Try to parse ChordCraft v2
+      let song: ChordCraftSong | undefined;
+      let strategy: "lossless" | "neural" | "synthetic" = "synthetic";
+      try {
+        song = await chordCraftDecoder.parseChordCraftCode(code);
+        strategy = chordCraftDecoder.getPlaybackStrategy(song);
+      } catch (e) {
+        console.warn("ChordCraft parse failed (still OK for plain text code):", e);
       }
 
-      const result = await response.json();
-      
-      if (result.success) {
-        setUploadProgress(100);
-        
-        const uploadResult: FileUploadResult = {
-          fileName: file.name,
-          fileSize: file.size,
-          fileType: file.type,
-          audioBuffer: await file.arrayBuffer(),
-          generatedCode: result.code // Include the AI-generated code
-        };
+      const uploadResult: FileUploadResult = {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        audioBuffer: await file.arrayBuffer(),
+        generatedCode: code,
+        chordCraftSong: song,
+        playbackStrategy: strategy,
+      };
 
-        onUpload(uploadResult);
-        
-    // Success haptic feedback
-    if (typeof window !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate([20, 10, 20]);
-    }
-      } else {
-        throw new Error(result.error || 'Upload failed');
-      }
-      
-    } catch (error) {
-      console.error('Upload failed:', error);
-      alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      
-      // Error haptic feedback
-      if (navigator.vibrate) {
-        navigator.vibrate([100, 50, 100]);
-      }
+      onUpload(uploadResult);
+      if (navigator.vibrate) navigator.vibrate([20, 10, 20]);
+    } catch (err: any) {
+      console.error("Upload failed:", err);
+      alert(`Upload failed: ${err?.message || "Unknown error"}`);
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -129,11 +140,11 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
       <CardContent className="p-6">
         <motion.div
           className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${
-            isDragging 
-              ? 'border-primary bg-primary/10 scale-105' 
+            isDragging
+              ? "border-primary bg-primary/10 scale-105"
               : isUploading
-              ? 'border-green-500 bg-green-500/10'
-              : 'border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5'
+              ? "border-green-500 bg-green-500/10"
+              : "border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5"
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -144,11 +155,10 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
           <input
             ref={fileInputRef}
             type="file"
-            accept="audio/*,.mp3,.wav,.ogg,.aac,.m4a"
+            accept="audio/*,.mp3,.wav,.ogg,.aac,.m4a,.flac"
             onChange={handleFileChange}
             className="hidden"
           />
-
           <AnimatePresence mode="wait">
             {isUploading ? (
               <motion.div
@@ -165,9 +175,11 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
                   <Loader2 className="w-12 h-12 mx-auto text-primary" />
                 </motion.div>
                 <div className="space-y-2">
-                  <p className="text-sm font-medium">Uploading audio file...</p>
+                  <p className="text-sm font-medium">Uploading & analyzing…</p>
                   <Progress value={uploadProgress} className="w-full" />
-                  <p className="text-xs text-muted-foreground">{uploadProgress}% complete</p>
+                  <p className="text-xs text-muted-foreground">
+                    {uploadProgress}% complete
+                  </p>
                 </div>
               </motion.div>
             ) : (
@@ -188,16 +200,16 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
                     <Upload className="w-12 h-12 mx-auto text-muted-foreground" />
                   )}
                 </motion.div>
-                
+
                 <div className="space-y-2">
                   <h3 className="font-medium">
-                    {isDragging ? 'Drop your audio file here' : 'Upload Audio File'}
+                    {isDragging ? "Drop your audio file here" : "Upload Audio File"}
                   </h3>
                   <p className="text-sm text-muted-foreground">
                     Drag & drop or click to select
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Supports MP3, WAV, OGG, AAC files
+                    MP3, WAV, OGG, AAC, M4A, FLAC
                   </p>
                 </div>
 
