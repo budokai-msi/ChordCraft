@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AuthProvider, useAuth } from "./components/Auth";
+import { AudioEngineProvider } from "./services/AudioEngine";
 import { Header } from "./components/Header";
 import { LeftPanel } from "./components/LeftPanel";
 import { MainPanel } from "./components/MainPanel";
@@ -69,7 +70,9 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <AudioEngineProvider>
+        <AppContent />
+      </AudioEngineProvider>
     </AuthProvider>
   );
 }

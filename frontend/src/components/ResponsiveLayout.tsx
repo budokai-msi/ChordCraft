@@ -140,7 +140,7 @@ export function ResponsiveLayout({ header, leftPanel, mainPanel, rightPanel }: R
                 animate={{ x: 0 }}
                 exit={{ x: "100%" }}
                 transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className="absolute right-0 top-0 bottom-0 w-96 max-w-[85vw] z-20"
+                className="absolute right-0 top-0 bottom-0 w-80 max-w-[85vw] z-20"
               >
                 <div className="h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 border-l border-purple-700/30">
                   <div className="flex items-center justify-between p-4 border-b border-purple-800/30">

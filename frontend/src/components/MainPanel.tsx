@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "./ui/card";
 import { EnhancedTransportControls } from "./EnhancedTransportControls";
 import { ProfessionalPianoRoll } from "./ProfessionalPianoRoll";
+import { useAudioEngine } from "../services/AudioEngine";
 import { motion } from "framer-motion";
 
 interface MainPanelProps {
@@ -10,10 +11,33 @@ interface MainPanelProps {
 }
 
 export function MainPanel({ currentTrack, isPlaying }: MainPanelProps) {
-  const [currentTime, setCurrentTime] = useState(0);
-  const [totalTime] = useState(154); // 2:34 in seconds
+  const audioEngine = useAudioEngine();
   const [zoom, setZoom] = useState(100);
   const [playbackState, setPlaybackState] = useState(isPlaying);
+
+  // Load sample audio on component mount
+  useEffect(() => {
+    // For now, we'll generate a simple tone using Web Audio API
+    generateSampleAudio();
+  }, []);
+
+  // Generate a simple audio tone for testing
+  const generateSampleAudio = () => {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4 note
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    
+    // Store the audio context for playback control
+    (window as any).audioContext = audioContext;
+    (window as any).oscillator = oscillator;
+    (window as any).gainNode = gainNode;
+  };
 
   // Generate piano roll grid
   const generatePianoRoll = () => {
@@ -51,13 +75,44 @@ export function MainPanel({ currentTrack, isPlaying }: MainPanelProps) {
   ];
 
   const handlePlayPause = () => {
-    setPlaybackState(!playbackState);
-    // Haptic feedback handled by EnhancedTransportControls
+    const newPlaybackState = !playbackState;
+    setPlaybackState(newPlaybackState);
+    
+    if (newPlaybackState) {
+      // Start playing audio
+      const audioContext = (window as any).audioContext;
+      if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+      
+      // Start the oscillator
+      const oscillator = (window as any).oscillator;
+      if (oscillator) {
+        try {
+          oscillator.start();
+        } catch (e) {
+          // Oscillator might already be started
+          console.log('Oscillator already started');
+        }
+      }
+    } else {
+      // Stop playing audio
+      const oscillator = (window as any).oscillator;
+      if (oscillator) {
+        oscillator.stop();
+        // Recreate oscillator for next play
+        generateSampleAudio();
+      }
+    }
   };
 
   const handleStop = () => {
     setPlaybackState(false);
-    setCurrentTime(0);
+    const oscillator = (window as any).oscillator;
+    if (oscillator) {
+      oscillator.stop();
+      generateSampleAudio();
+    }
   };
 
   const handleNext = () => {
@@ -77,8 +132,8 @@ export function MainPanel({ currentTrack, isPlaying }: MainPanelProps) {
         onStop={handleStop}
         onNext={handleNext}
         onPrevious={handlePrevious}
-        currentTime={currentTime}
-        totalTime={totalTime}
+        currentTime={audioEngine.currentTime}
+        totalTime={audioEngine.duration || 154}
         zoom={zoom}
         onZoomChange={setZoom}
       />

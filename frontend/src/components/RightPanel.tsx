@@ -11,7 +11,7 @@ export function RightPanel() {
   const [activeTab, setActiveTab] = useState("ai-companion");
 
   return (
-    <div className="w-96 border-l border-purple-800/30 bg-black/10 backdrop-blur-sm">
+    <div className="w-80 border-l border-purple-800/30 bg-black/10 backdrop-blur-sm">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
         <TabsList className="grid w-full grid-cols-3 bg-black/20 border-b border-purple-800/30 rounded-none">
           <TabsTrigger 
