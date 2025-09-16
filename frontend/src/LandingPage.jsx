@@ -113,10 +113,10 @@ export function LandingPage({ onGetStarted }) {
       >
         <div className="absolute inset-0 bg-black/20" />
         
-        {/* Floating Elements */}
-        <div className="absolute top-20 left-20 w-32 h-32 bg-blue-500 bg-opacity-20 rounded-full blur-xl float"></div>
-        <div className="absolute top-40 right-32 w-24 h-24 bg-pink-500 bg-opacity-20 rounded-full blur-xl float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute bottom-32 left-1/4 w-40 h-40 bg-green-500 bg-opacity-20 rounded-full blur-xl float" style={{ animationDelay: '4s' }}></div>
+        {/* Static Background Elements */}
+        <div className="absolute top-20 left-20 w-32 h-32 bg-blue-500 bg-opacity-10 rounded-full blur-xl"></div>
+        <div className="absolute top-40 right-32 w-24 h-24 bg-pink-500 bg-opacity-10 rounded-full blur-xl"></div>
+        <div className="absolute bottom-32 left-1/4 w-40 h-40 bg-green-500 bg-opacity-10 rounded-full blur-xl"></div>
         
         {/* Professional Timeline Preview */}
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-64 opacity-15 pointer-events-none">
@@ -149,12 +149,12 @@ export function LandingPage({ onGetStarted }) {
 
               {/* Floating Music Notes */}
               <div className="absolute inset-0 ml-16">
-                <div className="absolute top-4 left-8 w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
-                <div className="absolute top-12 left-16 w-3 h-3 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-                <div className="absolute top-20 left-24 w-3 h-3 bg-pink-400 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
-                <div className="absolute top-8 left-32 w-3 h-3 bg-green-400 rounded-full animate-pulse" style={{ animationDelay: '1.5s' }}></div>
-                <div className="absolute top-16 left-40 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
-                <div className="absolute top-24 left-48 w-3 h-3 bg-cyan-400 rounded-full animate-pulse" style={{ animationDelay: '2.5s' }}></div>
+                <div className="absolute top-4 left-8 w-3 h-3 bg-blue-400 rounded-full"></div>
+                <div className="absolute top-12 left-16 w-3 h-3 bg-purple-400 rounded-full"></div>
+                <div className="absolute top-20 left-24 w-3 h-3 bg-pink-400 rounded-full"></div>
+                <div className="absolute top-8 left-32 w-3 h-3 bg-green-400 rounded-full"></div>
+                <div className="absolute top-16 left-40 w-3 h-3 bg-yellow-400 rounded-full"></div>
+                <div className="absolute top-24 left-48 w-3 h-3 bg-cyan-400 rounded-full"></div>
               </div>
             </div>
           </div>

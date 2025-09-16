@@ -512,87 +512,79 @@ EXPORT_TEMPO = ${bpm};`;
         <div className="w-96 border-l bg-card/30 backdrop-blur-sm flex flex-col">
           <div className="p-6">
             <h2 className="text-lg font-semibold mb-4">Code Editor</h2>
-            <Tabs defaultValue="code" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="code">Code</TabsTrigger>
-                <TabsTrigger value="analysis">Analysis</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="code" className="mt-4">
-                <Card>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm">Music Code</CardTitle>
-                      <div className="flex space-x-2">
-                        <Button size="sm" variant="outline" onClick={handlePlayCode} aria-label={isPlaying ? "Stop code playback" : "Play generated code"}>
-                          {isPlaying ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
-                          {isPlaying ? 'Stop' : 'Play'}
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={copyCode} aria-label="Copy code to clipboard">
-                          <Copy className="w-4 h-4 mr-2" />
-                          Copy
-                        </Button>
+            
+            {/* Code Editor */}
+            <Card className="mb-4">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm">Music Code</CardTitle>
+                  <div className="flex space-x-2">
+                    <Button size="sm" variant="outline" onClick={handlePlayCode} aria-label={isPlaying ? "Stop code playback" : "Play generated code"}>
+                      {isPlaying ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
+                      {isPlaying ? 'Stop' : 'Play'}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={copyCode} aria-label="Copy code to clipboard">
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Textarea
+                  className="min-h-[200px] font-mono text-sm"
+                  placeholder="// Your music code will appear here&#10;// Try: PLAY C4 FOR 1s AT 0s"
+                  value={codeEditor}
+                  onChange={(e) => setCodeEditor(e.target.value)}
+                  aria-label="Music code editor"
+                />
+              </CardContent>
+            </Card>
+
+            {/* Analysis Results */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Analysis Results</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isAnalyzing ? (
+                  <div className="space-y-4">
+                    <div className="text-center">
+                      <Brain className="w-6 h-6 mx-auto mb-2 text-primary animate-pulse" />
+                      <p className="text-sm text-muted-foreground">Analyzing audio...</p>
+                    </div>
+                    <Progress value={analysisProgress} className="w-full" aria-label={`Analysis progress: ${analysisProgress}%`} />
+                    <p className="text-xs text-center text-muted-foreground">{analysisProgress}% complete</p>
+                  </div>
+                ) : analysisResult ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <Check className="w-4 h-4 text-green-500" />
+                      <span className="text-sm font-medium">Analysis Complete</span>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Key:</span>
+                        <span className="font-mono">{analysisResult.details?.key}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">BPM:</span>
+                        <span className="font-mono">{analysisResult.details?.bpm}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Chords:</span>
+                        <span className="font-mono">{analysisResult.details?.chords?.join(', ')}</span>
                       </div>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <Textarea
-                      className="min-h-[300px] font-mono text-sm"
-                      placeholder="// Your music code will appear here&#10;// Try: PLAY C4 FOR 1s AT 0s"
-                      value={codeEditor}
-                      onChange={(e) => setCodeEditor(e.target.value)}
-                      aria-label="Music code editor"
-                    />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="analysis" className="mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">Analysis Results</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {isAnalyzing ? (
-                      <div className="space-y-4">
-                        <div className="text-center">
-                          <Brain className="w-8 h-8 mx-auto mb-2 text-primary animate-pulse" />
-                          <p className="text-sm text-muted-foreground">Analyzing audio...</p>
-                        </div>
-                        <Progress value={analysisProgress} className="w-full" aria-label={`Analysis progress: ${analysisProgress}%`} />
-                        <p className="text-xs text-center text-muted-foreground">{analysisProgress}% complete</p>
-                      </div>
-                    ) : analysisResult ? (
-                      <div className="space-y-3">
-                        <div className="flex items-center space-x-2">
-                          <Check className="w-4 h-4 text-green-500" />
-                          <span className="text-sm font-medium">Analysis Complete</span>
-                        </div>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Key:</span>
-                            <span className="font-mono">{analysisResult.details?.key}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">BPM:</span>
-                            <span className="font-mono">{analysisResult.details?.bpm}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Chords:</span>
-                            <span className="font-mono">{analysisResult.details?.chords?.join(', ')}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center text-muted-foreground">
-                        <BarChart3 className="w-8 h-8 mx-auto mb-2" />
-                        <p className="text-sm">Upload audio to see analysis results</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+                  </div>
+                ) : (
+                  <div className="text-center text-muted-foreground">
+                    <BarChart3 className="w-6 h-6 mx-auto mb-2" />
+                    <p className="text-sm">Upload audio to see analysis results</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

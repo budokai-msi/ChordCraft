@@ -5,7 +5,7 @@ import './vibrant-design-system.css';
 import { AuthProvider, useAuth } from './Auth';
 import { LandingPage } from './LandingPage';
 import { Login } from './Login';
-import { ModernStudio } from './features/studio/ModernStudio';
+import { CleanStudio } from './features/studio/CleanStudio';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function WorkingApp() {
@@ -15,7 +15,7 @@ function WorkingApp() {
       if (user) {
         return (
           <ErrorBoundary>
-            <ModernStudio />
+            <CleanStudio />
           </ErrorBoundary>
         );
       }
