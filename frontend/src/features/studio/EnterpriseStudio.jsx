@@ -117,6 +117,9 @@ EXPORT_QUALITY = "HIGH";`);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [analysisResult, setAnalysisResult] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audioContext, setAudioContext] = useState(null);
+  const [scheduledNotes, setScheduledNotes] = useState([]);
 
   const handleFileUpload = (result) => {
     console.log('File uploaded:', result);
@@ -223,6 +226,102 @@ APPLY detected_pattern TO ${fileName.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0
 EXPORT_FORMAT = "MIDI";
 EXPORT_QUALITY = "HIGH";
 EXPORT_TEMPO = ${bpm};`;
+  };
+
+  // Audio playback functions
+  const initAudioContext = () => {
+    if (!audioContext) {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      setAudioContext(ctx);
+      return ctx;
+    }
+    return audioContext;
+  };
+
+  const noteToFrequency = (note) => {
+    const noteMap = {
+      'C': 0, 'C#': 1, 'D': 2, 'D#': 3, 'E': 4, 'F': 5, 'F#': 6, 'G': 7, 'G#': 8, 'A': 9, 'A#': 10, 'B': 11
+    };
+    
+    const match = note.match(/([A-G]#?\d+)/);
+    if (!match) return 440;
+    
+    const [, noteName, octave] = match;
+    const noteNumber = noteMap[noteName] + (parseInt(octave) * 12);
+    return 440 * Math.pow(2, (noteNumber - 69) / 12);
+  };
+
+  const playNote = (frequency, duration, startTime = 0) => {
+    const ctx = initAudioContext();
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+    
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    
+    oscillator.frequency.setValueAtTime(frequency, ctx.currentTime + startTime);
+    oscillator.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(0, ctx.currentTime + startTime);
+    gainNode.gain.linearRampToValueAtTime(0.3, ctx.currentTime + startTime + 0.01);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + startTime + duration);
+    
+    oscillator.start(ctx.currentTime + startTime);
+    oscillator.stop(ctx.currentTime + startTime + duration);
+    
+    return oscillator;
+  };
+
+  const parseAndPlayCode = (code) => {
+    const ctx = initAudioContext();
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+    
+    const playCommands = code.match(/PLAY\s+([A-G]#?\d+)\s+FOR\s+([\d.]+)s\s+AT\s+([\d.]+)s/g);
+    if (!playCommands) return;
+    
+    const notes = [];
+    playCommands.forEach(cmd => {
+      const match = cmd.match(/PLAY\s+([A-G]#?\d+)\s+FOR\s+([\d.]+)s\s+AT\s+([\d.]+)s/);
+      if (match) {
+        const [, note, duration, startTime] = match;
+        notes.push({
+          note,
+          frequency: noteToFrequency(note),
+          duration: parseFloat(duration),
+          startTime: parseFloat(startTime)
+        });
+      }
+    });
+    
+    setScheduledNotes(notes);
+    
+    // Play all notes
+    notes.forEach(({ frequency, duration, startTime }) => {
+      playNote(frequency, duration, startTime);
+    });
+  };
+
+  const handlePlayCode = () => {
+    if (isPlaying) {
+      setIsPlaying(false);
+      if (audioContext) {
+        audioContext.suspend();
+      }
+    } else {
+      setIsPlaying(true);
+      parseAndPlayCode(codeEditor);
+      
+      // Auto-stop after 20 seconds
+      setTimeout(() => {
+        setIsPlaying(false);
+      }, 20000);
+    }
   };
 
   const togglePlay = () => {
@@ -863,9 +962,9 @@ EXPORT_TEMPO = ${bpm};`;
                 onChange={(e) => setCodeEditor(e.target.value)}
               />
               <div className="flex flex-col space-y-2">
-                <Button className="px-4 btn-primary" onClick={playCode}>
-                  <Play className="w-4 h-4 mr-2" />
-                  Play Code
+                <Button className="px-4 btn-primary" onClick={handlePlayCode}>
+                  {isPlaying ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
+                  {isPlaying ? 'Stop' : 'Play Code'}
                 </Button>
                 <Button variant="outline" className="px-4 btn-outline" onClick={analyzeCode}>
                   <Brain className="w-4 h-4 mr-2" />
