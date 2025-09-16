@@ -166,41 +166,41 @@ export function ModernStudioAntd() {
     }
   });
 
-  // React Query for data fetching
+  // React Query for data fetching (commented out for now)
   // const { data: projects = [] } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => Promise.resolve([]), // Replace with actual API call
-    staleTime: 5 * 60 * 1000
-  });
+  //   queryKey: ['projects'],
+  //   queryFn: () => Promise.resolve([]), // Replace with actual API call
+  //   staleTime: 5 * 60 * 1000
+  // });
 
-  // Mutations
+  // Mutations (commented out for now)
   // const createProjectMutation = useMutation({
-    mutationFn: async (projectData) => {
-      // Replace with actual API call
-      return Promise.resolve({ id: Date.now(), ...projectData });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-      message.success('Project created successfully!');
-    },
-    onError: () => {
-      message.error('Failed to create project');
-    }
-  });
+  //   mutationFn: async (projectData) => {
+  //     // Replace with actual API call
+  //     return Promise.resolve({ id: Date.now(), ...projectData });
+  //   },
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries({ queryKey: ['projects'] });
+  //     message.success('Project created successfully!');
+  //   },
+  //   onError: () => {
+  //     message.error('Failed to create project');
+  //   }
+  // });
 
   // const updateProjectMutation = useMutation({
-    mutationFn: async (projectData) => {
-      // Replace with actual API call
-      return Promise.resolve(projectData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-      message.success('Project updated successfully!');
-    },
-    onError: () => {
-      message.error('Failed to update project');
-    }
-  });
+  //   mutationFn: async (projectData) => {
+  //     // Replace with actual API call
+  //     return Promise.resolve(projectData);
+  //   },
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries({ queryKey: ['projects'] });
+  //     message.success('Project updated successfully!');
+  //   },
+  //   onError: () => {
+  //     message.error('Failed to update project');
+  //   }
+  // });
 
   // Handlers
   const updateState = (updates) => setState(prev => ({ ...prev, ...updates }));

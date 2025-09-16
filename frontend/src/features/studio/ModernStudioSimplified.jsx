@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { 
   Play, Pause, Square, SkipBack, SkipForward, 
   Volume2, VolumeX, Settings, Upload, Download, 
@@ -103,8 +103,8 @@ const EnhancedTransportControls = ({
   zoom,
   onZoomChange
 }) => {
-  const [isRecording, setIsRecording] = useState(false);
-  const [showBeatPulse, setShowBeatPulse] = useState(false);
+  // const [isRecording, setIsRecording] = useState(false);
+  // const [showBeatPulse, setShowBeatPulse] = useState(false);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -228,12 +228,7 @@ const EnhancedTransportControls = ({
 // Professional Piano Roll Component
 const ProfessionalPianoRoll = ({
   notes,
-  isPlaying,
-  currentTime,
-  zoom,
-  onNoteClick,
-  onNoteMove,
-  onNoteResize
+  onNoteClick
 }) => {
   const pianoNotes = ['C4', 'B3', 'A3', 'G3', 'F3', 'E3', 'D3', 'C3'];
   
@@ -241,7 +236,7 @@ const ProfessionalPianoRoll = ({
     <div className="h-full bg-slate-900/50 rounded border border-slate-700/50 flex">
       {/* Piano Keys */}
       <div className="w-16 border-r border-slate-700/50">
-        {pianoNotes.map((note, index) => (
+        {pianoNotes.map((note) => (
           <div 
             key={note}
             className={`h-12 border-b border-slate-700/30 flex items-center justify-center text-xs font-mono ${
@@ -333,7 +328,7 @@ export function ModernStudioSimplified() {
     showSuccess, showError, setAnalyzing, isAnalyzing
   } = useUIStore();
   const { 
-    currentTime, duration, volume, isPlaying, isPaused,
+    currentTime, duration, volume, isPlaying,
     play, pause, stop, setVolume, setCurrentTime 
   } = usePlaybackStore();
 
@@ -715,30 +710,7 @@ export function ModernStudioSimplified() {
                     <div className="h-full bg-black/20 rounded-lg border border-purple-800/30">
                       <ProfessionalPianoRoll
                         notes={state.notes}
-                        isPlaying={isPlaying}
-                        currentTime={currentTime}
-                        zoom={state.zoom}
                         onNoteClick={(note) => console.log('Note clicked:', note)}
-                        onNoteMove={(noteId, newStart, newNote) => {
-                          setState(prev => ({
-                            ...prev,
-                            notes: prev.notes.map(n => 
-                              n.id === noteId 
-                                ? { ...n, startTime: newStart, note: newNote }
-                                : n
-                            )
-                          }));
-                        }}
-                        onNoteResize={(noteId, newDuration) => {
-                          setState(prev => ({
-                            ...prev,
-                            notes: prev.notes.map(n => 
-                              n.id === noteId 
-                                ? { ...n, duration: newDuration }
-                                : n
-                            )
-                          }));
-                        }}
                       />
                     </div>
                   </motion.div>
