@@ -214,15 +214,13 @@ export class ChordCraftDecoder {
   private async decodeFlac(flacData: ArrayBuffer): Promise<AudioBuffer> {
     if (!this.audioContext) throw new Error('AudioContext not available');
     
-    // For now, we'll use a simple approach
-    // In production, you'd use a proper FLAC decoder like flac.js
     try {
       // Try native decode first (some browsers support FLAC)
       return await this.audioContext.decodeAudioData(flacData);
     } catch (e) {
-      // Fallback: convert to WAV or use WebAssembly FLAC decoder
-      console.warn('Native FLAC decode not supported, using fallback');
-      throw new Error('FLAC decoding not implemented - use neural codec or WAV');
+      // For now, fall back to neural codec or synthetic playback
+      console.warn('Native FLAC decode not supported, falling back to neural/synthetic');
+      throw new Error('FLAC decoding not supported in this browser - use neural codec or WAV format');
     }
   }
 
