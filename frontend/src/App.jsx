@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from './Auth';
 import { LandingPage } from './LandingPage';
 import { Login } from './Login';
-import { ModernStudio } from './features/studio/ModernStudio';
+import { ModernStudioSimplified } from './features/studio/ModernStudioSimplified';
 import ErrorBoundary from './components/ErrorBoundary';
 
 export function App() {
@@ -12,7 +12,7 @@ export function App() {
   if (user) {
         return (
           <ErrorBoundary>
-            <ModernStudio />
+            <ModernStudioSimplified />
           </ErrorBoundary>
         );
   }
