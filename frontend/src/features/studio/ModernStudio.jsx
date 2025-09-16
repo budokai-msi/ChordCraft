@@ -24,15 +24,15 @@ import { AudioUpload } from '../../components/AudioUpload';
 import { Timeline } from '../../components/Timeline';
 import { TrackManager } from '../../components/TrackManager';
 import { subscriptionService } from '../../services/subscriptionService';
-import { generateMusic, mockGenerateMusic } from '../../services/musicApiService';
-import { analyzeAudio, mockAnalyzeAudio } from '../../services/audioAnalysisService';
+import { generateMusic } from '../../services/musicApiService';
+import { analyzeAudio } from '../../services/audioAnalysisService';
 
 // Ultra-compact constants
 const ASSETS = {
-  aiPowered: '/src/assets/ai-powered-icon.png',
-  daw: '/src/assets/daw-icon.png',
-  musicToCode: '/src/assets/music-to-code-icon.png',
-  realTimeAnalysis: '/src/assets/real-time-analysis-icon.png'
+  aiPowered: '/assets/ai-powered-icon.png',
+  daw: '/assets/daw-icon.png',
+  musicToCode: '/assets/music-to-code-icon.png',
+  realTimeAnalysis: '/assets/real-time-analysis-icon.png'
 };
 
 const TRANSPORT_CONTROLS = [
@@ -52,15 +52,13 @@ const TRACK_TYPES = [
 
 export function ModernStudio() {
   const { 
-    chordCraftCode, updateCode, musicAnalysis, currentProject, 
-    projects, createProject, updateProject, deleteProject 
+    chordCraftCode, updateCode, currentProject
   } = useProjectStore();
   const { 
-    showSuccess, showError, setAnalyzing, isAnalyzing, 
-    showSubscriptionModal, setShowSubscriptionModal 
+    showSuccess, showError, setAnalyzing, isAnalyzing
   } = useUIStore();
   const { 
-    isPlaying, isPaused, currentTime, duration, volume, 
+    currentTime, duration, volume, 
     play, pause, stop, setVolume, setCurrentTime 
   } = usePlaybackStore();
 
@@ -73,8 +71,6 @@ export function ModernStudio() {
   });
 
   const [maxDailyUsage] = useState(5);
-  const audioRef = useRef(null);
-  const canvasRef = useRef(null);
 
   // Ultra-compact update function
   const updateState = (updates) => setState(prev => ({ ...prev, ...updates }));
@@ -218,7 +214,7 @@ export function ModernStudio() {
             timeSignature: projectData.timeSignature || '4/4'
           });
           showSuccess('Project imported successfully!');
-        } catch (error) {
+        } catch {
           showError('Failed to import project. Invalid file format.');
         }
       };
@@ -239,7 +235,9 @@ export function ModernStudio() {
           variant={primary ? "default" : "outline"}
           size="sm"
           onClick={() => handlers.transport(action)}
-          className={primary ? "btn-primary" : "hover:bg-primary/20"}
+          className={`${primary ? "btn-primary" : "hover:bg-primary/20"} h-8 px-2`}
+          aria-label={`${action} audio`}
+          title={`${action} audio`}
         >
           <Icon className="w-4 h-4" />
         </Button>
@@ -259,10 +257,22 @@ export function ModernStudio() {
             <p className="text-xs text-muted-foreground">{track.type}</p>
           </div>
           <div className="flex items-center space-x-2">
-            <Button size="sm" variant="ghost" onClick={() => handlers.updateTrack(track.id, { mute: !track.mute })}>
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              onClick={() => handlers.updateTrack(track.id, { mute: !track.mute })}
+              aria-label={track.mute ? "Unmute track" : "Mute track"}
+              title={track.mute ? "Unmute track" : "Mute track"}
+            >
               {track.mute ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => handlers.deleteTrack(track.id)}>
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              onClick={() => handlers.deleteTrack(track.id)}
+              aria-label="Delete track"
+              title="Delete track"
+            >
               <Trash2 className="w-4 h-4" />
             </Button>
           </div>
@@ -273,13 +283,15 @@ export function ModernStudio() {
 
   const AddTrackButton = () => (
     <div className="grid grid-cols-2 gap-2">
-      {TRACK_TYPES.map(({ id, label, icon: Icon, color }) => (
+      {TRACK_TYPES.map(({ id, label, icon: Icon }) => (
         <Button
           key={id}
           variant="outline"
           size="sm"
           onClick={() => handlers.addTrack(id)}
-          className="justify-start hover:bg-primary/20"
+          className="justify-start hover:bg-primary/20 h-8 px-3 text-xs"
+          aria-label={`Add ${label} track`}
+          title={`Add ${label} track`}
         >
           <Icon className="w-4 h-4 mr-2" />
           {label}
@@ -315,6 +327,8 @@ export function ModernStudio() {
               max={200}
               step={1}
               className="w-24"
+              aria-label="Tempo control"
+              title={`Current tempo: ${state.tempo} BPM`}
             />
             <span className="text-sm font-mono w-12">{state.tempo} BPM</span>
           </div>
@@ -327,6 +341,8 @@ export function ModernStudio() {
               max={1}
               step={0.01}
               className="w-24"
+              aria-label="Volume control"
+              title={`Current volume: ${Math.round(volume * 100)}%`}
             />
             <span className="text-sm font-mono w-12">{Math.round(volume * 100)}%</span>
           </div>
@@ -417,11 +433,25 @@ export function ModernStudio() {
           {/* Toolbar */}
           <div className="flex items-center justify-between p-4 border-b border-border bg-card">
             <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm" onClick={() => handlers.exportProject()}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => handlers.exportProject()}
+                className="h-8 px-3 text-xs"
+                aria-label="Export current project"
+                title="Export current project"
+              >
                 <Download className="w-4 h-4 mr-2" />
                 Export
               </Button>
-              <Button variant="outline" size="sm" onClick={() => document.getElementById('import-file')?.click()}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => document.getElementById('import-file')?.click()}
+                className="h-8 px-3 text-xs"
+                aria-label="Import project file"
+                title="Import project file"
+              >
                 <Upload className="w-4 h-4 mr-2" />
                 Import
               </Button>
@@ -431,9 +461,18 @@ export function ModernStudio() {
                 accept=".chordcraft,.json"
                 onChange={(e) => e.target.files[0] && handlers.importProject(e.target.files[0])}
                 className="hidden"
+                aria-label="Import project file"
+                title="Select a project file to import"
               />
               <Separator orientation="vertical" className="h-6" />
-              <Button variant="outline" size="sm" onClick={() => updateState({ showAICompanion: !state.showAICompanion })}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => updateState({ showAICompanion: !state.showAICompanion })}
+                className="h-8 px-3 text-xs"
+                aria-label="Toggle AI Assistant"
+                title="Toggle AI Assistant"
+              >
                 <Brain className="w-4 h-4 mr-2" />
                 AI Assistant
               </Button>
@@ -482,6 +521,8 @@ export function ModernStudio() {
                   onChange={(e) => updateCode(e.target.value)}
                   placeholder="Enter your ChordCraft code here..."
                   className="h-full min-h-[400px] font-mono text-sm"
+                  aria-label="ChordCraft code editor"
+                  title="Enter your ChordCraft code here"
                 />
               </CardContent>
             </Card>

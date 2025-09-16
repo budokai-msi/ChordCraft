@@ -21,10 +21,10 @@ import { subscriptionService } from '../../../services/subscriptionService';
 const INITIAL_MESSAGE = { id: 1, type: 'ai', message: "🎵 Hello! I'm your AI music companion. What would you like to create today?", timestamp: new Date(), suggestions: ["Create a drum and bass drop", "Generate an ambient pad", "Add jazz chords", "Create a trap beat"] };
 const OPTIONS = { styles: ['Electronic', 'Jazz', 'Classical', 'Rock', 'Hip-Hop', 'Ambient'], moods: ['Energetic', 'Calm', 'Dark', 'Bright', 'Melancholic', 'Uplifting'], lengths: ['8 bars', '16 bars', '32 bars'] };
 const ASSETS = {
-  aiPowered: '/src/assets/ai-powered-icon.png',
-  daw: '/src/assets/daw-icon.png',
-  musicToCode: '/src/assets/music-to-code-icon.png',
-  realTimeAnalysis: '/src/assets/real-time-analysis-icon.png'
+  aiPowered: '/assets/ai-powered-icon.png',
+  daw: '/assets/daw-icon.png',
+  musicToCode: '/assets/music-to-code-icon.png',
+  realTimeAnalysis: '/assets/real-time-analysis-icon.png'
 };
 
 export function AICompanion() {
