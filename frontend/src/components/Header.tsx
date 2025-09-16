@@ -1,13 +1,15 @@
-import { Brain, Zap, User, Settings } from "lucide-react";
+import { Brain, Zap, User, Settings, LogOut } from "lucide-react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { useAuth } from "./Auth";
 
 interface HeaderProps {
   onShowSubscription: () => void;
 }
 
 export function Header({ onShowSubscription }: HeaderProps) {
+  const { user, signOut } = useAuth();
   return (
     <header className="h-16 border-b border-purple-800/30 bg-black/20 backdrop-blur-sm px-6 flex items-center justify-between">
       {/* Logo and Branding */}
@@ -47,12 +49,29 @@ export function Header({ onShowSubscription }: HeaderProps) {
           <Settings className="w-4 h-4" />
         </Button>
         
-        <Avatar className="w-8 h-8">
-          <AvatarImage src="https://images.unsplash.com/photo-1661261400335-7dc71eb2b5a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtdXNpYyUyMHN0dWRpbyUyMHByb2R1Y2VyfGVufDF8fHx8MTc1ODAwNDU5Nnww&ixlib=rb-4.1.0&q=80&w=32&utm_source=figma&utm_medium=referral" />
-          <AvatarFallback className="bg-purple-600">
-            <User className="w-4 h-4" />
-          </AvatarFallback>
-        </Avatar>
+        <div className="flex items-center gap-2">
+          <Avatar className="w-8 h-8">
+            <AvatarImage src={user?.user_metadata?.avatar_url} />
+            <AvatarFallback className="bg-purple-600">
+              <User className="w-4 h-4" />
+            </AvatarFallback>
+          </Avatar>
+          
+          <div className="text-sm">
+            <div className="text-slate-200 font-medium">
+              {user?.user_metadata?.full_name || user?.email || 'User'}
+            </div>
+          </div>
+          
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={signOut}
+            className="text-slate-400 hover:text-slate-200"
+          >
+            <LogOut className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
     </header>
   );
