@@ -18,6 +18,7 @@ interface Track {
   volume: number;
   muted: boolean;
   solo: boolean;
+  generatedCode?: string;
 }
 
 function AppContent() {
@@ -27,8 +28,12 @@ function AppContent() {
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
+  // Debug logging
+  console.log('AppContent render:', { user, loading, currentView });
+
   // Show loading spinner while checking auth
   if (loading) {
+    console.log('Showing loading spinner');
     return (
       <div className="min-h-screen bg-gradient-dark flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
@@ -78,6 +83,8 @@ function AppContent() {
 }
 
 export default function App() {
+  console.log('App component rendering');
+  
   return (
     <AuthProvider>
       <AudioEngineProvider>

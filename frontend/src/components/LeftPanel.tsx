@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Upload, Music, Volume2, VolumeX, Play, Pause, Plus } from "lucide-react";
 import { HapticButton } from "./HapticButton";
 import { HapticSlider } from "./HapticSlider";
@@ -16,6 +16,7 @@ interface Track {
   volume: number;
   muted: boolean;
   solo: boolean;
+  generatedCode?: string;
 }
 
 interface LeftPanelProps {
@@ -64,13 +65,20 @@ export function LeftPanel({ currentTrack, setCurrentTrack, isPlaying, setIsPlayi
       duration: "0:00",
       volume: 80,
       muted: false,
-      solo: false
+      solo: false,
+      generatedCode: result.generatedCode // Store the AI-generated code
     };
     setTracks([...tracks, newTrack]);
     
     // Success haptic feedback
     if (navigator.vibrate) {
       navigator.vibrate([20, 10, 20]);
+    }
+
+    // Show success message with code preview
+    if (result.generatedCode) {
+      console.log('AI Generated Code:', result.generatedCode);
+      // You could show a toast notification here
     }
   };
 

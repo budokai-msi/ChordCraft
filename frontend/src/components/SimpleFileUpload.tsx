@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { Upload, Music, FileAudio, Loader2 } from "lucide-react";
 import { HapticButton } from "./HapticButton";
 import { Card, CardContent } from "./ui/card";
@@ -10,6 +10,7 @@ interface FileUploadResult {
   fileSize: number;
   fileType: string;
   audioBuffer?: ArrayBuffer;
+  generatedCode?: string;
 }
 
 interface SimpleFileUploadProps {
@@ -70,53 +71,55 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
     }
 
     try {
-      // Simulate upload progress
-      const interval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(interval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 100);
+      // Create FormData for backend upload
+      const formData = new FormData();
+      formData.append('audio', file);
 
-      // Read file as array buffer
-      const arrayBuffer = await file.arrayBuffer();
+      // Upload to backend for analysis
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+      const response = await fetch(`${backendUrl}/upload-audio`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
       
-      // Complete upload
-      setTimeout(() => {
+      if (result.success) {
         setUploadProgress(100);
         
-        const result: FileUploadResult = {
+        const uploadResult: FileUploadResult = {
           fileName: file.name,
           fileSize: file.size,
           fileType: file.type,
-          audioBuffer: arrayBuffer
+          audioBuffer: await file.arrayBuffer(),
+          generatedCode: result.code // Include the AI-generated code
         };
 
-        onUpload(result);
+        onUpload(uploadResult);
         
         // Success haptic feedback
         if (navigator.vibrate) {
           navigator.vibrate([20, 10, 20]);
         }
-        
-        setTimeout(() => {
-          setIsUploading(false);
-          setUploadProgress(0);
-        }, 1000);
-      }, 500);
-
+      } else {
+        throw new Error(result.error || 'Upload failed');
+      }
+      
     } catch (error) {
       console.error('Upload failed:', error);
-      setIsUploading(false);
-      setUploadProgress(0);
+      alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       
       // Error haptic feedback
       if (navigator.vibrate) {
         navigator.vibrate([100, 50, 100]);
       }
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 

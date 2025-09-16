@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "./ui/card";
 import { EnhancedTransportControls } from "./EnhancedTransportControls";
 import { ProfessionalPianoRoll } from "./ProfessionalPianoRoll";
@@ -41,7 +41,7 @@ export function MainPanel({ currentTrack, isPlaying }: MainPanelProps) {
 
   // Generate piano roll grid
   const generatePianoRoll = () => {
-    const notes = [];
+    const notes: string[] = [];
     const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     const octaves = [5, 4, 3, 2, 1];
     
@@ -132,8 +132,8 @@ export function MainPanel({ currentTrack, isPlaying }: MainPanelProps) {
         onStop={handleStop}
         onNext={handleNext}
         onPrevious={handlePrevious}
-        currentTime={audioEngine.currentTime}
-        totalTime={audioEngine.duration || 154}
+        currentTime={audioEngine?.currentTime || 0}
+        totalTime={audioEngine?.duration || 154}
         zoom={zoom}
         onZoomChange={setZoom}
       />
@@ -143,7 +143,7 @@ export function MainPanel({ currentTrack, isPlaying }: MainPanelProps) {
         <ProfessionalPianoRoll
           notes={mockNotes}
           isPlaying={playbackState}
-          currentTime={currentTime}
+          currentTime={audioEngine?.currentTime || 0}
           zoom={zoom}
           onNoteClick={(note) => {
             console.log('Note clicked:', note);
