@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import { Card } from "./ui/card";
 import { EnhancedTransportControls } from "./EnhancedTransportControls";
@@ -37,6 +38,8 @@ export function MainPanel({ currentTrack, isPlaying }: MainPanelProps) {
 
   // Generate a simple audio tone for testing
   const generateSampleAudio = () => {
+    if (typeof window === 'undefined') return;
+    
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
@@ -89,6 +92,8 @@ export function MainPanel({ currentTrack, isPlaying }: MainPanelProps) {
   ];
 
   const handlePlayPause = () => {
+    if (typeof window === 'undefined') return;
+    
     const newPlaybackState = !playbackState;
     setPlaybackState(newPlaybackState);
     
@@ -121,6 +126,8 @@ export function MainPanel({ currentTrack, isPlaying }: MainPanelProps) {
   };
 
   const handleStop = () => {
+    if (typeof window === 'undefined') return;
+    
     setPlaybackState(false);
     const oscillator = (window as any).oscillator;
     if (oscillator) {

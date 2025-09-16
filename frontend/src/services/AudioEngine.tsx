@@ -1,3 +1,4 @@
+"use client";
 import { createContext, useContext, useRef, useState, useEffect } from 'react';
 
 interface AudioEngineContextType {

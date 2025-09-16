@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useRef } from "react";
 import { Upload, Music, FileAudio, Loader2 } from "lucide-react";
 import { HapticButton } from "./HapticButton";
@@ -66,7 +67,7 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
     setUploadProgress(0);
 
     // Haptic feedback for upload start
-    if (navigator.vibrate) {
+    if (typeof window !== 'undefined' && navigator.vibrate) {
       navigator.vibrate([10, 5, 10]);
     }
 
@@ -101,10 +102,10 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
 
         onUpload(uploadResult);
         
-        // Success haptic feedback
-        if (navigator.vibrate) {
-          navigator.vibrate([20, 10, 20]);
-        }
+    // Success haptic feedback
+    if (typeof window !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate([20, 10, 20]);
+    }
       } else {
         throw new Error(result.error || 'Upload failed');
       }
