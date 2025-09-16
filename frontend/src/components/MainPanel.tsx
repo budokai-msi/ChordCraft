@@ -15,6 +15,20 @@ export function MainPanel({ currentTrack, isPlaying }: MainPanelProps) {
   const [zoom, setZoom] = useState(100);
   const [playbackState, setPlaybackState] = useState(isPlaying);
 
+  // Fallback values if audioEngine is undefined
+  const safeAudioEngine = audioEngine || {
+    currentTime: 0,
+    duration: 154,
+    isPlaying: false,
+    volume: 0.8,
+    play: () => {},
+    pause: () => {},
+    stop: () => {},
+    setVolume: () => {},
+    loadAudio: () => {},
+    seekTo: () => {}
+  };
+
   // Load sample audio on component mount
   useEffect(() => {
     // For now, we'll generate a simple tone using Web Audio API
@@ -132,8 +146,8 @@ export function MainPanel({ currentTrack, isPlaying }: MainPanelProps) {
         onStop={handleStop}
         onNext={handleNext}
         onPrevious={handlePrevious}
-        currentTime={audioEngine?.currentTime || 0}
-        totalTime={audioEngine?.duration || 154}
+        currentTime={safeAudioEngine.currentTime}
+        totalTime={safeAudioEngine.duration}
         zoom={zoom}
         onZoomChange={setZoom}
       />
@@ -143,7 +157,7 @@ export function MainPanel({ currentTrack, isPlaying }: MainPanelProps) {
         <ProfessionalPianoRoll
           notes={mockNotes}
           isPlaying={playbackState}
-          currentTime={audioEngine?.currentTime || 0}
+          currentTime={safeAudioEngine.currentTime}
           zoom={zoom}
           onNoteClick={(note) => {
             console.log('Note clicked:', note);
