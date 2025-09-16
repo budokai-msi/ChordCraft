@@ -144,6 +144,7 @@ export function SimpleFileUpload({ onAnalysisComplete, className = '' }) {
             accept={supportedFormats.join(',')}
             onChange={handleFileInputChange}
             className="hidden"
+            aria-label="Upload audio file"
           />
           
           {isUploading ? (
