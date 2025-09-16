@@ -10,11 +10,21 @@ import { LandingPage } from "./components/LandingPage";
 import { Login } from "./components/Login";
 import { ResponsiveLayout } from "./components/ResponsiveLayout";
 
+interface Track {
+  id: string;
+  name: string;
+  type: "audio" | "midi";
+  duration: string;
+  volume: number;
+  muted: boolean;
+  solo: boolean;
+}
+
 function AppContent() {
   const { user, loading } = useAuth();
   const [currentView, setCurrentView] = useState<"landing" | "login" | "studio">("landing");
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-  const [currentTrack, setCurrentTrack] = useState(null);
+  const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
   // Show loading spinner while checking auth
