@@ -9,6 +9,7 @@ import { SubscriptionModal } from "./components/SubscriptionModal";
 import { LandingPage } from "./components/LandingPage";
 import { Login } from "./components/Login";
 import { ResponsiveLayout } from "./components/ResponsiveLayout";
+import { Analytics } from "@vercel/analytics/react";
 
 interface Track {
   id: string;
@@ -89,6 +90,7 @@ export default function App() {
     <AuthProvider>
       <AudioEngineProvider>
         <AppContent />
+        <Analytics />
       </AudioEngineProvider>
     </AuthProvider>
   );
