@@ -620,31 +620,58 @@ EXPORT_TEMPO = ${bpm};`;
                   <div className="h-full glass-pane rounded-lg overflow-hidden">
                     <div className="h-full bg-gradient-to-br from-slate-900 to-slate-800 relative">
                       {/* Grid Pattern */}
-                      <div className="absolute inset-0 opacity-20">
+                      <div className="absolute inset-0 opacity-30">
                         <div className="grid grid-cols-16 gap-0 h-full">
                           {Array.from({ length: 16 }).map((_, i) => (
-                            <div key={i} className="border-r border-slate-600"></div>
+                            <div key={i} className="border-r border-slate-500/40 hover:border-slate-400/60 transition-colors duration-200"></div>
+                          ))}
+                        </div>
+                        {/* Horizontal grid lines */}
+                        <div className="absolute inset-0 grid grid-rows-12 gap-0 h-full">
+                          {Array.from({ length: 12 }).map((_, i) => (
+                            <div key={i} className="border-b border-slate-500/20 hover:border-slate-400/40 transition-colors duration-200"></div>
                           ))}
                         </div>
                       </div>
                       
                       {/* Note Labels */}
-                      <div className="absolute left-0 top-0 w-16 h-full border-r border-slate-600 bg-slate-800/50">
-                        <div className="p-2 space-y-1">
+                      <div className="absolute left-0 top-0 w-20 h-full border-r border-slate-500/50 bg-gradient-to-b from-slate-800/80 to-slate-900/80 backdrop-blur-sm">
+                        <div className="p-3 space-y-0">
                           {['C8', 'B7', 'A#7', 'A7', 'G#7', 'G7', 'F#7', 'F7', 'E7', 'D#7', 'D7', 'C#7', 'C7'].map((note, i) => (
-                            <div key={note} className="text-xs text-slate-400 text-center py-1">
-                              {note}
+                            <div 
+                              key={note} 
+                              className="flex items-center justify-center h-8 text-xs font-mono font-semibold text-slate-300 hover:text-white hover:bg-slate-700/50 rounded transition-all duration-200 cursor-pointer group"
+                            >
+                              <span className="group-hover:scale-110 transition-transform duration-200">
+                                {note}
+                              </span>
                             </div>
                           ))}
                         </div>
                       </div>
 
                       {/* Timeline Area */}
-                      <div className="ml-16 h-full flex items-center justify-center">
-                        <div className="text-center">
-                          <Piano className="w-16 h-16 mx-auto text-slate-500 mb-4" />
-                          <p className="text-slate-400 text-lg">Professional Timeline</p>
-                          <p className="text-slate-500 text-sm">Drag audio files here or use the code editor below</p>
+                      <div className="ml-20 h-full flex items-center justify-center relative">
+                        <div className="text-center glass-pane rounded-xl p-8 max-w-md">
+                          <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center neon-glow">
+                            <Piano className="w-10 h-10 text-blue-400" />
+                          </div>
+                          <h3 className="text-xl font-semibold text-white mb-2">Professional Timeline</h3>
+                          <p className="text-slate-300 mb-4">Drag audio files here or use the code editor below to create music</p>
+                          <div className="flex flex-wrap gap-2 justify-center">
+                            <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                              <Music className="w-3 h-3 mr-1" />
+                              Audio Upload
+                            </Badge>
+                            <Badge variant="secondary" className="bg-purple-500/20 text-purple-400 border-purple-500/30">
+                              <Code className="w-3 h-3 mr-1" />
+                              Code Generation
+                            </Badge>
+                            <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/30">
+                              <Brain className="w-3 h-3 mr-1" />
+                              AI Analysis
+                            </Badge>
+                          </div>
                         </div>
                       </div>
                     </div>
