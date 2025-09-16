@@ -24,8 +24,8 @@ import { AudioUpload } from '../../components/AudioUpload';
 import { Timeline } from '../../components/Timeline';
 import { TrackManager } from '../../components/TrackManager';
 import { subscriptionService } from '../../services/subscriptionService';
-import { musicApiService } from '../../services/musicApiService';
-import { audioAnalysisService } from '../../services/audioAnalysisService';
+import { generateMusic, mockGenerateMusic } from '../../services/musicApiService';
+import { analyzeAudio, mockAnalyzeAudio } from '../../services/audioAnalysisService';
 
 // Ultra-compact constants
 const ASSETS = {
@@ -150,7 +150,7 @@ export function ModernStudio() {
 
       setAnalyzing(true);
       try {
-        const response = await musicApiService.generateMusic({ prompt, userId: 'user' });
+        const response = await generateMusic({ prompt, userId: 'user' });
         if (response.success) {
           updateCode(chordCraftCode + '\n\n' + response.chordCraftCode);
           showSuccess('AI generated music successfully!');
@@ -172,7 +172,7 @@ export function ModernStudio() {
 
       setAnalyzing(true);
       try {
-        const result = await audioAnalysisService.analyzeAudio(file);
+        const result = await analyzeAudio(file);
         if (result.success) {
           showSuccess('Audio analyzed successfully!');
           return result;
