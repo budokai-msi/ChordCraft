@@ -7,7 +7,7 @@ import { BottomPanel } from './components/BottomPanel';
 import { AICompanion } from './components/AICompanion';
 import { ProjectManager } from './components/ProjectManager';
 import { Settings } from './components/Settings';
-import { FileUpload } from '../../components/FileUpload';
+import { SimpleFileUpload } from '../../components/SimpleFileUpload';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

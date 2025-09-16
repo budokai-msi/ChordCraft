@@ -5,20 +5,20 @@ import './vibrant-design-system.css';
 import { AuthProvider, useAuth } from './Auth';
 import { LandingPage } from './LandingPage';
 import { Login } from './Login';
-import { Studio } from './features/studio/Studio';
+import { EnhancedStudio } from './features/studio/EnhancedStudio';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function WorkingApp() {
   const { user } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
 
-  if (user) {
-    return (
-      <ErrorBoundary>
-        <Studio />
-      </ErrorBoundary>
-    );
-  }
+      if (user) {
+        return (
+          <ErrorBoundary>
+            <EnhancedStudio />
+          </ErrorBoundary>
+        );
+      }
 
   if (showLogin) {
     return (
