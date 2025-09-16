@@ -101,15 +101,7 @@ export function LandingPage({ onGetStarted }) {
       {/* Hero Section */}
       <section
         ref={heroRef}
-        className="h-screen w-full flex items-center justify-center relative overflow-hidden"
-        style={{
-          background: `
-            radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-            radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-            radial-gradient(circle at 40% 80%, rgba(120, 219, 255, 0.3) 0%, transparent 50%),
-            linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)
-          `
-        }}
+        className="h-screen w-full flex items-center justify-center relative overflow-hidden hero-background"
       >
         <div className="absolute inset-0 bg-black/20" />
         
