@@ -77,7 +77,7 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
       formData.append('audio', file);
 
       // Upload to backend for analysis
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+      const backendUrl = (import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:5000';
       const response = await fetch(`${backendUrl}/upload-audio`, {
         method: 'POST',
         body: formData,
