@@ -13,7 +13,7 @@ interface LoginProps {
 }
 
 export function Login({ onBack }: LoginProps) {
-  const { signIn, signUp, signInWithGoogle, signInWithGitHub } = useAuth();
+  const { signInWithEmail, signInWithOAuth } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,15 +26,9 @@ export function Login({ onBack }: LoginProps) {
     setError('');
 
     try {
-      const { error } = isSignUp 
-        ? await signUp(email, password)
-        : await signIn(email, password);
-
-      if (error) {
-        setError(error.message);
-      }
-    } catch (err) {
-      setError('An unexpected error occurred');
+      await signInWithEmail(email, password);
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -42,18 +36,22 @@ export function Login({ onBack }: LoginProps) {
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
-    const { error } = await signInWithGoogle();
-    if (error) {
-      setError(error.message);
+    try {
+      await signInWithOAuth('google');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
       setLoading(false);
     }
   };
 
   const handleGitHubSignIn = async () => {
     setLoading(true);
-    const { error } = await signInWithGitHub();
-    if (error) {
-      setError(error.message);
+    try {
+      await signInWithOAuth('github');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
       setLoading(false);
     }
   };
