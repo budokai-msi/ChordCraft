@@ -123,6 +123,8 @@ const EnhancedTransportControls = ({
             hapticType="medium"
             onClick={onPrevious}
             className="text-purple-400 hover:text-purple-300 hover:bg-purple-600/20"
+            aria-label="Skip backward"
+            title="Skip backward"
           >
             <SkipBack className="w-4 h-4" />
           </HapticButton>
@@ -140,6 +142,8 @@ const EnhancedTransportControls = ({
                   ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700" 
                   : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
               }`}
+              aria-label={isPlaying ? "Pause audio" : "Play audio"}
+              title={isPlaying ? "Pause audio" : "Play audio"}
             >
               <AnimatePresence mode="wait">
                 <motion.div
@@ -161,6 +165,8 @@ const EnhancedTransportControls = ({
             hapticType="medium"
             onClick={onStop}
             className="text-purple-400 hover:text-purple-300 hover:bg-purple-600/20"
+            aria-label="Stop audio"
+            title="Stop audio"
           >
             <Square className="w-4 h-4" />
           </HapticButton>
@@ -171,6 +177,8 @@ const EnhancedTransportControls = ({
             hapticType="medium"
             onClick={onNext}
             className="text-purple-400 hover:text-purple-300 hover:bg-purple-600/20"
+            aria-label="Skip forward"
+            title="Skip forward"
           >
             <SkipForward className="w-4 h-4" />
           </HapticButton>
@@ -199,6 +207,8 @@ const EnhancedTransportControls = ({
             max={400}
             step={25}
             className="w-24"
+            aria-label="Timeline zoom level"
+            title={`Zoom: ${zoom}%`}
           />
           <motion.span 
             className="text-sm text-purple-200 w-10 font-mono"
@@ -530,6 +540,8 @@ export function ModernStudioSimplified() {
               size="sm"
               variant="ghost"
               className="text-purple-400 hover:text-purple-300"
+              aria-label="Open settings"
+              title="Open settings"
             >
               <Settings className="w-4 h-4" />
             </HapticButton>
@@ -538,6 +550,8 @@ export function ModernStudioSimplified() {
               size="sm"
               variant="ghost"
               className="text-purple-400 hover:text-purple-300"
+              aria-label="Share project"
+              title="Share project"
             >
               <Share2 className="w-4 h-4" />
             </HapticButton>
@@ -606,6 +620,8 @@ export function ModernStudioSimplified() {
                             handlers.updateTrack(track.id, { mute: !track.mute });
                           }}
                           className={`w-6 h-6 p-0 ${track.mute ? 'text-red-400' : 'text-purple-400'}`}
+                          aria-label={track.mute ? "Unmute track" : "Mute track"}
+                          title={track.mute ? "Unmute track" : "Mute track"}
                         >
                           <VolumeX className="w-3 h-3" />
                         </HapticButton>
@@ -617,6 +633,8 @@ export function ModernStudioSimplified() {
                             handlers.deleteTrack(track.id);
                           }}
                           className="w-6 h-6 p-0 text-red-400 hover:text-red-300"
+                          aria-label="Delete track"
+                          title="Delete track"
                         >
                           <Trash2 className="w-3 h-3" />
                         </HapticButton>
@@ -633,6 +651,8 @@ export function ModernStudioSimplified() {
                           max={1}
                           step={0.01}
                           className="flex-1"
+                          aria-label={`${track.name} volume`}
+                          title={`${track.name} volume: ${Math.round(track.volume * 100)}%`}
                         />
                         <span className="text-xs text-purple-300 w-8">
                           {Math.round(track.volume * 100)}
@@ -738,6 +758,8 @@ export function ModernStudioSimplified() {
                             size="sm"
                             onClick={() => handlers.transport('play')}
                             className="bg-green-600 hover:bg-green-700"
+                            aria-label="Play audio"
+                            title="Play audio"
                           >
                             <Play className="w-4 h-4 mr-2" />
                             Play
@@ -746,6 +768,8 @@ export function ModernStudioSimplified() {
                             size="sm"
                             onClick={() => handlers.transport('pause')}
                             className="bg-yellow-600 hover:bg-yellow-700"
+                            aria-label="Pause audio"
+                            title="Pause audio"
                           >
                             <Pause className="w-4 h-4 mr-2" />
                             Pause
@@ -754,6 +778,8 @@ export function ModernStudioSimplified() {
                             size="sm"
                             onClick={() => handlers.transport('stop')}
                             className="bg-red-600 hover:bg-red-700"
+                            aria-label="Stop audio"
+                            title="Stop audio"
                           >
                             <Square className="w-4 h-4 mr-2" />
                             Stop
@@ -762,6 +788,8 @@ export function ModernStudioSimplified() {
                             size="sm"
                             onClick={() => handlers.saveProject()}
                             className="bg-blue-600 hover:bg-blue-700"
+                            aria-label="Save project"
+                            title="Save project"
                           >
                             <Settings className="w-4 h-4 mr-2" />
                             Save
@@ -772,6 +800,8 @@ export function ModernStudioSimplified() {
                           onChange={(e) => updateCode(e.target.value)}
                           className="flex-1 bg-slate-900 text-green-400 font-mono text-sm p-4 rounded border border-slate-700 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
                           placeholder="Enter your ChordCraft code here..."
+                          aria-label="ChordCraft code editor"
+                          title="ChordCraft code editor"
                         />
                       </div>
                     </div>
@@ -822,6 +852,8 @@ export function ModernStudioSimplified() {
                         max={200}
                         step={1}
                         className="flex-1"
+                        aria-label="Tempo control"
+                        title={`Tempo: ${state.tempo} BPM`}
                       />
                       <span className="text-sm text-purple-300 w-12 font-mono">
                         {state.tempo} BPM
@@ -865,6 +897,8 @@ export function ModernStudioSimplified() {
                         max={1}
                         step={0.01}
                         className="flex-1"
+                        aria-label="Master volume control"
+                        title={`Master volume: ${Math.round(volume * 100)}%`}
                       />
                       <span className="text-sm text-purple-300 w-12 font-mono">
                         {Math.round(volume * 100)}%
@@ -883,6 +917,8 @@ export function ModernStudioSimplified() {
                       className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                       onClick={() => handlers.generateMusic('Generate a beautiful piano melody')}
                       disabled={isAnalyzing}
+                      aria-label="Generate music using AI"
+                      title="Generate music using AI"
                     >
                       <Sparkles className="w-4 h-4 mr-2" />
                       {isAnalyzing ? 'Generating...' : 'Generate Music'}
@@ -893,6 +929,8 @@ export function ModernStudioSimplified() {
                       className="w-full border-purple-600/30 text-purple-300 hover:bg-purple-600/20"
                       onClick={() => handlers.analyzeAudio()}
                       disabled={isAnalyzing}
+                      aria-label="Analyze audio file"
+                      title="Analyze audio file"
                     >
                       <Zap className="w-4 h-4 mr-2" />
                       {isAnalyzing ? 'Analyzing...' : 'Analyze Audio'}
