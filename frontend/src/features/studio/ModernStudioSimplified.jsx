@@ -6,7 +6,7 @@ import {
   Share2, Copy, Trash2, Plus, Music, Headphones, 
   Mic, Zap, Sparkles, Lock, Unlock, Eye, EyeOff,
   Maximize2, Minimize2, RotateCcw, RotateCw,
-  Search, Filter, MoreHorizontal, ChevronDown
+  Search, Filter, MoreHorizontal, ChevronDown, Clock
 } from 'lucide-react';
 
 // Import existing UI components
@@ -25,8 +25,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-// Import CodeEditor
-import { CodeEditor } from '../../components/CodeEditor';
+// Import CodeEditor (temporarily disabled)
+// import { CodeEditor } from '../../components/CodeEditor';
 
 // Import stores
 import { useProjectStore } from '../../stores/useProjectStore';
@@ -731,26 +731,49 @@ export function ModernStudioSimplified() {
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="h-full bg-black/20 rounded-lg border border-purple-800/30">
-                      <CodeEditor
-                        value={chordCraftCode}
-                        onChange={updateCode}
-                        onPlay={() => handlers.transport('play')}
-                        onPause={() => handlers.transport('pause')}
-                        onStop={() => handlers.transport('stop')}
-                        onSave={() => handlers.saveProject()}
-                        onFormat={() => handlers.formatCode()}
-                        isPlaying={isPlaying}
-                        isPaused={isPaused}
-                        height="100%"
-                        showToolbar={true}
-                        showMinimap={true}
-                        showLineNumbers={true}
-                        theme="vs-dark"
-                        fontSize={14}
-                        readOnly={false}
-                        placeholder="Enter your ChordCraft code here..."
-                      />
+                    <div className="h-full bg-black/20 rounded-lg border border-purple-800/30 p-4">
+                      <div className="h-full flex flex-col">
+                        <div className="flex gap-2 mb-4">
+                          <Button
+                            size="sm"
+                            onClick={() => handlers.transport('play')}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <Play className="w-4 h-4 mr-2" />
+                            Play
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handlers.transport('pause')}
+                            className="bg-yellow-600 hover:bg-yellow-700"
+                          >
+                            <Pause className="w-4 h-4 mr-2" />
+                            Pause
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handlers.transport('stop')}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            <Square className="w-4 h-4 mr-2" />
+                            Stop
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handlers.saveProject()}
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            <Settings className="w-4 h-4 mr-2" />
+                            Save
+                          </Button>
+                        </div>
+                        <textarea
+                          value={chordCraftCode}
+                          onChange={(e) => updateCode(e.target.value)}
+                          className="flex-1 bg-slate-900 text-green-400 font-mono text-sm p-4 rounded border border-slate-700 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          placeholder="Enter your ChordCraft code here..."
+                        />
+                      </div>
                     </div>
                   </motion.div>
                 </TabsContent>

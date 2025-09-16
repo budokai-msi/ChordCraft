@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Layout,
   Button,
@@ -80,7 +80,7 @@ import {
   ArrowLeftOutlined,
   WandOutlined
 } from '@ant-design/icons';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -131,7 +131,7 @@ const TRACK_TYPES = [
 
 export function ModernStudioAntd() {
   const { chordCraftCode, updateCode, currentProject } = useProjectStore();
-  const { showSuccess, showError, setAnalyzing, isAnalyzing } = useUIStore();
+  const { setAnalyzing, isAnalyzing } = useUIStore();
   const { currentTime, duration, volume, play, pause, stop, setVolume, setCurrentTime } = usePlaybackStore();
   
   const [state, setState] = useState({
@@ -156,7 +156,7 @@ export function ModernStudioAntd() {
   const fileInputRef = useRef(null);
 
   // Form setup
-  const { control, handleSubmit, reset, watch } = useForm({
+  const { control } = useForm({
     resolver: zodResolver(projectSchema),
     defaultValues: {
       name: currentProject?.name || '',
@@ -167,14 +167,14 @@ export function ModernStudioAntd() {
   });
 
   // React Query for data fetching
-  const { data: projects = [] } = useQuery({
+  // const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: () => Promise.resolve([]), // Replace with actual API call
     staleTime: 5 * 60 * 1000
   });
 
   // Mutations
-  const createProjectMutation = useMutation({
+  // const createProjectMutation = useMutation({
     mutationFn: async (projectData) => {
       // Replace with actual API call
       return Promise.resolve({ id: Date.now(), ...projectData });
@@ -188,7 +188,7 @@ export function ModernStudioAntd() {
     }
   });
 
-  const updateProjectMutation = useMutation({
+  // const updateProjectMutation = useMutation({
     mutationFn: async (projectData) => {
       // Replace with actual API call
       return Promise.resolve(projectData);
@@ -248,7 +248,7 @@ export function ModernStudioAntd() {
     }
   };
 
-  const handleAnalyzeAudio = async (file) => {
+  // const handleAnalyzeAudio = async (file) => {
     if (state.dailyUsage >= maxDailyUsage && !state.isPro) {
       message.warning('Daily usage limit reached. Upgrade to Pro for unlimited access.');
       return;

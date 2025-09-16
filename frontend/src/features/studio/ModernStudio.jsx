@@ -244,7 +244,7 @@ export function ModernStudio() {
 
   const TransportControls = () => (
     <div className="flex items-center space-x-2">
-      {TRANSPORT_CONTROLS.map(({ id, icon: Icon, action, primary }) => (
+      {TRANSPORT_CONTROLS.map(({ id, icon, action, primary }) => (
         <Button
           key={id}
           variant={primary ? "default" : "outline"}
@@ -254,7 +254,7 @@ export function ModernStudio() {
           aria-label={`${action} audio`}
           title={`${action} audio`}
         >
-          <Icon className="w-4 h-4" />
+          {icon}
         </Button>
       ))}
     </div>
@@ -298,7 +298,7 @@ export function ModernStudio() {
 
   const AddTrackButton = () => (
     <div className="grid grid-cols-2 gap-2">
-      {TRACK_TYPES.map(({ id, label, icon: Icon }) => (
+      {TRACK_TYPES.map(({ id, label, icon }) => (
         <Button
           key={id}
           variant="outline"
@@ -308,7 +308,7 @@ export function ModernStudio() {
           aria-label={`Add ${label} track`}
           title={`Add ${label} track`}
         >
-          <Icon className="w-4 h-4 mr-2" />
+          {icon}
           {label}
         </Button>
       ))}
