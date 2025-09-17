@@ -8,6 +8,8 @@ export interface ChordCraftMetadata {
   key: string;
   time: string;
   chords: string;
+  version?: string;
+  build?: string;
 }
 
 export interface AudioPayload {
@@ -50,15 +52,25 @@ export class ChordCraftDecoder {
     const lines = code.split('\n');
     let currentLine = 0;
 
-    // Parse metadata
-    const metaMatch = code.match(/meta:\s*\{\s*bpm:\s*(\d+),\s*key:\s*"([^"]+)",\s*time:\s*"([^"]+)"\s*\}/);
+    // Parse metadata (with optional version/build)
+    const metaMatch = code.match(/meta:\s*\{\s*bpm:\s*(\d+),\s*key:\s*"([^"]+)",\s*time:\s*"([^"]+)"(?:,\s*version:\s*"([^"]+)")?(?:,\s*build:\s*"([^"]+)")?\s*\}/);
     if (!metaMatch) throw new Error('Invalid metadata format');
 
     const meta: ChordCraftMetadata = {
       bpm: parseInt(metaMatch[1]),
       key: metaMatch[2],
-      time: metaMatch[3]
+      time: metaMatch[3],
+      version: metaMatch[4] || undefined,
+      build: metaMatch[5] || undefined
     };
+
+    // Version compatibility check
+    if (meta.version) {
+      const currentVersion = "cc-v2.1";
+      if (meta.version !== currentVersion) {
+        console.warn(`ChordCraft version mismatch: code is ${meta.version}, decoder expects ${currentVersion}`);
+      }
+    }
 
     // Parse chords
     const chordsMatch = code.match(/chords:\s*([^}]+)/);

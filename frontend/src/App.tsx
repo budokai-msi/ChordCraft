@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "sonner";
 import Upload from "./pages/Upload";
 import Studio from "./pages/Studio";
 import Settings from "./pages/Settings";
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/library" element={<Library />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
+      <Toaster position="top-right" richColors />
     </BrowserRouter>
   );
 }

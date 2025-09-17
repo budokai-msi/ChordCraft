@@ -1,5 +1,8 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from werkzeug.datastructures import FileStorage
 import tempfile, os, logging, time
 from audio_codec import ChordCraftCodec  # your class from earlier
 
@@ -7,10 +10,19 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("chordcraft")
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app, resources={r"/*": {"origins": ["https://studio.yourdomain.com"]}})
 
-# Optional: 80 MB limit
-app.config["MAX_CONTENT_LENGTH"] = 80 * 1024 * 1024
+# Security: 100MB limit (matches nginx config)
+app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
+
+# Rate limiting
+limiter = Limiter(get_remote_address, app=app, default_limits=["60/min"])
+
+# Strict MIME type validation
+ALLOWED_MIME = {
+    "audio/mpeg", "audio/wav", "audio/ogg", "audio/aac", 
+    "audio/flac", "audio/x-flac"
+}
 
 codec = ChordCraftCodec(target_sr=44100, stereo=True)
 
@@ -19,6 +31,7 @@ def health():
     return jsonify({"status": "ok", "version": "2.0.0", "endpoints": ["/analyze", "/generate-music"]})
 
 @app.route("/analyze", methods=["POST"])
+@limiter.limit("6/min")  # Rate limit uploads
 def analyze():
     """
     Music → Code: returns a ChordCraft v2 block with lossless payload.
@@ -30,9 +43,13 @@ def analyze():
     if "audio" not in request.files:
         return jsonify({"success": False, "error": "No 'audio' file part"}), 400
 
-    f = request.files["audio"]
+    f: FileStorage = request.files["audio"]
     if not f or f.filename == "":
         return jsonify({"success": False, "error": "No selected file"}), 400
+
+    # Strict MIME type validation (don't trust file extension)
+    if f.mimetype not in ALLOWED_MIME:
+        return jsonify({"success": False, "error": "Unsupported audio type"}), 415
 
     file_size = f.content_length or 0
     file_format = os.path.splitext(f.filename)[1] or "unknown"
@@ -52,7 +69,9 @@ def analyze():
                 time_sig="4/4",
                 chords=None,
                 include_lossless=True,   # guarantees identical
-                include_neural=False     # optional, keep false for now
+                include_neural=False,    # optional, keep false for now
+                version="cc-v2.1",       # version stamp for future compatibility
+                build_date=time.strftime("%Y-%m-%d")  # build date stamp
             )
 
         elapsed = time.time() - start_time

@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { useChordCraftStore } from "../store/useChordCraftStore";
 import { chordCraftDecoder } from "../utils/ChordCraftDecoder";
 import { IntegrityBadge } from "../components/IntegrityBadge";
@@ -17,6 +18,7 @@ export default function Studio() {
   const { loadArrayBuffer, play } = useAudioEngine();
   const objectUrlRef = React.useRef<string | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [loadingMessage, setLoadingMessage] = React.useState("");
 
   React.useEffect(() => {
     (async () => {
@@ -56,18 +58,30 @@ export default function Studio() {
     if (!song || isLoading) return;
     try {
       setIsLoading(true);
+      setLoadingMessage("Preparing audio...");
+      
       // iOS/Safari
       if ((chordCraftDecoder as any)["audioContext"]?.state === "suspended") {
+        setLoadingMessage("Resuming audio context...");
         await (chordCraftDecoder as any)["audioContext"]?.resume();
       }
+      
+      setLoadingMessage("Decoding audio...");
       const wav = await chordCraftDecoder.decodeToArrayBuffer(song);
+      
+      setLoadingMessage("Loading into player...");
       const url = loadArrayBuffer(wav, "audio/wav");
       objectUrlRef.current = url;
+      
+      setLoadingMessage("Starting playback...");
       play();
     } catch (e) {
       console.error("prepareAndPlay failed", e);
+      // Show user-friendly error toast
+      toast.error(`Playback failed: ${e instanceof Error ? e.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
+      setLoadingMessage("");
     }
   };
 
@@ -96,7 +110,7 @@ export default function Studio() {
                     {isLoading ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        Loading...
+                        {loadingMessage || "Loading..."}
                       </>
                     ) : (
                       "▶ Load & Play"
@@ -118,17 +132,22 @@ export default function Studio() {
             )}
             <pre className="bg-gray-100 rounded-xl p-3 max-h-[60vh] overflow-auto text-xs">{code}</pre>
             <div className="flex gap-2">
-              <button
-                className="rounded px-2 py-1 text-xs bg-gray-200"
-                onClick={() => navigator.clipboard.writeText(code)}
-              >Copy all</button>
+                      <button
+                        className="rounded px-2 py-1 text-xs bg-gray-200"
+                        onClick={() => {
+                          navigator.clipboard.writeText(code);
+                          toast.success("Code copied to clipboard!");
+                        }}
+                      >Copy all</button>
               <button
                 className="rounded px-2 py-1 text-xs bg-gray-200"
                 onClick={async () => {
                   if (!song?.flacData || !song.audio?.sha256) return;
                   const h = await crypto.subtle.digest("SHA-256", song.flacData);
                   const hex = Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,"0")).join("");
-                  setIntegrity(hex === song.audio.sha256 ? "ok" : "mismatch");
+                  const isValid = hex === song.audio.sha256;
+                  setIntegrity(isValid ? "ok" : "mismatch");
+                  toast.success(isValid ? "✅ Integrity verified!" : "⚠️ Code has been modified");
                 }}
               >Re-verify</button>
             </div>
