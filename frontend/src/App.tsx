@@ -5,6 +5,7 @@ import Upload from "./pages/Upload";
 import Studio from "./pages/Studio";
 import Settings from "./pages/Settings";
 import Library from "./pages/Library";
+import AuthCallback from "./pages/AuthCallback";
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
         <Route path="/studio" element={<Studio />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/library" element={<Library />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
       <Toaster position="top-right" richColors />
