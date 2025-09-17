@@ -1,30 +1,20 @@
-"use client";
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Analytics } from '@vercel/analytics/react';
-import { AudioEngineProvider } from './services/AudioEngine';
-import UploadPage from './pages/Upload';
-import StudioPage from './pages/Studio';
-import SettingsPage from './pages/Settings';
-import LibraryPage from './pages/Library';
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Upload from "./pages/Upload";
+import Studio from "./pages/Studio";
+import Settings from "./pages/Settings";
+import Library from "./pages/Library";
 
-function App() {
+export default function App() {
   return (
-    <AudioEngineProvider>
-      <BrowserRouter>
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-          <Analytics />
-          <Routes>
-            <Route path="/" element={<UploadPage />} />
-            <Route path="/studio" element={<StudioPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/library" element={<LibraryPage />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </div>
-      </BrowserRouter>
-    </AudioEngineProvider>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Upload />} />
+        <Route path="/studio" element={<Studio />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/library" element={<Library />} />
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-export default App;
