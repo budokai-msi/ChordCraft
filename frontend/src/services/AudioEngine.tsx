@@ -12,6 +12,7 @@ import React, {
 interface AudioEngineContextType {
   isPlaying: boolean;
   currentTime: number;
+  smoothTime: number;
   duration: number;
   volume: number;
   play: () => void;
@@ -36,13 +37,18 @@ export function AudioEngineProvider({ children }: { children: React.ReactNode })
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.8);
+  const [smoothTime, setSmoothTime] = useState(0);
 
   // ---- helpers ----
   const startRaf = useCallback(() => {
     if (rafId.current != null) return;
     const loop = () => {
       const a = audioRef.current;
-      if (a) setCurrentTime(a.currentTime || 0);
+      if (a) {
+        const time = a.currentTime || 0;
+        setCurrentTime(time);
+        setSmoothTime(time); // Smooth updates at 60fps
+      }
       rafId.current = requestAnimationFrame(loop);
     };
     rafId.current = requestAnimationFrame(loop);
@@ -54,6 +60,20 @@ export function AudioEngineProvider({ children }: { children: React.ReactNode })
       rafId.current = null;
     }
   }, []);
+
+  // Smooth time updates for seekbar (30-60fps)
+  useEffect(() => {
+    if (!isPlaying) return;
+    
+    const interval = setInterval(() => {
+      const a = audioRef.current;
+      if (a) {
+        setSmoothTime(a.currentTime || 0);
+      }
+    }, 16); // ~60fps
+
+    return () => clearInterval(interval);
+  }, [isPlaying]);
 
   // ---- init element (browser only) ----
   useEffect(() => {
@@ -219,6 +239,7 @@ export function AudioEngineProvider({ children }: { children: React.ReactNode })
     () => ({
       isPlaying,
       currentTime,
+      smoothTime,
       duration,
       volume,
       play,
@@ -229,7 +250,7 @@ export function AudioEngineProvider({ children }: { children: React.ReactNode })
       loadArrayBuffer,
       seekTo,
     }),
-    [isPlaying, currentTime, duration, volume, play, pause, stop, setVolumeLevel, loadAudio, loadArrayBuffer, seekTo]
+    [isPlaying, currentTime, smoothTime, duration, volume, play, pause, stop, setVolumeLevel, loadAudio, loadArrayBuffer, seekTo]
   );
 
   return (

@@ -9,7 +9,7 @@ function fmt(t: number) {
 }
 
 export function TransportBar() {
-  const { isPlaying, currentTime, duration, volume, play, pause, stop, seekTo, setVolume } = useAudioEngine();
+  const { isPlaying, currentTime, smoothTime, duration, volume, play, pause, stop, seekTo, setVolume } = useAudioEngine();
 
   // Space = toggle, arrows = seek
   React.useEffect(() => {
@@ -49,16 +49,16 @@ export function TransportBar() {
       </div>
 
       <div className="flex items-center gap-3">
-        <input
-          type="range"
-          min={0}
-          max={Number.isFinite(duration) ? duration : 0}
-          step={0.01}
-          value={Number.isFinite(currentTime) ? currentTime : 0}
-          onChange={onSeek}
-          className="w-full"
-          aria-label="Seek"
-        />
+                <input
+                  type="range"
+                  min={0}
+                  max={Number.isFinite(duration) ? duration : 0}
+                  step={0.01}
+                  value={Number.isFinite(smoothTime) ? smoothTime : 0}
+                  onChange={onSeek}
+                  className="w-full"
+                  aria-label="Seek"
+                />
         <div className="flex items-center gap-2">
           <span className="text-xs opacity-60">Vol</span>
           <input

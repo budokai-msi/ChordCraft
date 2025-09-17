@@ -136,38 +136,40 @@ export class ChordCraftDecoder {
   }
 
   /**
-   * Extract and reconstruct FLAC data from code chunks
+   * Extract and reconstruct FLAC data from code chunks (robust whitespace handling)
    */
   private async extractFlacData(code: string, audio: AudioPayload): Promise<ArrayBuffer> {
-    const chunks: string[] = [];
-    
-    for (let i = 1; i <= (audio.chunks || 0); i++) {
-      const chunkRegex = new RegExp(`<<PAYLOAD:FLAC:${i}>>\\s*([\\s\\S]*?)(?=<<PAYLOAD:FLAC:|\\n\\})`, 'g');
-      const match = chunkRegex.exec(code);
-      if (match) {
-        chunks[i - 1] = match[1].replace(/\s+/g, '');
-      }
+    const marker = /<<PAYLOAD:FLAC:(\d+)>>/g;
+    let match: RegExpExecArray | null;
+    const found: { idx: number; pos: number; end?: number }[] = [];
+
+    while ((match = marker.exec(code)) !== null) {
+      found.push({ idx: Number(match[1]), pos: match.index + match[0].length });
+    }
+    // Compute segment ends by looking at next marker or EOF
+    for (let i = 0; i < found.length; i++) {
+      found[i].end = i + 1 < found.length ? found[i + 1].pos - (">>".length + String(found[i + 1].idx).length + "PAYLOAD:FLAC:".length + 2) : code.length;
     }
 
-    const b64Data = chunks.join('');
-    const binaryString = atob(b64Data);
-    const bytes = new Uint8Array(binaryString.length);
-    
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
+    // Gather chunks by index (1..N)
+    const parts: string[] = new Array((audio.chunks || 0)).fill("");
+    for (let i = 0; i < found.length; i++) {
+      const { idx, pos, end } = found[i];
+      if (!end) continue;
+      const raw = code.slice(pos, end).replace(/\s+/g, "");
+      if (idx >= 1 && idx <= parts.length) parts[idx - 1] = raw;
     }
 
-    // Verify checksum if available
-    if (audio.sha256 && typeof crypto !== 'undefined' && crypto.subtle) {
-      const hashBuffer = await crypto.subtle.digest('SHA-256', bytes);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      
-      if (hashHex !== audio.sha256) {
-        throw new Error('Checksum mismatch - audio data may be corrupted');
-      }
-    }
+    const b64 = parts.join("");
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
 
+    if (audio.sha256 && typeof crypto !== "undefined" && crypto.subtle) {
+      const hash = await crypto.subtle.digest("SHA-256", bytes);
+      const hex = Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,"0")).join("");
+      if (hex !== audio.sha256) throw new Error("Checksum mismatch - audio data may be corrupted");
+    }
     return bytes.buffer;
   }
 
@@ -225,17 +227,18 @@ export class ChordCraftDecoder {
           // fall through to ffmpeg
         }
       }
-      // ffmpeg.wasm fallback (works cross-browser)
+      // ffmpeg.wasm fallback (preserve original sample rate/channels)
       const { getFFmpeg } = await import('./ffmpegSingleton');
-      const ffmpeg = await getFFmpeg();
+      const { ffmpeg } = await getFFmpeg();
       const inName = "in.flac";
       const outName = "out.wav";
-      // write
+
       ffmpeg.FS("writeFile", inName, new Uint8Array(song.flacData));
-      // transcode → WAV 44.1k/2ch (engine expects standard)
-      await ffmpeg.run("-i", inName, "-ar", "44100", "-ac", "2", "-f", "wav", outName);
+      // Keep SR/CH as in source; just decode to 16-bit PCM WAV.
+      // If you'd like 24-bit when available, replace pcm_s16le with pcm_s24le.
+      await ffmpeg.run("-i", inName, "-c:a", "pcm_s16le", outName);
+
       const out = ffmpeg.FS("readFile", outName);
-      // cleanup (best effort)
       try { ffmpeg.FS("unlink", inName); ffmpeg.FS("unlink", outName); } catch {}
       return out.buffer.slice(out.byteOffset, out.byteOffset + out.byteLength);
     }

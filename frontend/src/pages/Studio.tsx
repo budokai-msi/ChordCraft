@@ -16,6 +16,7 @@ export default function Studio() {
   const { code, song, setSong, integrity, setIntegrity, strategy, setStrategy } = useChordCraftStore();
   const { loadArrayBuffer, play } = useAudioEngine();
   const objectUrlRef = React.useRef<string | null>(null);
+  const [isLoading, setIsLoading] = React.useState(false);
 
   React.useEffect(() => {
     (async () => {
@@ -52,8 +53,9 @@ export default function Studio() {
   }, []);
 
   const prepareAndPlay = async () => {
-    if (!song) return;
+    if (!song || isLoading) return;
     try {
+      setIsLoading(true);
       // iOS/Safari
       if ((chordCraftDecoder as any)["audioContext"]?.state === "suspended") {
         await (chordCraftDecoder as any)["audioContext"]?.resume();
@@ -64,6 +66,8 @@ export default function Studio() {
       play();
     } catch (e) {
       console.error("prepareAndPlay failed", e);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -83,10 +87,21 @@ export default function Studio() {
       <section className="space-y-3">
         <TransportBar />
         
-        <div className="flex items-center gap-2">
-          <button onClick={prepareAndPlay} className="rounded-lg px-3 py-2 bg-black text-white">
-            ▶ Load & Play
-          </button>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={prepareAndPlay} 
+                    disabled={isLoading}
+                    className="rounded-lg px-3 py-2 bg-black text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {isLoading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Loading...
+                      </>
+                    ) : (
+                      "▶ Load & Play"
+                    )}
+                  </button>
           <button onClick={() => location.reload()} className="rounded-lg px-3 py-2 bg-gray-200">
             ⟲ Reset
           </button>
