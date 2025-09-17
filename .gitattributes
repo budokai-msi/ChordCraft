@@ -1,16 +1,1 @@
-# Ensure consistent line endings across platforms
 * text=auto eol=lf
-
-# Binary files
-*.png binary
-*.jpg binary
-*.jpeg binary
-*.gif binary
-*.ico binary
-*.mp3 binary
-*.wav binary
-*.flac binary
-*.ogg binary
-*.aac binary
-*.m4a binary
-*.wasm binary
