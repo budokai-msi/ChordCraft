@@ -29,8 +29,8 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
   const [checksumStatus, setChecksumStatus] = useState<{ valid: boolean; hash: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const backendUrl =
-    (import.meta as any).env?.VITE_BACKEND_URL || "http://127.0.0.1:5000";
+  // Use proxy URL for production (no CORS issues)
+  const backendUrl = "/api";
 
   const validFile = (f: File) => {
     // Check file type

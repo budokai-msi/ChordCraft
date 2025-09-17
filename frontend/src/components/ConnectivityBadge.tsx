@@ -1,8 +1,6 @@
 import React from "react";
-import { useChordCraftStore } from "../store/useChordCraftStore";
 
 export default function ConnectivityBadge() {
-  const backendUrl = useChordCraftStore(s => s.backendUrl);
   const [ok, setOk] = React.useState<boolean | null>(null);
   const [msg, setMsg] = React.useState("");
 
@@ -10,7 +8,8 @@ export default function ConnectivityBadge() {
     let aborted = false;
     (async () => {
       try {
-        const r = await fetch(`${backendUrl.replace(/\/$/,"")}/health`, { method: "GET", mode: "cors" });
+        // Use proxy URL for production (no CORS issues)
+        const r = await fetch("/api/health", { method: "GET" });
         if (aborted) return;
         setOk(r.ok);
         setMsg(r.ok ? "Backend online" : `Health ${r.status}`);
@@ -21,7 +20,7 @@ export default function ConnectivityBadge() {
       }
     })();
     return () => { aborted = true; };
-  }, [backendUrl]);
+  }, []);
 
   const base = "inline-flex items-center rounded-full px-2 py-1 text-xs";
   if (ok === null) return <span className={`${base} bg-gray-300/30 text-gray-700`}>Checking…</span>;

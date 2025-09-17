@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import ConnectivityBadge from "../components/ConnectivityBadge";
+import DiagnosticsPanel from "../components/DiagnosticsPanel";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -13,7 +14,10 @@ export default function Home() {
             Edit & play songs with bit-identical fidelity. Choose a path:
           </p>
         </div>
-        <ConnectivityBadge />
+        <div className="flex items-center gap-3">
+          <ConnectivityBadge />
+          <DiagnosticsPanel />
+        </div>
       </header>
 
       <div className="grid sm:grid-cols-3 gap-4">
