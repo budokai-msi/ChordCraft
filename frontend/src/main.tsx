@@ -1,5 +1,13 @@
+import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { AudioEngineProvider } from "./services/AudioEngine";
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <AudioEngineProvider>
+      <App />
+    </AudioEngineProvider>
+  </React.StrictMode>
+);

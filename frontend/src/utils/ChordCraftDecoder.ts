@@ -211,6 +211,91 @@ export class ChordCraftDecoder {
   }
 
   /**
+   * Decode ChordCraftSong to ArrayBuffer (WAV format) for transport control
+   */
+  async decodeToArrayBuffer(song: ChordCraftSong): Promise<ArrayBuffer> {
+    if (!this.audioContext) {
+      throw new Error('AudioContext not available');
+    }
+
+    let audioBuffer: AudioBuffer;
+
+    // Try lossless first (guaranteed identical)
+    if (song.flacData) {
+      try {
+        audioBuffer = await this.decodeFlac(song.flacData);
+        // Memory cleanup: null out large data after decode
+        song.flacData = undefined;
+      } catch (e) {
+        console.warn('FLAC decode failed, falling back to neural:', e);
+        audioBuffer = await this.decodeNeural(song.neuralTokens || []);
+      }
+    } 
+    // Fall back to neural codec (near-identical)
+    else if (song.neuralTokens) {
+      audioBuffer = await this.decodeNeural(song.neuralTokens);
+    }
+    // Last resort: synthesize from metadata
+    else {
+      audioBuffer = await this.synthesizeFromMetadata(song.meta);
+    }
+
+    // Convert AudioBuffer to WAV ArrayBuffer
+    return this.audioBufferToWav(audioBuffer);
+  }
+
+  /**
+   * Convert AudioBuffer to WAV ArrayBuffer
+   */
+  private audioBufferToWav(audioBuffer: AudioBuffer): ArrayBuffer {
+    const length = audioBuffer.length;
+    const sampleRate = audioBuffer.sampleRate;
+    const numberOfChannels = audioBuffer.numberOfChannels;
+    const bitsPerSample = 16;
+    const bytesPerSample = bitsPerSample / 8;
+    const blockAlign = numberOfChannels * bytesPerSample;
+    const byteRate = sampleRate * blockAlign;
+    const dataSize = length * blockAlign;
+    const bufferSize = 44 + dataSize;
+
+    const buffer = new ArrayBuffer(bufferSize);
+    const view = new DataView(buffer);
+
+    // WAV header
+    const writeString = (offset: number, string: string) => {
+      for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+      }
+    };
+
+    writeString(0, 'RIFF');
+    view.setUint32(4, bufferSize - 8, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, numberOfChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, byteRate, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, bitsPerSample, true);
+    writeString(36, 'data');
+    view.setUint32(40, dataSize, true);
+
+    // Convert float samples to 16-bit PCM
+    let offset = 44;
+    for (let i = 0; i < length; i++) {
+      for (let channel = 0; channel < numberOfChannels; channel++) {
+        const sample = Math.max(-1, Math.min(1, audioBuffer.getChannelData(channel)[i]));
+        view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+        offset += 2;
+      }
+    }
+
+    return buffer;
+  }
+
+  /**
    * Decode FLAC data to AudioBuffer
    */
   private async decodeFlac(flacData: ArrayBuffer): Promise<AudioBuffer> {

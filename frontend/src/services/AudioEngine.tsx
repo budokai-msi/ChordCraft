@@ -19,6 +19,7 @@ interface AudioEngineContextType {
   stop: () => void;
   setVolume: (volume: number) => void;
   loadAudio: (audioUrl: string) => void;
+  loadArrayBuffer: (ab: ArrayBuffer, mime?: string) => string;
   seekTo: (time: number) => void;
 }
 
@@ -175,6 +176,16 @@ export function AudioEngineProvider({ children }: { children: React.ReactNode })
     a.load();
   }, [stopRaf]);
 
+  const loadArrayBuffer = useCallback((ab: ArrayBuffer, mime = "audio/wav") => {
+    const blob = new Blob([ab], { type: mime });
+    const url = URL.createObjectURL(blob);
+    if (audioRef.current) {
+      audioRef.current.src = url;
+      audioRef.current.load();
+    }
+    return url; // caller can revoke later if they want
+  }, []);
+
   const seekTo = useCallback((time: number) => {
     const a = audioRef.current;
     if (!a) return;
@@ -196,9 +207,10 @@ export function AudioEngineProvider({ children }: { children: React.ReactNode })
       stop,
       setVolume: setVolumeLevel,
       loadAudio,
+      loadArrayBuffer,
       seekTo,
     }),
-    [isPlaying, currentTime, duration, volume, play, pause, stop, setVolumeLevel, loadAudio, seekTo]
+    [isPlaying, currentTime, duration, volume, play, pause, stop, setVolumeLevel, loadAudio, loadArrayBuffer, seekTo]
   );
 
   return (

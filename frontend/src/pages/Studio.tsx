@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useChordCraftStore } from "../store/useChordCraftStore";
 import { chordCraftDecoder } from "../utils/ChordCraftDecoder";
 import { IntegrityBadge } from "../components/IntegrityBadge";
+import { TransportBar } from "../components/TransportBar";
+import { useAudioEngine } from "../services/AudioEngine";
 
 async function sha256Hex(ab: ArrayBuffer) {
   const h = await crypto.subtle.digest("SHA-256", ab);
@@ -12,6 +14,7 @@ async function sha256Hex(ab: ArrayBuffer) {
 export default function Studio() {
   const navigate = useNavigate();
   const { code, song, setSong, integrity, setIntegrity, strategy, setStrategy } = useChordCraftStore();
+  const { loadArrayBuffer, play } = useAudioEngine();
 
   React.useEffect(() => {
     (async () => {
@@ -37,14 +40,20 @@ export default function Studio() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code]);
 
-  const onPlay = async () => {
+  const prepareAndPlay = async () => {
     if (!song) return;
     try {
       // Ensure user gesture on Safari/iOS
       if (chordCraftDecoder["audioContext"]?.state === "suspended") {
         await chordCraftDecoder["audioContext"]?.resume();
       }
-      await chordCraftDecoder.playAudio(song);
+      
+      // Decode to ArrayBuffer and load into transport
+      const wavBuffer = await chordCraftDecoder.decodeToArrayBuffer(song);
+      loadArrayBuffer(wavBuffer, 'audio/wav');
+      
+      // Start playback
+      play();
     } catch (e) {
       console.error("play failed", e);
     }
@@ -64,9 +73,11 @@ export default function Studio() {
       </header>
 
       <section className="space-y-3">
+        <TransportBar />
+        
         <div className="flex items-center gap-2">
-          <button onClick={onPlay} className="rounded-lg px-3 py-2 bg-black text-white">
-            ▶ Play
+          <button onClick={prepareAndPlay} className="rounded-lg px-3 py-2 bg-black text-white">
+            ▶ Load & Play
           </button>
           <button onClick={() => location.reload()} className="rounded-lg px-3 py-2 bg-gray-200">
             ⟲ Reset
@@ -79,11 +90,25 @@ export default function Studio() {
         <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <h3 className="font-medium">Code (read-only)</h3>
+            {code && code.length > 4_000_000 && (
+              <div className="text-xs text-orange-600">Large code block; editing may be slow.</div>
+            )}
             <pre className="bg-gray-100 rounded-xl p-3 max-h-[60vh] overflow-auto text-xs">{code}</pre>
-            <button
-              className="rounded px-2 py-1 text-xs bg-gray-200"
-              onClick={() => navigator.clipboard.writeText(code)}
-            >Copy all</button>
+            <div className="flex gap-2">
+              <button
+                className="rounded px-2 py-1 text-xs bg-gray-200"
+                onClick={() => navigator.clipboard.writeText(code)}
+              >Copy all</button>
+              <button
+                className="rounded px-2 py-1 text-xs bg-gray-200"
+                onClick={async () => {
+                  if (!song?.flacData || !song.audio?.sha256) return;
+                  const h = await crypto.subtle.digest("SHA-256", song.flacData);
+                  const hex = Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,"0")).join("");
+                  setIntegrity(hex === song.audio.sha256 ? "ok" : "mismatch");
+                }}
+              >Re-verify</button>
+            </div>
           </div>
 
           <div className="space-y-2">
