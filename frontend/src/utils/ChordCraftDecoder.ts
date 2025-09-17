@@ -186,6 +186,8 @@ export class ChordCraftDecoder {
     if (song.flacData) {
       try {
         audioBuffer = await this.decodeFlac(song.flacData);
+        // Memory cleanup: null out large data after decode
+        song.flacData = undefined;
       } catch (e) {
         console.warn('FLAC decode failed, falling back to neural:', e);
         audioBuffer = await this.decodeNeural(song.neuralTokens || []);
@@ -214,32 +216,40 @@ export class ChordCraftDecoder {
   private async decodeFlac(flacData: ArrayBuffer): Promise<AudioBuffer> {
     if (!this.audioContext) throw new Error('AudioContext not available');
     
+    const startTime = performance.now();
+    
     // 1) Try native decode first (Chrome/Edge often OK)
     try {
-      return await this.audioContext.decodeAudioData(flacData.slice(0));
+      const result = await this.audioContext.decodeAudioData(flacData.slice(0));
+      console.log(`FLAC decode: native (${(performance.now() - startTime).toFixed(1)}ms)`);
+      return result;
     } catch (_) {
       // continue to wasm fallback
     }
 
-    // 2) Universal fallback via ffmpeg.wasm (CDN-loaded)
+    // 2) Universal fallback via ffmpeg.wasm (Web Worker for UI responsiveness)
     try {
-      const { getFFmpeg } = await import('./ffmpegSingleton');
-      const ffmpeg = await getFFmpeg();
+      const worker = new Worker(new URL('../workers/flacWorker.ts', import.meta.url), { type: 'module' });
+      
+      const wavBuf = await new Promise<ArrayBuffer>((resolve, reject) => {
+        worker.onmessage = (ev) => {
+          if (ev.data?.error) {
+            reject(new Error(ev.data.error));
+          } else {
+            resolve(ev.data as ArrayBuffer);
+          }
+          worker.terminate();
+        };
+        worker.onerror = (e) => { 
+          worker.terminate(); 
+          reject(e.error || new Error('ffmpeg worker error')); 
+        };
+        worker.postMessage(flacData, [flacData]); // transfer ownership
+      });
 
-      // Write FLAC to virtual FS
-      ffmpeg.FS('writeFile', 'in.flac', new Uint8Array(flacData));
-      
-      // Transcode FLAC → WAV (44.1k default; keep channels)
-      await ffmpeg.run('-hide_banner', '-loglevel', 'error', '-i', 'in.flac', '-f', 'wav', 'out.wav');
-      
-      const wav = ffmpeg.FS('readFile', 'out.wav');
-      
-      // Clean up virtual FS to release memory
-      try { ffmpeg.FS('unlink', 'in.flac'); } catch {}
-      try { ffmpeg.FS('unlink', 'out.wav'); } catch {}
-
-      // Decode WAV via WebAudio (fast)
-      return await this.audioContext.decodeAudioData(wav.buffer);
+      const result = await this.audioContext.decodeAudioData(wavBuf);
+      console.log(`FLAC decode: wasm worker (${(performance.now() - startTime).toFixed(1)}ms)`);
+      return result;
     } catch (e) {
       console.error('ffmpeg.wasm FLAC decode failed:', e);
       throw new Error('FLAC decoding failed - please use WAV format or neural codec');

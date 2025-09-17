@@ -14,10 +14,10 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://wgofqkisiqkygpnliuwl.supabase.co; frame-ancestors 'none';"
+          "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://unpkg.com; connect-src 'self' https://unpkg.com https://wgofqkisiqkygpnliuwl.supabase.co; worker-src 'self' blob:; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-ancestors 'none';"
         },
         {
-          "key": "X-Content-Type-Options", 
+          "key": "X-Content-Type-Options",
           "value": "nosniff"
         },
         {

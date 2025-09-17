@@ -111,9 +111,19 @@ export function AudioEngineProvider({ children }: { children: React.ReactNode })
   }, [startRaf, stopRaf, volume]);
 
   // ---- controls ----
-  const play = useCallback(() => {
+  const play = useCallback(async () => {
     const a = audioRef.current;
     if (!a) return;
+    
+    // Safari/iOS: Resume AudioContext if suspended
+    if (audioRef.current && audioRef.current.context && audioRef.current.context.state === 'suspended') {
+      try {
+        await audioRef.current.context.resume();
+      } catch (e) {
+        console.warn('Failed to resume AudioContext:', e);
+      }
+    }
+    
     a
       .play()
       .then(() => {

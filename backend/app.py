@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import tempfile, os, logging
+import tempfile, os, logging, time
 from audio_codec import ChordCraftCodec  # your class from earlier
 
 logging.basicConfig(level=logging.INFO)
@@ -25,6 +25,8 @@ def analyze():
     Response JSON:
       { success: true, code: "<ChordCraft v2 text>" }
     """
+    start_time = time.time()
+    
     if "audio" not in request.files:
         return jsonify({"success": False, "error": "No 'audio' file part"}), 400
 
@@ -32,9 +34,14 @@ def analyze():
     if not f or f.filename == "":
         return jsonify({"success": False, "error": "No selected file"}), 400
 
+    file_size = f.content_length or 0
+    file_format = os.path.splitext(f.filename)[1] or "unknown"
+    
+    log.info(f"Analyzing audio: {f.filename} ({file_size} bytes, {file_format})")
+
     try:
         # Save to a temp file only because the codec API expects a path
-        with tempfile.NamedTemporaryFile(suffix=os.path.splitext(f.filename)[1] or ".bin", delete=True) as tmp:
+        with tempfile.NamedTemporaryFile(suffix=file_format, delete=True) as tmp:
             f.save(tmp.name)
 
             # Produce ChordCraft code with embedded FLAC (identical playback)
@@ -48,9 +55,12 @@ def analyze():
                 include_neural=False     # optional, keep false for now
             )
 
+        elapsed = time.time() - start_time
+        log.info(f"Analysis complete: {f.filename} ({elapsed:.2f}s, {len(code)} chars)")
         return jsonify({"success": True, "code": code})
     except Exception as e:
-        log.exception("analysis_failed")
+        elapsed = time.time() - start_time
+        log.exception(f"Analysis failed: {f.filename} ({elapsed:.2f}s)")
         return jsonify({"success": False, "error": f"analysis_failed: {e}"}), 500
 
 @app.route("/generate-music", methods=["POST"])

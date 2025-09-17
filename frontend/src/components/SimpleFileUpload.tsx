@@ -31,10 +31,22 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
   const backendUrl =
     (import.meta as any).env?.VITE_BACKEND_URL || "http://127.0.0.1:5000";
 
-  const validFile = (f: File) =>
-    ["audio/mpeg", "audio/wav", "audio/ogg", "audio/aac", "audio/mp4"].includes(
-      f.type
-    ) || /\.(mp3|wav|ogg|aac|m4a|flac)$/i.test(f.name);
+  const validFile = (f: File) => {
+    // Check file type
+    const validType = ["audio/mpeg", "audio/wav", "audio/ogg", "audio/aac", "audio/mp4"].includes(f.type) || 
+                     /\.(mp3|wav|ogg|aac|m4a|flac)$/i.test(f.name);
+    
+    // Check file size (80MB limit)
+    const maxSize = 80 * 1024 * 1024; // 80MB
+    const validSize = f.size <= maxSize;
+    
+    if (!validSize) {
+      alert(`File too large: ${(f.size / 1024 / 1024).toFixed(1)}MB. Maximum size is 80MB.`);
+      return false;
+    }
+    
+    return validType;
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -231,6 +243,11 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
                           <AlertTriangle className="w-3 h-3 text-yellow-400" />
                           <span className="text-yellow-400">⚠️ Code Modified</span>
                         </>
+                      )}
+                      {song?.audio && (
+                        <span className="text-muted-foreground ml-2">
+                          ({song.audio.sr / 1000}kHz / {song.audio.channels}ch)
+                        </span>
                       )}
                     </div>
                   )}

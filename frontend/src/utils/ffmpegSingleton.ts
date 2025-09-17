@@ -14,36 +14,51 @@ export async function getFFmpeg() {
   if (_loading) return _loading;
 
   _loading = (async () => {
-    try {
-      const { createFFmpeg } = await import('@ffmpeg/ffmpeg');
-      const { toBlobURL } = await import('@ffmpeg/util');
+    const maxRetries = 2;
+    let lastError: Error | null = null;
 
-      // Pin a version for determinism - using stable 0.12.6
-      const base = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
-      
-      // Convert CDN URLs to blob URLs for CORS compatibility
-      const coreURL = await toBlobURL(`${base}/ffmpeg-core.js`, 'text/javascript');
-      const wasmURL = await toBlobURL(`${base}/ffmpeg-core.wasm`, 'application/wasm');
-      const workerURL = await toBlobURL(`${base}/ffmpeg-core.worker.js`, 'text/javascript');
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const { createFFmpeg } = await import('@ffmpeg/ffmpeg');
+        const { toBlobURL } = await import('@ffmpeg/util');
 
-      console.log('Loading ffmpeg.wasm from CDN...');
-      const ffmpeg = createFFmpeg({ 
-        log: false,
-        coreURL,
-        wasmURL,
-        workerURL
-      });
-      
-      await ffmpeg.load();
-      console.log('ffmpeg.wasm loaded successfully');
+        // Pin a version for determinism - using stable 0.12.6
+        const base = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+        
+        // Convert CDN URLs to blob URLs for CORS compatibility
+        const coreURL = await toBlobURL(`${base}/ffmpeg-core.js`, 'text/javascript');
+        const wasmURL = await toBlobURL(`${base}/ffmpeg-core.wasm`, 'application/wasm');
+        const workerURL = await toBlobURL(`${base}/ffmpeg-core.worker.js`, 'text/javascript');
 
-      _ffmpeg = ffmpeg;
-      return ffmpeg;
-    } catch (error) {
-      console.error('Failed to load ffmpeg.wasm:', error);
-      _loading = null; // Reset so we can try again
-      throw error;
+        console.log(`Loading ffmpeg.wasm from CDN... (attempt ${attempt}/${maxRetries})`);
+        const ffmpeg = createFFmpeg({ 
+          log: false,
+          coreURL,
+          wasmURL,
+          workerURL
+        });
+        
+        await ffmpeg.load();
+        console.log('ffmpeg.wasm loaded successfully');
+
+        _ffmpeg = ffmpeg;
+        return ffmpeg;
+      } catch (error) {
+        lastError = error as Error;
+        console.warn(`ffmpeg.wasm load attempt ${attempt} failed:`, error);
+        
+        if (attempt < maxRetries) {
+          // Exponential backoff: 1s, 2s
+          const delay = Math.pow(2, attempt - 1) * 1000;
+          console.log(`Retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
     }
+
+    console.error('Failed to load ffmpeg.wasm after all retries:', lastError);
+    _loading = null; // Reset so we can try again
+    throw lastError || new Error('ffmpeg.wasm load failed');
   })();
 
   return _loading;
