@@ -5,6 +5,7 @@ import { useChordCraftStore } from "../store/useChordCraftStore";
 import { chordCraftDecoder } from "../utils/ChordCraftDecoder";
 import { IntegrityBadge } from "../components/IntegrityBadge";
 import { TransportBar } from "../components/TransportBar";
+import { WaveformVisualizer } from "../components/WaveformVisualizer";
 import { useAudioEngine } from "../services/AudioEngine";
 
 async function sha256Hex(ab: ArrayBuffer) {
@@ -15,10 +16,12 @@ async function sha256Hex(ab: ArrayBuffer) {
 export default function Studio() {
   const navigate = useNavigate();
   const { code, song, setSong, integrity, setIntegrity, strategy, setStrategy } = useChordCraftStore();
-  const { loadArrayBuffer, play } = useAudioEngine();
+  const { loadArrayBuffer, play, currentTime, duration, seekTo } = useAudioEngine();
   const objectUrlRef = React.useRef<string | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [loadingMessage, setLoadingMessage] = React.useState("");
+  const [peaks, setPeaks] = React.useState<{min: number[], max: number[]} | null>(null);
+  const workerRef = React.useRef<Worker | null>(null);
 
   React.useEffect(() => {
     (async () => {
@@ -44,6 +47,18 @@ export default function Studio() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code]);
 
+  // Initialize peaks worker
+  React.useEffect(() => {
+    workerRef.current = new Worker(new URL("../workers/peaksWorker.ts", import.meta.url), { type: "module" });
+    workerRef.current.onmessage = (e: MessageEvent<any>) => {
+      if (e.data?.peaks) {
+        setPeaks(e.data.peaks);
+        toast.success("Waveform ready!");
+      }
+    };
+    return () => workerRef.current?.terminate();
+  }, []);
+
   React.useEffect(() => {
     return () => {
       // Transport's provider already revokes internally when replaced/unmount,
@@ -68,6 +83,11 @@ export default function Studio() {
       
       setLoadingMessage("Decoding audio...");
       const wav = await chordCraftDecoder.decodeToArrayBuffer(song);
+      
+      setLoadingMessage("Generating waveform...");
+      // Generate waveform peaks in worker
+      const id = crypto.randomUUID();
+      workerRef.current?.postMessage({ id, wav, buckets: 1200 });
       
       setLoadingMessage("Loading into player...");
       const url = loadArrayBuffer(wav, "audio/wav");
@@ -95,13 +115,23 @@ export default function Studio() {
           state={integrity}
           sr={song?.audio?.sampleRate}
           ch={song?.audio?.channels}
+          bitDepth={16} // Default to 16-bit for WAV output
         />
       </header>
 
       <section className="space-y-3">
         <TransportBar />
         
-                <div className="flex items-center gap-2">
+        {/* Waveform Visualizer */}
+        <WaveformVisualizer
+          peaks={peaks}
+          duration={duration}
+          currentTime={currentTime}
+          onSeek={seekTo}
+          className="w-full"
+        />
+        
+        <div className="flex items-center gap-2">
                   <button 
                     onClick={prepareAndPlay} 
                     disabled={isLoading}

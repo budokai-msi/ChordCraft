@@ -1,0 +1,54 @@
+# /etc/systemd/system/chordcraft.service
+# ChordCraft API Service Configuration
+
+[Unit]
+Description=ChordCraft API (Gunicorn)
+After=network.target
+Wants=network.target
+
+[Service]
+Type=exec
+User=www-data
+Group=www-data
+WorkingDirectory=/srv/chordcraft/backend
+EnvironmentFile=/srv/chordcraft/backend/.env
+
+# Gunicorn command with production settings
+ExecStart=/srv/chordcraft/venv/bin/gunicorn app:app \
+    -k gevent \
+    --workers 2 \
+    --threads 4 \
+    --bind 127.0.0.1:5000 \
+    --timeout 180 \
+    --keep-alive 2 \
+    --max-requests 1000 \
+    --max-requests-jitter 100 \
+    --preload \
+    --access-logfile - \
+    --error-logfile - \
+    --log-level info
+
+# Restart policy
+Restart=on-failure
+RestartSec=3
+StartLimitBurst=5
+StartLimitInterval=60
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/chordcraft
+ReadWritePaths=/tmp
+
+# Environment
+Environment=PYTHONPATH=/srv/chordcraft/backend
+Environment=FLASK_ENV=production
+
+[Install]
+WantedBy=multi-user.target

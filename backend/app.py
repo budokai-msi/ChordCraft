@@ -24,6 +24,20 @@ ALLOWED_MIME = {
     "audio/flac", "audio/x-flac"
 }
 
+def sniff_audio(sig: bytes) -> str:
+    """Lightweight signature-based MIME detection for audio files."""
+    if sig.startswith(b"fLaC"):
+        return "audio/flac"
+    if sig.startswith(b"ID3") or (len(sig) > 1 and sig[0] == 0xFF and (sig[1] & 0xE0) == 0xE0):
+        return "audio/mpeg"  # MP3
+    if sig.startswith(b"RIFF") and len(sig) > 8 and sig[8:12] == b"WAVE":
+        return "audio/wav"
+    if sig.startswith(b"OggS"):
+        return "audio/ogg"
+    if sig.startswith(b"\xFF\xF1") or sig.startswith(b"\xFF\xF9"):
+        return "audio/aac"  # AAC ADTS
+    return "application/octet-stream"
+
 codec = ChordCraftCodec(target_sr=44100, stereo=True)
 
 @app.route("/health", methods=["GET"])
@@ -47,9 +61,17 @@ def analyze():
     if not f or f.filename == "":
         return jsonify({"success": False, "error": "No selected file"}), 400
 
-    # Strict MIME type validation (don't trust file extension)
-    if f.mimetype not in ALLOWED_MIME:
-        return jsonify({"success": False, "error": "Unsupported audio type"}), 415
+    # Robust MIME type validation: signature + mimetype double-check
+    stream = f.stream
+    head = stream.read(12)  # peek at file signature
+    stream.seek(0)  # reset for actual processing
+    sniffed = sniff_audio(head)
+    
+    if sniffed not in ALLOWED_MIME and f.mimetype not in ALLOWED_MIME:
+        return jsonify({
+            "success": False, 
+            "error": f"Unsupported audio type (detected: {sniffed}, reported: {f.mimetype})"
+        }), 415
 
     file_size = f.content_length or 0
     file_format = os.path.splitext(f.filename)[1] or "unknown"
