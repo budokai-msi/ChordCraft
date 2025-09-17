@@ -214,82 +214,91 @@ export class ChordCraftDecoder {
    * Decode ChordCraftSong to ArrayBuffer (WAV format) for transport control
    */
   async decodeToArrayBuffer(song: ChordCraftSong): Promise<ArrayBuffer> {
-    if (!this.audioContext) {
-      throw new Error('AudioContext not available');
-    }
-
-    let audioBuffer: AudioBuffer;
-
-    // Try lossless first (guaranteed identical)
-    if (song.flacData) {
-      try {
-        audioBuffer = await this.decodeFlac(song.flacData);
-        // Memory cleanup: null out large data after decode
-        song.flacData = undefined;
-      } catch (e) {
-        console.warn('FLAC decode failed, falling back to neural:', e);
-        audioBuffer = await this.decodeNeural(song.neuralTokens || []);
+    // 1) Try lossless FLAC if present
+    if (song.flacData && song.audio?.format === "flac") {
+      // Try native decode first (Chrome/Edge)
+      if (this.audioContext) {
+        try {
+          const buf = await this.audioContext.decodeAudioData(song.flacData.slice(0)); // copy
+          return this.audioBufferToWav(buf);
+        } catch {
+          // fall through to ffmpeg
+        }
       }
-    } 
-    // Fall back to neural codec (near-identical)
-    else if (song.neuralTokens) {
-      audioBuffer = await this.decodeNeural(song.neuralTokens);
-    }
-    // Last resort: synthesize from metadata
-    else {
-      audioBuffer = await this.synthesizeFromMetadata(song.meta);
+      // ffmpeg.wasm fallback (works cross-browser)
+      const { getFFmpeg } = await import('./ffmpegSingleton');
+      const ffmpeg = await getFFmpeg();
+      const inName = "in.flac";
+      const outName = "out.wav";
+      // write
+      ffmpeg.FS("writeFile", inName, new Uint8Array(song.flacData));
+      // transcode → WAV 44.1k/2ch (engine expects standard)
+      await ffmpeg.run("-i", inName, "-ar", "44100", "-ac", "2", "-f", "wav", outName);
+      const out = ffmpeg.FS("readFile", outName);
+      // cleanup (best effort)
+      try { ffmpeg.FS("unlink", inName); ffmpeg.FS("unlink", outName); } catch {}
+      return out.buffer.slice(out.byteOffset, out.byteOffset + out.byteLength);
     }
 
-    // Convert AudioBuffer to WAV ArrayBuffer
-    return this.audioBufferToWav(audioBuffer);
+    // 2) Neural tokens path
+    if (song.neuralTokens && song.neural_audio?.codec === "neural_codec") {
+      const ab = await this.decodeNeural(song.neuralTokens);
+      return this.audioBufferToWav(ab);
+    }
+
+    // 3) Synthetic fallback
+    const synth = await this.synthesizeFromMetadata(song.meta);
+    return this.audioBufferToWav(synth);
   }
 
   /**
    * Convert AudioBuffer to WAV ArrayBuffer
    */
-  private audioBufferToWav(audioBuffer: AudioBuffer): ArrayBuffer {
-    const length = audioBuffer.length;
-    const sampleRate = audioBuffer.sampleRate;
-    const numberOfChannels = audioBuffer.numberOfChannels;
-    const bitsPerSample = 16;
-    const bytesPerSample = bitsPerSample / 8;
-    const blockAlign = numberOfChannels * bytesPerSample;
-    const byteRate = sampleRate * blockAlign;
-    const dataSize = length * blockAlign;
-    const bufferSize = 44 + dataSize;
+  private audioBufferToWav(ab: AudioBuffer): ArrayBuffer {
+    const numCh = ab.numberOfChannels;
+    const numFrames = ab.length;
+    const sr = ab.sampleRate;
 
-    const buffer = new ArrayBuffer(bufferSize);
+    // interleave
+    const buffers: Float32Array[] = [];
+    for (let ch = 0; ch < numCh; ch++) buffers.push(ab.getChannelData(ch));
+
+    const interleaved = new Float32Array(numFrames * numCh);
+    for (let i = 0; i < numFrames; i++) {
+      for (let ch = 0; ch < numCh; ch++) {
+        interleaved[i * numCh + ch] = buffers[ch][i];
+      }
+    }
+
+    // PCM16
+    const bytesPerSample = 2;
+    const blockAlign = numCh * bytesPerSample;
+    const dataSize = interleaved.length * bytesPerSample;
+    const buffer = new ArrayBuffer(44 + dataSize);
     const view = new DataView(buffer);
 
-    // WAV header
-    const writeString = (offset: number, string: string) => {
-      for (let i = 0; i < string.length; i++) {
-        view.setUint8(offset + i, string.charCodeAt(i));
-      }
-    };
+    // RIFF header
+    let off = 0;
+    const writeStr = (s: string) => { for (let i=0;i<s.length;i++) view.setUint8(off++, s.charCodeAt(i)); };
+    writeStr("RIFF");
+    view.setUint32(off, 36 + dataSize, true); off += 4;
+    writeStr("WAVE");
+    writeStr("fmt ");
+    view.setUint32(off, 16, true); off += 4;            // PCM chunk size
+    view.setUint16(off, 1, true); off += 2;             // PCM format
+    view.setUint16(off, numCh, true); off += 2;
+    view.setUint32(off, sr, true); off += 4;
+    view.setUint32(off, sr * blockAlign, true); off += 4; // byte rate
+    view.setUint16(off, blockAlign, true); off += 2;
+    view.setUint16(off, bytesPerSample * 8, true); off += 2; // bits per sample
+    writeStr("data");
+    view.setUint32(off, dataSize, true); off += 4;
 
-    writeString(0, 'RIFF');
-    view.setUint32(4, bufferSize - 8, true);
-    writeString(8, 'WAVE');
-    writeString(12, 'fmt ');
-    view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true);
-    view.setUint16(22, numberOfChannels, true);
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, byteRate, true);
-    view.setUint16(32, blockAlign, true);
-    view.setUint16(34, bitsPerSample, true);
-    writeString(36, 'data');
-    view.setUint32(40, dataSize, true);
-
-    // Convert float samples to 16-bit PCM
-    let offset = 44;
-    for (let i = 0; i < length; i++) {
-      for (let channel = 0; channel < numberOfChannels; channel++) {
-        const sample = Math.max(-1, Math.min(1, audioBuffer.getChannelData(channel)[i]));
-        view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
-        offset += 2;
-      }
+    // write samples
+    const clamp = (v: number) => Math.max(-1, Math.min(1, v));
+    for (let i = 0; i < interleaved.length; i++, off += 2) {
+      const s = Math.floor(clamp(interleaved[i]) * 0x7fff);
+      view.setInt16(off, s, true);
     }
 
     return buffer;

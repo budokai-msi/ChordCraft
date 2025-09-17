@@ -15,6 +15,7 @@ export default function Studio() {
   const navigate = useNavigate();
   const { code, song, setSong, integrity, setIntegrity, strategy, setStrategy } = useChordCraftStore();
   const { loadArrayBuffer, play } = useAudioEngine();
+  const objectUrlRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
     (async () => {
@@ -40,22 +41,29 @@ export default function Studio() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code]);
 
+  React.useEffect(() => {
+    return () => {
+      // Transport's provider already revokes internally when replaced/unmount,
+      // but if you want double-safety:
+      if (objectUrlRef.current) {
+        try { URL.revokeObjectURL(objectUrlRef.current); } catch {}
+      }
+    };
+  }, []);
+
   const prepareAndPlay = async () => {
     if (!song) return;
     try {
-      // Ensure user gesture on Safari/iOS
-      if (chordCraftDecoder["audioContext"]?.state === "suspended") {
-        await chordCraftDecoder["audioContext"]?.resume();
+      // iOS/Safari
+      if ((chordCraftDecoder as any)["audioContext"]?.state === "suspended") {
+        await (chordCraftDecoder as any)["audioContext"]?.resume();
       }
-      
-      // Decode to ArrayBuffer and load into transport
-      const wavBuffer = await chordCraftDecoder.decodeToArrayBuffer(song);
-      loadArrayBuffer(wavBuffer, 'audio/wav');
-      
-      // Start playback
+      const wav = await chordCraftDecoder.decodeToArrayBuffer(song);
+      const url = loadArrayBuffer(wav, "audio/wav");
+      objectUrlRef.current = url;
       play();
     } catch (e) {
-      console.error("play failed", e);
+      console.error("prepareAndPlay failed", e);
     }
   };
 

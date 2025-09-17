@@ -19,7 +19,7 @@ interface AudioEngineContextType {
   stop: () => void;
   setVolume: (volume: number) => void;
   loadAudio: (audioUrl: string) => void;
-  loadArrayBuffer: (ab: ArrayBuffer, mime?: string) => string;
+  loadArrayBuffer: (ab: ArrayBuffer, mime?: string) => string | null;
   seekTo: (time: number) => void;
 }
 
@@ -30,6 +30,7 @@ const AudioEngineContext = createContext<AudioEngineContextType | undefined>(
 export function AudioEngineProvider({ children }: { children: React.ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const rafId = useRef<number | null>(null);
+  const currentUrlRef = useRef<string | null>(null); // track blob URL so we can revoke
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -111,6 +112,13 @@ export function AudioEngineProvider({ children }: { children: React.ReactNode })
     };
   }, [startRaf, stopRaf, volume]);
 
+  // revoke URL on unmount
+  useEffect(() => {
+    return () => {
+      if (currentUrlRef.current) URL.revokeObjectURL(currentUrlRef.current);
+    };
+  }, []);
+
   // ---- controls ----
   const play = useCallback(async () => {
     const a = audioRef.current;
@@ -177,13 +185,24 @@ export function AudioEngineProvider({ children }: { children: React.ReactNode })
   }, [stopRaf]);
 
   const loadArrayBuffer = useCallback((ab: ArrayBuffer, mime = "audio/wav") => {
-    const blob = new Blob([ab], { type: mime });
-    const url = URL.createObjectURL(blob);
-    if (audioRef.current) {
-      audioRef.current.src = url;
-      audioRef.current.load();
+    try {
+      const blob = new Blob([ab], { type: mime });
+      const url = URL.createObjectURL(blob);
+
+      if (audioRef.current) {
+        // revoke previous URL to avoid leaks
+        if (currentUrlRef.current) {
+          URL.revokeObjectURL(currentUrlRef.current);
+        }
+        currentUrlRef.current = url;
+        audioRef.current.src = url;
+        audioRef.current.load();
+      }
+      return url;
+    } catch (e) {
+      console.error("loadArrayBuffer failed", e);
+      return null;
     }
-    return url; // caller can revoke later if they want
   }, []);
 
   const seekTo = useCallback((time: number) => {
