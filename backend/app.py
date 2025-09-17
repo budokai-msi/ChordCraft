@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("chordcraft")
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["https://studio.yourdomain.com"]}})
+CORS(app, resources={r"/*": {"origins": ["https://studio.yourdomain.com", "https://chord-craft-l32h.vercel.app", "https://*.vercel.app"]}})
 
 # Security: 100MB limit (matches nginx config)
 app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
