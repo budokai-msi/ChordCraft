@@ -29,7 +29,7 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
   const [checksumStatus, setChecksumStatus] = useState<{ valid: boolean; hash: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Use proxy URL for production (no CORS issues)
+  // Use mock API for now (will work immediately)
   const backendUrl = "/api";
 
   const validFile = (f: File) => {
