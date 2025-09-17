@@ -1,17 +1,27 @@
 {
-  "builds": [
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
+  "version": 2,
+  "buildCommand": "cd frontend && npm run build",
+  "outputDirectory": "frontend/dist",
+  "functions": {
+    "frontend/api/analyze.py": {
+      "runtime": "@vercel/python@3.9.0"
+    },
+    "frontend/api/health.py": {
+      "runtime": "@vercel/python@3.9.0"
     }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/frontend/$1" }
   ],
-  "routes": [
+  "headers": [
     {
-      "src": "/(.*)",
-      "dest": "/frontend/$1"
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://unpkg.com https://accounts.google.com https://apis.google.com; connect-src 'self' https://unpkg.com https://oauth2.googleapis.com https://www.googleapis.com https://accounts.google.com https://*.supabase.co https://*.supabase.in; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.googleusercontent.com; frame-src https://accounts.google.com" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "same-origin" },
+        { "key": "Permissions-Policy", "value": "microphone=(), camera=()" }
+      ]
     }
   ]
 }
