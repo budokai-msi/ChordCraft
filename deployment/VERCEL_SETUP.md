@@ -27,12 +27,16 @@ Go to **Project → Settings → Environment Variables**
 ```
 VITE_BACKEND_URL = https://api.yourdomain.com
 VITE_FFMPEG_CORE_URL = https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js
+VITE_SUPABASE_URL = https://wgofqkisiqkygpnliuwl.supabase.co
+VITE_SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indnb2Zxa2lzaXFreWdwbmxpdXdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4ODE4MzEsImV4cCI6MjA3MzQ1NzgzMX0.DcqJ7XNAkMiOT-3Vnlmvua84wNqahgfd3JQ9wpTW-yg
 ```
 
 #### **Preview:**
 ```
 VITE_BACKEND_URL = https://api-staging.yourdomain.com
 VITE_FFMPEG_CORE_URL = https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js
+VITE_SUPABASE_URL = https://wgofqkisiqkygpnliuwl.supabase.co
+VITE_SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indnb2Zxa2lzaXFreWdwbmxpdXdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4ODE4MzEsImV4cCI6MjA3MzQ1NzgzMX0.DcqJ7XNAkMiOT-3Vnlmvua84wNqahgfd3JQ9wpTW-yg
 ```
 
 ### **4. Verify Configuration**
