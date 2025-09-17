@@ -6,6 +6,7 @@ import { Card, CardContent } from "./ui/card";
 import { Progress } from "./ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
 import { chordCraftDecoder, ChordCraftSong } from "../utils/ChordCraftDecoder";
+import { toast } from "sonner";
 
 interface FileUploadResult {
   fileName: string;
@@ -41,7 +42,7 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
     const validSize = f.size <= maxSize;
     
     if (!validSize) {
-      alert(`File too large: ${(f.size / 1024 / 1024).toFixed(1)}MB. Maximum size is 80MB.`);
+      toast.error(`File too large: ${(f.size / 1024 / 1024).toFixed(1)}MB. Maximum size is 80MB.`);
       return false;
     }
     
@@ -70,7 +71,7 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
 
   const handleFileUpload = async (file: File) => {
     if (!validFile(file)) {
-      alert("Please select a valid audio file (MP3/WAV/OGG/AAC/M4A/FLAC).");
+      toast.error("Please select a valid audio file (MP3/WAV/OGG/AAC/M4A/FLAC).");
       return;
     }
     setIsUploading(true);
@@ -92,7 +93,14 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
             setUploadProgress(Math.round((ev.loaded / ev.total) * 100));
           }
         };
-        xhr.onerror = () => reject(new Error("Network error"));
+        xhr.onerror = () => {
+          toast.error("Upload failed: network/CORS blocked. Check VITE_BACKEND_URL, CSP connect-src, and backend CORS.");
+          reject(new Error("Network error"));
+        };
+        xhr.ontimeout = () => {
+          toast.error("Request timeout - backend may be slow or unreachable.");
+          reject(new Error("Request timeout"));
+        };
         xhr.onload = () => {
           if (xhr.status >= 200 && xhr.status < 300) {
             // Expecting: { success: true, code: "..." }
@@ -107,6 +115,8 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
               );
             }
           } else {
+            const snippet = (xhr.responseText || "").slice(0, 200);
+            toast.error(`Upload failed: ${xhr.status} ${xhr.statusText}\n${snippet}`);
             reject(new Error(`HTTP ${xhr.status}`));
           }
         };
@@ -146,7 +156,7 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
       if (navigator.vibrate) navigator.vibrate([20, 10, 20]);
     } catch (err: any) {
       console.error("Upload failed:", err);
-      alert(`Upload failed: ${err?.message || "Unknown error"}`);
+      toast.error(`Upload failed: ${err?.message || "Unknown error"}`);
       if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
     } finally {
       setIsUploading(false);

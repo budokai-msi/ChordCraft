@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useChordCraftStore } from "../store/useChordCraftStore";
 import { SimpleFileUpload } from "../components/SimpleFileUpload";
 import { useAuth } from "../hooks/useAuth";
+import ConnectivityBadge from "../components/ConnectivityBadge";
 
 export default function Upload() {
   const navigate = useNavigate();
@@ -53,13 +54,16 @@ export default function Upload() {
       <header className="space-y-2">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-semibold">ChordCraft Studio</h1>
+            <h1 className="text-3xl font-semibold">Analyze Track</h1>
             <p className="text-sm opacity-70">
               Upload any song → get ChordCraft v2 code with embedded lossless payload for <em>identical</em> playback.
             </p>
           </div>
-          <div className="text-right">
-            <p className="text-sm text-gray-600">Welcome, {user.email}</p>
+          <div className="flex items-center gap-3">
+            <ConnectivityBadge />
+            <div className="text-right">
+              <p className="text-sm text-gray-600">Welcome, {user.email}</p>
+            </div>
           </div>
         </div>
       </header>
