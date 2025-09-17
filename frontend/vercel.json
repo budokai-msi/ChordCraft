@@ -2,10 +2,10 @@
   "version": 2,
   "functions": {
     "api/analyze.py": {
-      "runtime": "@vercel/python@3.9.0"
+      "runtime": "vercel-python@3.9"
     },
     "api/health.py": {
-      "runtime": "@vercel/python@3.9.0"
+      "runtime": "vercel-python@3.9"
     }
   },
   "rewrites": [

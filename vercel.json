@@ -4,10 +4,10 @@
   "outputDirectory": "frontend/dist",
   "functions": {
     "frontend/api/analyze.py": {
-      "runtime": "@vercel/python@3.9.0"
+      "runtime": "vercel-python@3.9"
     },
     "frontend/api/health.py": {
-      "runtime": "@vercel/python@3.9.0"
+      "runtime": "vercel-python@3.9"
     }
   },
   "rewrites": [
