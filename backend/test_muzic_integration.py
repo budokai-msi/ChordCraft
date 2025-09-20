@@ -44,10 +44,10 @@ def test_basic_imports():
         import librosa
         import numpy as np
         import flask
-        print("✅ Basic imports successful")
+        print("PASS Basic imports successful")
         return True
     except ImportError as e:
-        print(f"❌ Basic import failed: {e}")
+        print(f"FAIL Basic import failed: {e}")
         return False
 
 def test_enhanced_imports():
@@ -58,10 +58,10 @@ def test_enhanced_imports():
         import transformers
         # import pretty_midi  # May fail if not installed
         # import music21       # May fail if not installed
-        print("✅ Enhanced imports successful")
+        print("PASS Enhanced imports successful")
         return True
     except ImportError as e:
-        print(f"⚠️  Enhanced import warning: {e}")
+        print(f"WARN Enhanced import warning: {e}")
         print("   This is expected if Muzic dependencies aren't installed yet")
         return False
 
@@ -75,10 +75,10 @@ def test_muzic_integration_module():
         # Test basic class instantiation
         from muzic_integration import MuzicEnhancedAnalyzer
         analyzer = MuzicEnhancedAnalyzer()
-        print("✅ Muzic integration module loaded")
+        print("PASS Muzic integration module loaded")
         return True, analyzer
     except Exception as e:
-        print(f"❌ Muzic integration module failed: {e}")
+        print(f"FAIL Muzic integration module failed: {e}")
         return False, None
 
 def test_basic_analysis():
@@ -99,7 +99,7 @@ def test_basic_analysis():
             from app import analyze_audio
             
             result = analyze_audio(temp_path)
-            print("✅ Basic analysis successful")
+            print("PASS Basic analysis successful")
             print(f"   Result preview: {result[:100]}...")
             return True
         finally:
@@ -108,7 +108,7 @@ def test_basic_analysis():
                 os.remove(temp_path)
                 
     except Exception as e:
-        print(f"❌ Basic analysis failed: {e}")
+        print(f"FAIL Basic analysis failed: {e}")
         return False
 
 def test_enhanced_analysis(analyzer):
@@ -125,7 +125,7 @@ def test_enhanced_analysis(analyzer):
         
         try:
             result = analyzer.analyze_audio_enhanced(temp_path)
-            print("✅ Enhanced analysis successful")
+            print("PASS Enhanced analysis successful")
             print(f"   Result preview: {result[:150]}...")
             return True
         finally:
@@ -134,7 +134,7 @@ def test_enhanced_analysis(analyzer):
                 os.remove(temp_path)
                 
     except Exception as e:
-        print(f"❌ Enhanced analysis failed: {e}")
+        print(f"FAIL Enhanced analysis failed: {e}")
         print(f"   This is expected if dependencies aren't installed: {str(e)[:100]}...")
         return False
 
@@ -147,7 +147,7 @@ def test_flask_endpoints():
         response = requests.get("http://localhost:5000/health", timeout=2)
         if response.status_code == 200:
             health_data = response.json()
-            print("✅ Server is running")
+            print("PASS Server is running")
             print(f"   Status: {health_data.get('status')}")
             print(f"   Muzic Integration: {health_data.get('muzic_integration')}")
             print(f"   Version: {health_data.get('version')}")
@@ -164,27 +164,27 @@ def test_flask_endpoints():
                         
                         if response.status_code == 200:
                             result = response.json()
-                            print("✅ Analyze endpoint successful")
+                            print("PASS Analyze endpoint successful")
                             print(f"   Analysis Type: {result.get('analysisType')}")
                             print(f"   Success: {result.get('success')}")
                             return True
                         else:
-                            print(f"❌ Analyze endpoint failed: {response.status_code}")
+                            print(f"FAIL Analyze endpoint failed: {response.status_code}")
                             return False
                 finally:
                     os.remove(temp_file.name)
         else:
-            print(f"❌ Server responded with status: {response.status_code}")
+            print(f"FAIL Server responded with status: {response.status_code}")
             return False
             
     except requests.exceptions.RequestException:
-        print("⚠️  Server not running (this is okay for offline testing)")
+        print("WARN  Server not running (this is okay for offline testing)")
         print("   To test endpoints, run: python app.py")
         return False
 
 def main():
     """Main test function"""
-    print("🎵 ChordCraft + Muzic Integration Test Suite")
+    print("MUSIC ChordCraft + Muzic Integration Test Suite")
     print("=" * 50)
     
     results = {}
@@ -211,7 +211,7 @@ def main():
         results['enhanced_analysis'] = test_enhanced_analysis(analyzer)
     else:
         results['enhanced_analysis'] = False
-        print("⚠️  Skipping enhanced analysis test (module not loaded)")
+        print("WARN  Skipping enhanced analysis test (module not loaded)")
     print()
     
     # Test 6: Flask endpoints
@@ -220,13 +220,13 @@ def main():
     
     # Summary
     print("=" * 50)
-    print("🎵 Test Summary:")
+    print("MUSIC Test Summary:")
     
     passed = sum(results.values())
     total = len(results)
     
     for test_name, passed_test in results.items():
-        status = "✅ PASS" if passed_test else "❌ FAIL"
+        status = "PASS PASS" if passed_test else "FAIL FAIL"
         print(f"   {test_name}: {status}")
     
     print(f"\nOverall: {passed}/{total} tests passed")
@@ -237,7 +237,7 @@ def main():
         print("👍 Most tests passed! You may need to install additional dependencies.")
         print("   Run: python setup_muzic.py")
     else:
-        print("⚠️  Several tests failed. Please check the setup.")
+        print("WARN  Several tests failed. Please check the setup.")
         print("   1. Install dependencies: pip install -r requirements.txt")
         print("   2. Run setup: python setup_muzic.py")
     

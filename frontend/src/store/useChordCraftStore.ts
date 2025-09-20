@@ -10,7 +10,7 @@ type State = {
   integrity: Integrity;
   strategy: Strategy | null;
   backendUrl: string;
-  nativeFirst: boolean;         // try decodeAudioData first
+  nativeFirst: boolean;         // try browser's built-in decoder before FFmpeg
   ffmpegLoaded: boolean;
 };
 

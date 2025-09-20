@@ -37,10 +37,10 @@ try:
     from sklearn.ensemble import RandomForestClassifier
     import pickle
     SKLEARN_AVAILABLE = True
-    logger.info("✅ Scikit-learn available for timbre analysis")
+    logger.info("PASS Scikit-learn available for timbre analysis")
 except ImportError:
     SKLEARN_AVAILABLE = False
-    logger.warning("⚠️ Scikit-learn not available. Timbre analysis will be limited.")
+    logger.warning("WARN Scikit-learn not available. Timbre analysis will be limited.")
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

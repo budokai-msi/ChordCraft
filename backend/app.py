@@ -4,7 +4,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from werkzeug.datastructures import FileStorage
 import tempfile, os, logging, time
-from audio_codec import ChordCraftCodec  # your class from earlier
+from audio_codec import ChordCraftCodec  # just importing the codec class we made earlier
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("chordcraft")
@@ -12,20 +12,20 @@ log = logging.getLogger("chordcraft")
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": ["https://studio.yourdomain.com", "https://chord-craft-l32h.vercel.app", "https://*.vercel.app"]}})
 
-# Security: 100MB limit (matches nginx config)
+# keeping file uploads reasonable - 100MB max
 app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
 
-# Rate limiting
+# don't let people spam the API
 limiter = Limiter(get_remote_address, app=app, default_limits=["60/min"])
 
-# Strict MIME type validation
+# only accept real audio files
 ALLOWED_MIME = {
     "audio/mpeg", "audio/wav", "audio/ogg", "audio/aac", 
     "audio/flac", "audio/x-flac"
 }
 
 def sniff_audio(sig: bytes) -> str:
-    """Lightweight signature-based MIME detection for audio files."""
+    """quick and dirty audio file detection by looking at the first few bytes"""
     if sig.startswith(b"fLaC"):
         return "audio/flac"
     if sig.startswith(b"ID3") or (len(sig) > 1 and sig[0] == 0xFF and (sig[1] & 0xE0) == 0xE0):

@@ -1,7 +1,5 @@
-/**
- * ChordCraft v2 Decoder
- * Supports both lossless (FLAC) and neural codec playback
- */
+// ChordCraft decoder - handles both lossless and neural codec playback
+// this is what takes the generated code and turns it back into audio
 
 export interface ChordCraftMetadata {
   bpm: number;
