@@ -1,5 +1,5 @@
 export default function handler(req, res) {
-  // Set CORS headers
+  // allow requests from anywhere - you might want to lock this down later
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -15,7 +15,7 @@ export default function handler(req, res) {
   }
 
   try {
-    // Mock ChordCraft code generation
+    // fake ChordCraft code generation for testing
     const mockCode = `# ChordCraft v2.1 - Generated ${new Date().toISOString()}
 # File: ${req.headers['x-filename'] || 'uploaded-audio'}
 # Size: ${req.headers['content-length'] || 'unknown'} bytes

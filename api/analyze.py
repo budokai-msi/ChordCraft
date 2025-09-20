@@ -91,9 +91,9 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
     
     def simulate_analysis(self, audio_file, analysis_type, tempo, key):
-        """Simulate audio analysis without Muzic dependencies"""
+        """fake audio analysis since we don't have Muzic set up yet"""
         try:
-            # Generate a simple chord progression based on the key
+            # basic chord progressions for different keys
             chord_progressions = {
                 'C major': ['C', 'Am', 'F', 'G'],
                 'G major': ['G', 'Em', 'C', 'D'],
@@ -104,10 +104,10 @@ class handler(BaseHTTPRequestHandler):
                 'Bb major': ['Bb', 'Gm', 'Eb', 'F']
             }
             
-            # Get chord progression for the key
+            # pick the right chords for the key, default to C major
             chords = chord_progressions.get(key, ['C', 'Am', 'F', 'G'])
             
-            # Generate music code
+            # build the actual ChordCraft code output
             generated_code = f"""// ChordCraft Music Code - Generated Analysis
 // Analysis completed: {self.get_timestamp()}
 

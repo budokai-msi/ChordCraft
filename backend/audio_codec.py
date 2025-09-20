@@ -1,7 +1,5 @@
-"""
-ChordCraft Audio Codec System
-Supports both lossless (FLAC) and neural codec (EnCodec) encoding
-"""
+# ChordCraft audio codec - handles both lossless FLAC and neural codec encoding
+# this is the core of how we convert audio files into embeddable code
 
 import base64
 import hashlib
@@ -14,16 +12,16 @@ import numpy as np
 import soundfile as sf
 import librosa
 
-# Try to import neural codec models
+# try to load the neural codec stuff - it's optional
 try:
     import torch
     from transformers import AutoModel, AutoTokenizer
     NEURAL_CODECS_AVAILABLE = True
 except ImportError:
     NEURAL_CODECS_AVAILABLE = False
-    print("Neural codecs not available. Install: pip install torch transformers")
+    print("Neural codecs not available. Install them with: pip install torch transformers")
 
-CHUNK_SIZE = 65536  # Base64 chunk size for copy-paste
+CHUNK_SIZE = 65536  # how big each base64 chunk should be for copy-paste
 
 class ChordCraftCodec:
     def __init__(self, target_sr: int = 44100, stereo: bool = True):
@@ -32,11 +30,11 @@ class ChordCraftCodec:
         self.chunk_size = CHUNK_SIZE
         
     def encode_lossless(self, audio_path: str) -> Tuple[bytes, Dict]:
-        """Encode audio to lossless FLAC format"""
+        """turn audio into lossless FLAC data"""
         y, sr = librosa.load(audio_path, sr=self.target_sr, mono=not self.stereo)
         
         if y.ndim == 1 and self.stereo:
-            y = np.vstack([y, y])  # Convert mono to stereo
+            y = np.vstack([y, y])  # make mono into stereo by duplicating
         
         y = (y.T).astype(np.float32)
         buf = io.BytesIO()

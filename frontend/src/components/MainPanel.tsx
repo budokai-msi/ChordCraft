@@ -16,7 +16,7 @@ export function MainPanel({ currentTrack, isPlaying }: MainPanelProps) {
   const [zoom, setZoom] = useState(100);
   const [playbackState, setPlaybackState] = useState(isPlaying);
 
-  // Fallback values if audioEngine is undefined
+  // backup values in case the audio engine isn't loaded yet
   const safeAudioEngine = audioEngine || {
     currentTime: 0,
     duration: 154,
@@ -30,13 +30,13 @@ export function MainPanel({ currentTrack, isPlaying }: MainPanelProps) {
     seekTo: () => {}
   };
 
-  // Load sample audio on component mount
+  // set up some test audio when the component loads
   useEffect(() => {
-    // For now, we'll generate a simple tone using Web Audio API
+    // just making a simple test tone with Web Audio API
     generateSampleAudio();
   }, []);
 
-  // Generate a simple audio tone for testing
+  // create a basic test tone to make sure audio is working
   const generateSampleAudio = () => {
     if (typeof window === 'undefined') return;
     
