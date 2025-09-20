@@ -177,7 +177,7 @@ export default function Studio() {
                   const hex = Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,"0")).join("");
                   const isValid = hex === song.audio.sha256;
                   setIntegrity(isValid ? "ok" : "mismatch");
-                  toast.success(isValid ? "✅ Integrity verified!" : "⚠️ Code has been modified");
+                  toast.success(isValid ? "VERIFIED Integrity confirmed!" : "MODIFIED Code has been changed");
                 }}
               >Re-verify</button>
             </div>

@@ -1,8 +1,9 @@
-// Minimal WAV parser + peaks per bucket in a Worker.
-//
-// Worker API:
+// basic WAV parser and peaks calculator running in a worker thread
+// send it audio data and get back visualization peaks for the waveform
+// 
+// how to use:
 // postMessage({ id, wav: ArrayBuffer, buckets?: number })
-// => reply: { id, peaks: { min: number[], max: number[] } }
+// get back: { id, peaks: { min: number[], max: number[] } }
 
 type MsgIn = { id: string; wav: ArrayBuffer; buckets?: number };
 type MsgOut = { id: string; peaks: { min: number[]; max: number[] } };

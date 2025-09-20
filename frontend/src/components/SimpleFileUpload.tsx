@@ -29,7 +29,7 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
   const [checksumStatus, setChecksumStatus] = useState<{ valid: boolean; hash: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Use mock API for now (will work immediately)
+  // API endpoint - will use the mock implementation that works right away
   const backendUrl = "/api";
 
   const validFile = (f: File) => {
@@ -246,12 +246,12 @@ export function SimpleFileUpload({ onUpload }: SimpleFileUploadProps) {
                       {checksumStatus.valid ? (
                         <>
                           <CheckCircle className="w-3 h-3 text-green-400" />
-                          <span className="text-green-400">✅ Identical Playback Guaranteed</span>
+                          <span className="text-green-400">VERIFIED Identical Playback Guaranteed</span>
                         </>
                       ) : (
                         <>
                           <AlertTriangle className="w-3 h-3 text-yellow-400" />
-                          <span className="text-yellow-400">⚠️ Code Modified</span>
+                          <span className="text-yellow-400">MODIFIED Code Modified</span>
                         </>
                       )}
                       {song?.audio && (

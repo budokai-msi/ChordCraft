@@ -204,7 +204,7 @@ class MuzicSetup:
                 logger.error(f"Exception in step '{step_name}': {e}")
                 return False
         
-        logger.info("🎵 Muzic integration setup completed successfully!")
+        logger.info("MUSIC Muzic integration setup completed successfully!")
         logger.info("You can now run your ChordCraft backend with enhanced music analysis capabilities.")
         
         return True
@@ -215,13 +215,13 @@ def main():
     setup = MuzicSetup()
     
     if setup.run_setup():
-        print("\n✅ Setup completed successfully!")
+        print("\nPASS Setup completed successfully!")
         print("To start your enhanced ChordCraft backend, run:")
         print("  python app.py")
         print("\nThe backend will now include Muzic-enhanced music analysis capabilities.")
         sys.exit(0)
     else:
-        print("\n❌ Setup failed!")
+        print("\nFAIL Setup failed!")
         print("Please check the logs above for error details.")
         sys.exit(1)
 

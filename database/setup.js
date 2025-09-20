@@ -7,7 +7,7 @@ const supabaseUrl = 'https://wgofqkisiqkygpnliuwl.supabase.co';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // You'll need to set this
 
 if (!supabaseServiceKey) {
-  console.error('❌ SUPABASE_SERVICE_ROLE_KEY environment variable is required');
+  console.error('FAIL SUPABASE_SERVICE_ROLE_KEY environment variable is required');
   process.exit(1);
 }
 
@@ -15,7 +15,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 async function setupDatabase() {
   try {
-    console.log('🚀 Setting up ChordCraft database...');
+    console.log('START Setting up ChordCraft database...');
     
     // Read the schema file
     const schemaPath = path.join(process.cwd(), 'database', 'schema.sql');
@@ -37,13 +37,13 @@ async function setupDatabase() {
           const { error } = await supabase.rpc('exec_sql', { sql: statement });
           
           if (error) {
-            console.warn(`⚠️  Warning on statement ${i + 1}: ${error.message}`);
+            console.warn(`WARN  Warning on statement ${i + 1}: ${error.message}`);
             // Continue with other statements
           } else {
-            console.log(`✅ Statement ${i + 1} executed successfully`);
+            console.log(`PASS Statement ${i + 1} executed successfully`);
           }
         } catch (err) {
-          console.warn(`⚠️  Error on statement ${i + 1}: ${err.message}`);
+          console.warn(`WARN  Error on statement ${i + 1}: ${err.message}`);
           // Continue with other statements
         }
       }
@@ -56,7 +56,7 @@ async function setupDatabase() {
     console.log('3. Check that RLS policies are working correctly');
     
   } catch (error) {
-    console.error('❌ Database setup failed:', error);
+    console.error('FAIL Database setup failed:', error);
     process.exit(1);
   }
 }
@@ -64,7 +64,7 @@ async function setupDatabase() {
 // Alternative method using direct SQL execution
 async function setupDatabaseDirect() {
   try {
-    console.log('🚀 Setting up ChordCraft database (direct method)...');
+    console.log('START Setting up ChordCraft database (direct method)...');
     
     // Read the schema file
     const schemaPath = path.join(process.cwd(), 'database', 'schema.sql');
@@ -74,14 +74,14 @@ async function setupDatabaseDirect() {
     const { error } = await supabase.rpc('exec_sql', { sql: schema });
     
     if (error) {
-      console.error('❌ Database setup failed:', error);
+      console.error('FAIL Database setup failed:', error);
       process.exit(1);
     }
     
     console.log('🎉 Database setup completed!');
     
   } catch (error) {
-    console.error('❌ Database setup failed:', error);
+    console.error('FAIL Database setup failed:', error);
     process.exit(1);
   }
 }
